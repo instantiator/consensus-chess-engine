@@ -1,6 +1,28 @@
+version: "3.8"
 services:
+  database:
+    image: 'postgres:latest'
+    ports:
+      - 5432:5432 # <exposed>:<internal>
+    env_file: environments/database.env
+    volumes:
+      - db-data:/var/lib/postgresql/data/
+
+  engine:
+    env_file:
+      - environments/engine.env
+      - environments/database.env
+    build:
+      context: .
+      dockerfile: ConsensusChessEngine/Dockerfile
+
   node-basic:
-    env_file: environments/node-basic.env
+    env_file:
+      - environments/node-basic.env
+      - environments/database.env
     build:
       context: .
       dockerfile: ConsensusChessNode/Dockerfile
+
+volumes:
+  db-data:

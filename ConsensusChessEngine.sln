@@ -20,6 +20,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "environments", "environments", "{19B49F4A-EE4B-4D1B-BA53-5E033E771F52}"
 	ProjectSection(SolutionItems) = preProject
 		environments\node-basic.env = environments\node-basic.env
+		environments\database.env = environments\database.env
 	EndProjectSection
 EndProject
 Global

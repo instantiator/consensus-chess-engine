@@ -12,7 +12,6 @@ COPY ["ConsensusChessNode/ConsensusChessNode.csproj", "ConsensusChessNode/"]
 COPY ["ConsensusChessShared/ConsensusChessShared.csproj", "ConsensusChessShared/"]
 
 RUN dotnet restore
-# "ConsensusChessNode/ConsensusChessNode.csproj"
 
 COPY . .
 WORKDIR "/src/ConsensusChessNode"

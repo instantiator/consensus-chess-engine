@@ -1,4 +1,4 @@
-# Initialise the database
+# Database
 
 ## Install the Entity Framework tool
 
@@ -11,4 +11,3 @@ dotnet tool install --global dotnet-ef
 ```shell
 dotnet ef migrations add InitialCreate --project ConsensusChessShared/ConsensusChessShared.csproj
 ```
-
