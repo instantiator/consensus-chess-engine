@@ -32,6 +32,7 @@ namespace ConsensusChessShared.Database
             this.password = password;
         }
 
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
             => optionsBuilder.UseNpgsql($"Host={host};Database={database};Username={username};Password={password}");
 
