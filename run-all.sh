@@ -3,5 +3,10 @@
 set -e
 set -o pipefail
 
-docker compose build
-docker compose up
+# build containers
+docker compose --env-file environments/database.env build
+
+# print config and then start the containers
+docker compose --env-file environments/database.env config
+docker compose --env-file environments/database.env up
+

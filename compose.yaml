@@ -3,14 +3,20 @@ services:
   database:
     image: 'postgres:latest'
     ports:
-      - 5432:5432 # <exposed>:<internal>
+      - "5432:5432"
     env_file: environments/database.env
     volumes:
       - db-data:/var/lib/postgresql/data/
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U","${POSTGRES_USER}", "-d","${POSTGRES_DB}" ]
+      interval: 2s
+      timeout: 2s
+      retries: 5
 
   engine:
     depends_on:
-      - database
+      database:
+        condition: service_healthy
     env_file:
       - environments/engine.env
       - environments/database.env
@@ -20,7 +26,8 @@ services:
 
   node-basic:
     depends_on:
-      - database
+      database:
+        condition: service_healthy
     env_file:
       - environments/node-basic.env
       - environments/database.env
