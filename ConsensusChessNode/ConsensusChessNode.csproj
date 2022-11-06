@@ -14,4 +14,7 @@
   <ItemGroup>
     <None Remove="Mastonet" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ConsensusChessShared\ConsensusChessShared.csproj" />
+  </ItemGroup>
 </Project>

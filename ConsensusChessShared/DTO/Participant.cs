@@ -5,7 +5,7 @@ namespace ConsensusChessShared.DTO
 	{
 		public Network Network { get; set; }
 		public string NetworkUserId { get; set; }
-		public Dictionary<Game, Side> CommittedSide { get; set; }
+		public IEnumerable<Commitment> Commitments { get; set; }
 	}
 }
 

@@ -16,4 +16,7 @@
     <None Remove="Mastonet" />
     <None Remove="Dockerfile.engine" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ConsensusChessShared\ConsensusChessShared.csproj" />
+  </ItemGroup>
 </Project>
