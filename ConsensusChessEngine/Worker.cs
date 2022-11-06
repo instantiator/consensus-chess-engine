@@ -1,4 +1,7 @@
 ﻿using ConsensusChessShared.Database;
+using ConsensusChessShared.DTO;
+using ConsensusChessShared.Social;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
@@ -11,6 +14,8 @@ public class Worker : BackgroundService
     private readonly ILogger<Worker> log;
 
     private ConsensusChessDbContext db;
+    private Network network;
+    private ISocialConnection social;
 
     public Worker(IHostApplicationLifetime hostApplicationLifetime, ILogger<Worker> logger) =>
         (lifetime, log) = (hostApplicationLifetime, logger);
@@ -18,17 +23,16 @@ public class Worker : BackgroundService
     public override async Task StartAsync(CancellationToken cancellationToken)
     {
         log.LogInformation("Worker.StartAsync at: {time}", DateTimeOffset.Now);
-
-        var host = Environment.GetEnvironmentVariable("DB_HOST");
-        var database = Environment.GetEnvironmentVariable("POSTGRES_DB");
-        var username = Environment.GetEnvironmentVariable("POSTGRES_USER");
-        var password = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD");
-        log.LogInformation($"Database host: {host} db: {database}");
-        db = new ConsensusChessDbContext(host, database, username, password);
+        db = ConsensusChessDbContext.FromEnvironment(Environment.GetEnvironmentVariables());
 
         var connection = await db.Database.CanConnectAsync();
-        var created = await db.Database.EnsureCreatedAsync();
-        log.LogInformation($"Connection: {connection} Created: {created}");
+        log.LogInformation($"Database connection: {connection}");
+
+        await db.Database.MigrateAsync();
+        log.LogInformation($"Migrations run.");
+
+        network = Network.FromEnvironment(NetworkType.Mastodon, Environment.GetEnvironmentVariables());
+        social = new MastodonConnection(network);
 
         await base.StartAsync(cancellationToken);
     }
@@ -36,6 +40,7 @@ public class Worker : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         log.LogInformation("Worker.ExecuteAsync at: {time}", DateTimeOffset.Now);
+        log.LogInformation($"Display name: {await social.GetDisplayNameAsync()}");
         log.LogInformation($"Games: {db.Games.Count()}");
 
         // a while loop, which we can use for streaming from Mastodon

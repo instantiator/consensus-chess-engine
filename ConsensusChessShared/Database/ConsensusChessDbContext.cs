@@ -7,15 +7,7 @@ namespace ConsensusChessShared.Database
 	public class ConsensusChessDbContext : DbContext
 	{
         public DbSet<Game> Games { get; set; }
-
-        //public DbSet<Board> Boards { get; set; }
-        //public DbSet<Commitment> Commitments { get; set; } 
-        //public DbSet<Move> Moves { get; set; }
-        //public DbSet<Network> Networks { get; set; }
-        //public DbSet<Participant> Participants { get; set; }
-        //public DbSet<Post> Posts { get; set; }
-        //public DbSet<Vote> Votes { get; set; }
-        //public DbSet<VoteValidation> VoteValidations { get; set; }
+        public DbSet<Node> Nodes { get; set; }
 
         private string host;
         private string database;
@@ -32,10 +24,17 @@ namespace ConsensusChessShared.Database
             this.password = password;
         }
 
-
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
             => optionsBuilder.UseNpgsql($"Host={host};Database={database};Username={username};Password={password}");
 
+        public static ConsensusChessDbContext FromEnvironment(System.Collections.IDictionary env)
+        {
+            var host = (string)env["DB_HOST"];
+            var database = (string)env["POSTGRES_DB"];
+            var username = (string)env["POSTGRES_USER"];
+            var password = (string)env["POSTGRES_PASSWORD"];
+            return new ConsensusChessDbContext(host, database, username, password);
+        }
     }
 }
 

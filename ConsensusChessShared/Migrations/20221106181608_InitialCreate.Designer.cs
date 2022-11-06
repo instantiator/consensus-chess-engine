@@ -12,14 +12,14 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ConsensusChessShared.Migrations
 {
     [DbContext(typeof(ConsensusChessDbContext))]
-    [Migration("20221106160343_InitialCreate")]
+    [Migration("20221106181608_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.10")
+                .HasAnnotation("ProductVersion", "6.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -177,10 +177,6 @@ namespace ConsensusChessShared.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("AccountName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("AppKey")
                         .IsRequired()
                         .HasColumnType("text");
@@ -196,6 +192,10 @@ namespace ConsensusChessShared.Migrations
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("NetworkServer")
                         .IsRequired()
                         .HasColumnType("text");
@@ -209,6 +209,32 @@ namespace ConsensusChessShared.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Network");
+                });
+
+            modelBuilder.Entity("ConsensusChessShared.DTO.Node", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("NetworkId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("Updated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NetworkId");
+
+                    b.ToTable("Nodes");
                 });
 
             modelBuilder.Entity("ConsensusChessShared.DTO.Participant", b =>
@@ -387,6 +413,17 @@ namespace ConsensusChessShared.Migrations
                     b.Navigation("SelectedVote");
 
                     b.Navigation("To");
+                });
+
+            modelBuilder.Entity("ConsensusChessShared.DTO.Node", b =>
+                {
+                    b.HasOne("ConsensusChessShared.DTO.Network", "Network")
+                        .WithMany()
+                        .HasForeignKey("NetworkId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Network");
                 });
 
             modelBuilder.Entity("ConsensusChessShared.DTO.Participant", b =>

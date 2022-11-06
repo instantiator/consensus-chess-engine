@@ -48,13 +48,34 @@ namespace ConsensusChessShared.Migrations
                     AppKey = table.Column<string>(type: "text", nullable: false),
                     AppSecret = table.Column<string>(type: "text", nullable: false),
                     AppToken = table.Column<string>(type: "text", nullable: false),
-                    AccountName = table.Column<string>(type: "text", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
                     Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Network", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Nodes",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    NetworkId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Nodes", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Nodes_Network_NetworkId",
+                        column: x => x.NetworkId,
+                        principalTable: "Network",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -282,6 +303,11 @@ namespace ConsensusChessShared.Migrations
                 column: "ToId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Nodes_NetworkId",
+                table: "Nodes",
+                column: "NetworkId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Participant_NetworkId",
                 table: "Participant",
                 column: "NetworkId");
@@ -356,6 +382,9 @@ namespace ConsensusChessShared.Migrations
 
             migrationBuilder.DropTable(
                 name: "Media");
+
+            migrationBuilder.DropTable(
+                name: "Nodes");
 
             migrationBuilder.DropTable(
                 name: "Games");

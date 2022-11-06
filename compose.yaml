@@ -9,6 +9,8 @@ services:
       - db-data:/var/lib/postgresql/data/
 
   engine:
+    depends_on:
+      - database
     env_file:
       - environments/engine.env
       - environments/database.env
@@ -17,6 +19,8 @@ services:
       dockerfile: ConsensusChessEngine/Dockerfile
 
   node-basic:
+    depends_on:
+      - database
     env_file:
       - environments/node-basic.env
       - environments/database.env

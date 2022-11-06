@@ -21,6 +21,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "environments", "environment
 	ProjectSection(SolutionItems) = preProject
 		environments\node-basic.env = environments\node-basic.env
 		environments\database.env = environments\database.env
+		environments\engine.env = environments\engine.env
 	EndProjectSection
 EndProject
 Global
