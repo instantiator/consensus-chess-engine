@@ -1,9 +1,10 @@
 ﻿using System;
-namespace ConensusChessShared.DTO
+namespace ConsensusChessShared.DTO
 {
 	public class MoveValidation : AbstractDTO
 	{
-		public bool IsValid { get; set; }
+		public bool ValidationState { get; set; }
+		public string Note { get; set; }
 		public Post Post { get; set; }
 	}
 }

@@ -1,9 +1,10 @@
 ﻿using System;
 namespace ConsensusChessShared.DTO
 {
-	public enum NetworkType
+	public enum Side
 	{
-		Mastodon
+		Black,
+		White
 	}
 }
 

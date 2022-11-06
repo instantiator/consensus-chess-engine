@@ -1,4 +1,4 @@
-﻿namespace ConensusChessShared.DTO;
+﻿namespace ConsensusChessShared.DTO;
 
 public class Game : AbstractDTO
 {
@@ -8,4 +8,6 @@ public class Game : AbstractDTO
     public Board CurrentBoard { get; set; }
     public IEnumerable<Move> History { get; set; }
     public bool Active { get; set; }
+    public Side NextSide { get; set; }
+    public IDictionary<Side, IEnumerable<Network>> Sides { get; set; }
 }

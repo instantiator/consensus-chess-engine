@@ -1,5 +1,5 @@
 ﻿using System;
-namespace ConensusChessShared.DTO
+namespace ConsensusChessShared.DTO
 {
 	public enum PostType
 	{
