@@ -1,0 +1,51 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 25.0.1704.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsensusChessEngine", "ConsensusChessEngine\ConsensusChessEngine.csproj", "{4CD85E8D-8F39-4E1E-A65C-2CD70500F7A5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{557D0D38-D9F7-44ED-9D12-E9255F13888A}"
+	ProjectSection(SolutionItems) = preProject
+		compose.yaml = compose.yaml
+		run-all.sh = run-all.sh
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsensusChessNode", "ConsensusChessNode\ConsensusChessNode.csproj", "{630D8F9B-EE53-42AB-97B6-AD64F85F3425}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsensusChessShared", "ConsensusChessShared\ConsensusChessShared.csproj", "{15B1A7B0-EA0F-4BED-AD2C-13C24739202E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "environments", "environments", "{19B49F4A-EE4B-4D1B-BA53-5E033E771F52}"
+	ProjectSection(SolutionItems) = preProject
+		environments\node-basic.env = environments\node-basic.env
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4CD85E8D-8F39-4E1E-A65C-2CD70500F7A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4CD85E8D-8F39-4E1E-A65C-2CD70500F7A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4CD85E8D-8F39-4E1E-A65C-2CD70500F7A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4CD85E8D-8F39-4E1E-A65C-2CD70500F7A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{630D8F9B-EE53-42AB-97B6-AD64F85F3425}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{630D8F9B-EE53-42AB-97B6-AD64F85F3425}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{630D8F9B-EE53-42AB-97B6-AD64F85F3425}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{630D8F9B-EE53-42AB-97B6-AD64F85F3425}.Release|Any CPU.Build.0 = Release|Any CPU
+		{15B1A7B0-EA0F-4BED-AD2C-13C24739202E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{15B1A7B0-EA0F-4BED-AD2C-13C24739202E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{15B1A7B0-EA0F-4BED-AD2C-13C24739202E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15B1A7B0-EA0F-4BED-AD2C-13C24739202E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B544C942-745D-4B93-B771-0B35F375EAEC}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{19B49F4A-EE4B-4D1B-BA53-5E033E771F52} = {557D0D38-D9F7-44ED-9D12-E9255F13888A}
+	EndGlobalSection
+EndGlobal

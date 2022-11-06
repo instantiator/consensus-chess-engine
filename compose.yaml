@@ -1,0 +1,6 @@
+services:
+  node-basic:
+    env_file: environments/node-basic.env
+    build:
+      context: .
+      dockerfile: ConsensusChessNode/Dockerfile
