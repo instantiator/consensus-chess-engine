@@ -2,20 +2,20 @@
 using ConsensusChessShared.DTO;
 using Mastonet;
 using Mastonet.Entities;
+using Microsoft.Extensions.Logging;
 
 namespace ConsensusChessShared.Social
 {
-	public class MastodonConnection : ISocialConnection
+	public class MastodonConnection : AbstractSocialConnection
 	{
         private static readonly HttpClient http = new HttpClient();
 
-        private Network network;
-        private Action<SocialCommand>? receiver;
-        private MastodonClient? client;
+        private MastodonClient client;
+        private event Action<SocialCommand> receivers;
 
-		public MastodonConnection(Network network)
+		public MastodonConnection(ILogger log, Network network) : base(log, network)
 		{
-			this.network = network;
+			
 
             // https://github.com/glacasa/Mastonet/blob/main/DOC.md
             // https://github.com/glacasa/Mastonet/blob/main/API.md
@@ -36,27 +36,37 @@ namespace ConsensusChessShared.Social
             client = new MastodonClient(reg, token, http);
         }
 
-        public async Task<string> GetDisplayNameAsync()
+        public override async Task<string> GetDisplayNameAsync()
         {
             var user = await client.GetCurrentUser();
             return user.DisplayName;
         }
 
-        public async Task<IEnumerable<SocialCommand>> RetrieveComamndsAsync(DateTime since, DateTime until)
+        public override async Task<PostReport> PostStatusAsync(SocialStatus status)
+            => await PostStatusAsync($"{network.Name}: {status}");
+
+        public override async Task<PostReport> PostStatusAsync(string detail)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var status = await client.PostStatus(detail);
+                return PostReport.Success();
+            }
+            catch (Exception e)
+            {
+                return PostReport.From(e);
+            }
+        }
+
+        public override void StartListening(Action<SocialCommand> receiver, DateTime? backdate)
+        {
+            this.receivers += receiver;
             // TODO
         }
 
-        public void StartListening(Action<SocialCommand> action)
+        public override void StopListening(Action<SocialCommand> receiver)
         {
-            this.receiver = action;
-            // TODO
-        }
-
-        public void StopListening()
-        {
-            throw new NotImplementedException();
+            this.receivers -= receiver;
             // TODO
         }
     }

@@ -28,13 +28,13 @@ public class Worker : BackgroundService
     {
         log.LogInformation("Worker.ExecuteAsync at: {time}", DateTimeOffset.Now);
 
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            log.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-            await Task.Delay(1000, stoppingToken);
-        }
+        //while (!stoppingToken.IsCancellationRequested)
+        //{
+        //    log.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
+        //    await Task.Delay(1000, stoppingToken);
+        //}
 
-        log.LogInformation("Worker cancelled at: {time}", DateTimeOffset.Now);
+        log.LogInformation("Worker stopping at: {time}", DateTimeOffset.Now);
         lifetime.StopApplication();
     }
 

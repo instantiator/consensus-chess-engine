@@ -32,7 +32,7 @@ public class Worker : BackgroundService
         log.LogInformation($"Migrations run.");
 
         network = Network.FromEnvironment(NetworkType.Mastodon, Environment.GetEnvironmentVariables());
-        social = new MastodonConnection(network);
+        social = SocialFactory.From(log, network);
 
         await base.StartAsync(cancellationToken);
     }
@@ -41,22 +41,25 @@ public class Worker : BackgroundService
     {
         log.LogInformation("Worker.ExecuteAsync at: {time}", DateTimeOffset.Now);
         log.LogInformation($"Display name: {await social.GetDisplayNameAsync()}");
-        log.LogInformation($"Games: {db.Games.Count()}");
+        log.LogInformation($"Activer games: {db.Games.ToList().Count(g => g.Active)}");
+
+        var posted = await social.PostStatusAsync(SocialStatus.Started);
 
         // a while loop, which we can use for streaming from Mastodon
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            log.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-            await Task.Delay(1000, stoppingToken);
-        }
+        //while (!stoppingToken.IsCancellationRequested)
+        //{
+        //    log.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
+        //    await Task.Delay(1000, stoppingToken);
+        //}
 
-        log.LogInformation("Worker cancelled at: {time}", DateTimeOffset.Now);
+        log.LogInformation("Worker stopping at: {time}", DateTimeOffset.Now);
         lifetime.StopApplication();
     }
 
     public override async Task StopAsync(CancellationToken cancellationToken)
     {
         log.LogInformation("Cancellation has reached StopAsync");
+        await social.PostStatusAsync(SocialStatus.Stopped);
         await base.StopAsync(cancellationToken);
 
     }

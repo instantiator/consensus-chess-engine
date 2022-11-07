@@ -4,9 +4,11 @@ namespace ConsensusChessShared.Social
 	public interface ISocialConnection
 	{
 		Task<string> GetDisplayNameAsync();
-		Task<IEnumerable<SocialCommand>> RetrieveComamndsAsync(DateTime since, DateTime until);
-		void StartListening(Action<SocialCommand> action);
-		void StopListening();
+		void StartListening(Action<SocialCommand> receiver, DateTime? backdate);
+		void StopListening(Action<SocialCommand> receiver);
+
+        Task<PostReport> PostStatusAsync(SocialStatus status);
+        Task<PostReport> PostStatusAsync(string detail);
 	}
 }
 
