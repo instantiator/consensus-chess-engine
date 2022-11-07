@@ -43,7 +43,7 @@ namespace ConsensusChessShared.Service
 
         public async Task ExecuteAsync(CancellationToken cancellationToken)
         {
-            log.LogDebug("Worker.ExecuteAsync at: {time}", DateTimeOffset.Now);
+            log.LogDebug("ExecuteAsync at: {time}", DateTimeOffset.Now);
 
             try
             {
@@ -57,7 +57,7 @@ namespace ConsensusChessShared.Service
             {
                 running = false;
                 await FinishAsync(cancellationToken);
-                log.LogInformation("Worker.ExecuteAsnyc complete at: {time}", DateTimeOffset.Now);
+                log.LogInformation("ExecuteAsnyc complete at: {time}", DateTimeOffset.Now);
             }
         }
 
@@ -65,7 +65,7 @@ namespace ConsensusChessShared.Service
 
         public async Task StopAsync(CancellationToken cancellationToken)
         {
-            log.LogDebug("Cancellation has reached StopAsync");
+            log.LogDebug("StopAsync");
             await social.PostAsync(SocialStatus.Stopped);
 
             if (running)
