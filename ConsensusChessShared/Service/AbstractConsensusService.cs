@@ -37,7 +37,7 @@ namespace ConsensusChessShared.Service
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            log.LogDebug("Worker.StartAsync at: {time}", DateTimeOffset.Now);
+            log.LogDebug("StartAsync at: {time}", DateTimeOffset.Now);
             running = true;
         }
 
