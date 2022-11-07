@@ -42,14 +42,11 @@ namespace ConsensusChessShared.Social
             return user.DisplayName;
         }
 
-        public override async Task<PostReport> PostStatusAsync(SocialStatus status)
-            => await PostStatusAsync($"{network.Name}: {status}");
-
-        public override async Task<PostReport> PostStatusAsync(string detail)
+        protected override async Task<PostReport> PostToNetworkAsync(string text)
         {
             try
             {
-                var status = await client.PostStatus(detail);
+                var status = await client.PostStatus(text);
                 return PostReport.Success();
             }
             catch (Exception e)

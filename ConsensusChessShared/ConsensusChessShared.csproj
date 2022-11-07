@@ -13,11 +13,13 @@
     <None Remove="Microsoft.EntityFrameworkCore.Design" />
     <None Remove="Social\" />
     <None Remove="Mastonet" />
+    <None Remove="Service\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DTO\" />
     <Folder Include="Database\" />
     <Folder Include="Social\" />
+    <Folder Include="Service\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.7" />

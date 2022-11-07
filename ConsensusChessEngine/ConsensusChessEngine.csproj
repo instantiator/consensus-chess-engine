@@ -15,8 +15,12 @@
   <ItemGroup>
     <None Remove="Mastonet" />
     <None Remove="Dockerfile.engine" />
+    <None Remove="Service\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ConsensusChessShared\ConsensusChessShared.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Service\" />
   </ItemGroup>
 </Project>

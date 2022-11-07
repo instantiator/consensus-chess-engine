@@ -1,4 +1,5 @@
-﻿using Mastonet;
+﻿using ConsensusChessNode.Service;
+using Mastonet;
 using Mastonet.Entities;
 using static System.Net.WebRequestMethods;
 
@@ -8,41 +9,31 @@ public class Worker : BackgroundService
 {
     private readonly IHostApplicationLifetime lifetime;
     private readonly ILogger<Worker> log;
-    private readonly string name;
+    private readonly ConsensusChessNodeService service;
 
     public Worker(IHostApplicationLifetime hostApplicationLifetime, ILogger<Worker> logger)
     {
         this.lifetime = hostApplicationLifetime;
         this.log = logger;
-        this.name = Environment.GetEnvironmentVariable("NODE_NAME") ?? "unknown";
+        this.service = new ConsensusChessNodeService(log, Environment.GetEnvironmentVariables());
     }
 
     public override async Task StartAsync(CancellationToken cancellationToken)
     {
-        log.LogInformation($"Worker.StartAsync as: {name} at: " + "{time}", DateTimeOffset.Now);
-
         await base.StartAsync(cancellationToken);
+        await service.StartAsync(cancellationToken);
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        log.LogInformation("Worker.ExecuteAsync at: {time}", DateTimeOffset.Now);
-
-        //while (!stoppingToken.IsCancellationRequested)
-        //{
-        //    log.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-        //    await Task.Delay(1000, stoppingToken);
-        //}
-
-        log.LogInformation("Worker stopping at: {time}", DateTimeOffset.Now);
+        await service.ExecuteAsync(stoppingToken);
         lifetime.StopApplication();
     }
 
     public override async Task StopAsync(CancellationToken cancellationToken)
     {
-        log.LogInformation("Cancellation has reached StopAsync");
+        await service.StopAsync(cancellationToken);
         await base.StopAsync(cancellationToken);
-
     }
 }
 

@@ -7,8 +7,9 @@ namespace ConsensusChessShared.Social
 		void StartListening(Action<SocialCommand> receiver, DateTime? backdate);
 		void StopListening(Action<SocialCommand> receiver);
 
-        Task<PostReport> PostStatusAsync(SocialStatus status);
-        Task<PostReport> PostStatusAsync(string detail);
-	}
+        Task<PostReport> PostAsync(SocialStatus status);
+		Task<PostReport> PostAsync(string text);
+
+    }
 }
 

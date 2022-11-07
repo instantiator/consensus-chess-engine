@@ -16,10 +16,19 @@ namespace ConsensusChessShared.Social
 		}
 
         public abstract Task<string> GetDisplayNameAsync();
-        public abstract Task<PostReport> PostStatusAsync(SocialStatus status);
-        public abstract Task<PostReport> PostStatusAsync(string detail);
         public abstract void StartListening(Action<SocialCommand> receiver, DateTime? backdate);
         public abstract void StopListening(Action<SocialCommand> receiver);
+
+        public async Task<PostReport> PostAsync(SocialStatus status)
+			=> await PostAsync($"{network.Name}: {status}");
+
+		public async Task<PostReport> PostAsync(string text)
+		{
+			log.LogInformation($"Posting: {text}");
+			return await PostToNetworkAsync(text);
+		}
+
+        protected abstract Task<PostReport> PostToNetworkAsync(string detail);
     }
 }
 

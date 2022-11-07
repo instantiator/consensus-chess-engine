@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+
 namespace ConsensusChessShared.DTO
 {
 	public class Network : AbstractDTO
@@ -14,14 +16,17 @@ namespace ConsensusChessShared.DTO
 
         public static Network FromEnvironment(NetworkType type, System.Collections.IDictionary env)
         {
+            var environment = env.Cast<DictionaryEntry>().ToDictionary(x => (string)x.Key, x => (string)x.Value!);
+
             switch (type)
             {
                 case NetworkType.Mastodon:
-                    var server = (string)env["MASTODON_SERVER"];
-                    var appKey = (string)env["MASTODON_APP_KEY"];
-                    var appSecret = (string)env["MASTODON_APP_SECRET"];
-                    var appAccessToken = (string)env["MASTODON_ACCESS_TOKEN"];
-                    var name = (string)env["MASTODON_APP_NAME"];
+                    var name = environment["NETWORK_APP_NAME"];
+                    var server = environment["NETWORK_SERVER"];
+                    var appKey = environment["NETWORK_APP_KEY"];
+                    var appSecret = environment["NETWORK_APP_SECRET"];
+                    var appAccessToken = environment["NETWORK_ACCESS_TOKEN"];
+
                     return new Network()
                     {
                         Name = name,
