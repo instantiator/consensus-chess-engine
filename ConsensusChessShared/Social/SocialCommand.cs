@@ -8,6 +8,6 @@ namespace ConsensusChessShared.Social
 		public Network Network { get; set; }
         public string NetworkUserId { get; set; }
         public string RawText { get; set; }
+		public long SourceId { get; set; }
 	}
 }
-

@@ -5,6 +5,7 @@ namespace ConsensusChessShared.DTO
 	{
 		public string Name { get; set; }
 		public Network Network { get; set; }
+		public long LastCommandId { get; set; }
 	}
 }
 

@@ -24,16 +24,16 @@ services:
       context: .
       dockerfile: ConsensusChessEngine/Dockerfile
 
-  node-basic:
-    depends_on:
-      database:
-        condition: service_healthy
-    env_file:
-      - environments/node-basic.env
-      - environments/database.env
-    build:
-      context: .
-      dockerfile: ConsensusChessNode/Dockerfile
+#  node-basic:
+#    depends_on:
+#      database:
+#        condition: service_healthy
+#    env_file:
+#      - environments/node-basic.env
+#      - environments/database.env
+#    build:
+#      context: .
+#      dockerfile: ConsensusChessNode/Dockerfile
 
 volumes:
   db-data:

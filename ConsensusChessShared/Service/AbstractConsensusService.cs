@@ -37,8 +37,7 @@ namespace ConsensusChessShared.Service
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            log.LogDebug("StartAsync at: {time}", DateTimeOffset.Now);
-            running = true;
+            log.LogInformation("StartAsync at: {time}", DateTimeOffset.Now);
         }
 
         public async Task ExecuteAsync(CancellationToken cancellationToken)
@@ -47,11 +46,15 @@ namespace ConsensusChessShared.Service
 
             try
             {
-                log.LogDebug($"Display name: {await social.GetDisplayNameAsync()}");
+                running = true;
+                await social.InitAsync();
+                log.LogDebug($"Display name: {social.DisplayName}");
+                log.LogDebug($"Account name: {social.AccountName}");
                 log.LogDebug($"Active games: {db.Games.ToList().Count(g => g.Active)}");
                 var posted = await social.PostAsync(SocialStatus.Started);
 
                 await RunAsync(cancellationToken);
+                log.LogDebug($"Run complete");
             }
             finally
             {
@@ -65,7 +68,7 @@ namespace ConsensusChessShared.Service
 
         public async Task StopAsync(CancellationToken cancellationToken)
         {
-            log.LogDebug("StopAsync");
+            log.LogInformation("StopAsync at: {time}", DateTimeOffset.Now);
             await social.PostAsync(SocialStatus.Stopped);
 
             if (running)

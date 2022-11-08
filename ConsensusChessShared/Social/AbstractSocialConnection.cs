@@ -15,9 +15,11 @@ namespace ConsensusChessShared.Social
 			this.network = network;
 		}
 
-        public abstract Task<string> GetDisplayNameAsync();
-        public abstract void StartListening(Action<SocialCommand> receiver, DateTime? backdate);
-        public abstract void StopListening(Action<SocialCommand> receiver);
+		public abstract Task InitAsync();
+		public abstract string DisplayName { get; }
+        public abstract string AccountName { get; }
+        public abstract Task StartListeningForCommandsAsync(Func<SocialCommand, Task> asyncReceiver, long? sinceId);
+        public abstract Task StopListeningForCommandsAsync(Func<SocialCommand, Task> asyncReceiver);
 
         public async Task<PostReport> PostAsync(SocialStatus status)
 			=> await PostAsync($"{network.Name}: {status}");

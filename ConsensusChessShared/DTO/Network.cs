@@ -11,8 +11,10 @@ namespace ConsensusChessShared.DTO
         public string AppSecret { get; set; }
         public string AppToken { get; set; }
         public string Name { get; set; }
+        public string AuthorisedAccounts { get; set; }
 
         public string Descriptor => $"{Type}:{NetworkServer}:{Name}";
+        public IEnumerable<string> AuthorisedAccountsList => AuthorisedAccounts.Split(',').Select(a => a.TrimStart('@'));
 
         public static Network FromEnvironment(NetworkType type, System.Collections.IDictionary env)
         {
@@ -26,6 +28,7 @@ namespace ConsensusChessShared.DTO
                     var appKey = environment["NETWORK_APP_KEY"];
                     var appSecret = environment["NETWORK_APP_SECRET"];
                     var appAccessToken = environment["NETWORK_ACCESS_TOKEN"];
+                    var authorisedAccounts = environment["AUTHORISED_ACCOUNTS"];
 
                     return new Network()
                     {
@@ -34,7 +37,8 @@ namespace ConsensusChessShared.DTO
                         NetworkServer = server,
                         AppKey = appKey,
                         AppSecret = appSecret,
-                        AppToken = appAccessToken
+                        AppToken = appAccessToken,
+                        AuthorisedAccounts = authorisedAccounts
                     };
 
                 default:

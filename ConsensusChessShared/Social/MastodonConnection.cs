@@ -11,15 +11,14 @@ namespace ConsensusChessShared.Social
         private static readonly HttpClient http = new HttpClient();
 
         private MastodonClient client;
-        private event Action<SocialCommand> receivers;
+        private Account? user;
 
-		public MastodonConnection(ILogger log, Network network) : base(log, network)
+        private event Func<SocialCommand, Task>? asyncCommandReceivers;
+        private TimelineStreaming? stream;
+        private long lastCommandId = 0;
+
+        public MastodonConnection(ILogger log, Network network) : base(log, network)
 		{
-			
-
-            // https://github.com/glacasa/Mastonet/blob/main/DOC.md
-            // https://github.com/glacasa/Mastonet/blob/main/API.md
-
             AppRegistration reg = new AppRegistration()
             {
                 ClientId = network.AppKey,
@@ -36,11 +35,13 @@ namespace ConsensusChessShared.Social
             client = new MastodonClient(reg, token, http);
         }
 
-        public override async Task<string> GetDisplayNameAsync()
+        public override async Task InitAsync()
         {
-            var user = await client.GetCurrentUser();
-            return user.DisplayName;
+            user = await client.GetCurrentUser();
         }
+
+        public override string DisplayName => user!.DisplayName;
+        public override string AccountName => user!.AccountName;
 
         protected override async Task<PostReport> PostToNetworkAsync(string text)
         {
@@ -55,16 +56,81 @@ namespace ConsensusChessShared.Social
             }
         }
 
-        public override void StartListening(Action<SocialCommand> receiver, DateTime? backdate)
+        public override async Task StartListeningForCommandsAsync(Func<SocialCommand, Task> asyncCommandReceiver, long? sinceId = null)
         {
-            this.receivers += receiver;
-            // TODO
+            asyncCommandReceivers += asyncCommandReceiver;
+
+            // fetch conversations up to now, and then start streaming
+            var notifications = await client.GetNotifications(sinceId);
+            // TODO: paging
+
+            // set up the stream
+            stream = client.GetUserStreaming();
+            stream.OnNotification += Stream_OnNotification;
+            log.LogDebug("Starting stream");
+            stream.Start(); // not awaited - awaiting blocks
+
+            // process notifications already found
+            log.LogDebug("Processing previously found notifications");
+            notifications.ForEach(async n => { await ProcessNotification(n); });
         }
 
-        public override void StopListening(Action<SocialCommand> receiver)
+        private async void Stream_OnNotification(object? sender, StreamNotificationEventArgs e)
         {
-            this.receivers -= receiver;
-            // TODO
+            await ProcessNotification(e.Notification);
+        }
+
+        private async Task ProcessNotification(Notification notification)
+        {
+            log.LogDebug($"Processing notification, type: {notification.Type}");
+
+            var isMention = notification.Type == "mention";
+            var isForMe = notification.Status?.Mentions.Any(m => m.AccountName == AccountName) ?? false;
+            var isFrom = notification.Status?.Account.AccountName;
+            var isFavourited = notification.Status?.Favourited ?? false;
+            var isAuthorised = network.AuthorisedAccountsList.Contains(isFrom);
+
+            // only log the mentions
+            if (isMention)
+            {
+                log.LogDebug($"isMention: {isMention}, isForMe: {isForMe}, isAuthorised: {isAuthorised}, isFavourited: {isFavourited}");
+            }
+
+            if (isMention && isForMe && !isFavourited && isAuthorised)
+            {
+                var command = new SocialCommand()
+                {
+                    Network = network,
+                    NetworkUserId = notification.Status!.Account.AccountName,
+                    RawText = notification.Status!.Content,
+                    SourceId = notification.Status!.Id
+                };
+
+                var statusId = notification.Status!.Id;
+                lastCommandId = statusId > lastCommandId ? statusId : lastCommandId;
+
+                // TODO: update database with last command id
+
+                if (asyncCommandReceivers != null)
+                {
+                    await asyncCommandReceivers.Invoke(command);
+                }
+
+                await client.Favourite(notification.Status!.Id); // favourite to indicate this is dealt with
+            }
+        }
+
+        public override async Task StopListeningForCommandsAsync(Func<SocialCommand, Task> asyncCommandReceiver)
+        {
+            log.LogDebug("Removing command listeners");
+            if (stream != null)
+            {
+                stream.OnNotification -= Stream_OnNotification;
+                stream.Stop();
+                stream = null;
+            }
+
+            asyncCommandReceivers -= asyncCommandReceiver;
         }
     }
 }
