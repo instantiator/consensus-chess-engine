@@ -9,7 +9,7 @@ namespace ConsensusChessShared.Database
 	public class ConsensusChessDbContext : DbContext
 	{
         public DbSet<Game> Games { get; set; }
-        public DbSet<Node> Nodes { get; set; }
+        public DbSet<NodeState> NodeStates { get; set; }
 
         private string host;
         private string database;

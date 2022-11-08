@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using ConsensusChessShared.DTO;
 using ConsensusChessShared.Service;
 
 namespace ConsensusChessNode.Service
@@ -7,6 +8,7 @@ namespace ConsensusChessNode.Service
     public class ConsensusChessNodeService : AbstractConsensusService
     {
         protected override TimeSpan PollPeriod => TimeSpan.FromMinutes(1);
+        protected override NodeType NodeType => NodeType.Node;
 
         public ConsensusChessNodeService(ILogger log, IDictionary env) : base(log, env)
         {

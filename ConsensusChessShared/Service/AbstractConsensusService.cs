@@ -12,8 +12,9 @@ namespace ConsensusChessShared.Service
 	{
         protected readonly HttpClient http = new HttpClient();
         protected ConsensusChessDbContext db;
-        protected Network network;
         protected ISocialConnection social;
+        protected NodeState state;
+        protected Network network;
         protected ILogger log;
         protected bool running;
         protected bool polling;
@@ -22,11 +23,14 @@ namespace ConsensusChessShared.Service
 
         protected abstract TimeSpan PollPeriod { get; }
 
+        protected abstract NodeType NodeType { get; }
+
         protected AbstractConsensusService(ILogger log, IDictionary env)
         {
             this.log = log;
             this.env = env;
-            network = Network.FromEnvironment(NetworkType.Mastodon, env);
+
+            network = Network.FromEnvironment(env);
             social = SocialFactory.From(log, network);
 
             using (var db = GetDb())
@@ -34,8 +38,31 @@ namespace ConsensusChessShared.Service
                 var connection = db.Database.CanConnect();
                 log.LogDebug($"Database connection: {connection}");
 
+                log.LogDebug($"Running migrations...");
                 db.Database.Migrate();
-                log.LogDebug($"Migrations run.");
+            }
+
+
+            state = RegisterNode();
+        }
+
+        protected NodeState RegisterNode()
+        {
+            using (var db = GetDb())
+            {
+                var environment = env.Cast<DictionaryEntry>().ToDictionary(x => (string)x.Key, x => (string)x.Value!);
+                var name = environment["NODE_NAME"];
+
+                log.LogDebug($"Registering node...");
+                var currentState = db.NodeStates.Where(s => s.NodeName == name).SingleOrDefault();
+
+                if (currentState == null)
+                {
+                    currentState = NodeState.Create(name);
+                    db.NodeStates.Add(currentState);
+                    db.SaveChanges();
+                }
+                return currentState;
             }
         }
 

@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ConsensusChessShared.Migrations
 {
     [DbContext(typeof(ConsensusChessDbContext))]
-    [Migration("20221108163542_InitialCreate")]
+    [Migration("20221108193245_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -229,7 +229,7 @@ namespace ConsensusChessShared.Migrations
                     b.ToTable("Network");
                 });
 
-            modelBuilder.Entity("ConsensusChessShared.DTO.Node", b =>
+            modelBuilder.Entity("ConsensusChessShared.DTO.NodeState", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -238,21 +238,19 @@ namespace ConsensusChessShared.Migrations
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<long>("LastCommandId")
+                    b.Property<long>("LastMentionId")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("Name")
+                    b.Property<long>("LastReplyId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("NodeName")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid>("NetworkId")
-                        .HasColumnType("uuid");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("NetworkId");
-
-                    b.ToTable("Nodes");
+                    b.ToTable("NodeStates");
                 });
 
             modelBuilder.Entity("ConsensusChessShared.DTO.Participant", b =>
@@ -415,17 +413,6 @@ namespace ConsensusChessShared.Migrations
                     b.Navigation("SelectedVote");
 
                     b.Navigation("To");
-                });
-
-            modelBuilder.Entity("ConsensusChessShared.DTO.Node", b =>
-                {
-                    b.HasOne("ConsensusChessShared.DTO.Network", "Network")
-                        .WithMany()
-                        .HasForeignKey("NetworkId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Network");
                 });
 
             modelBuilder.Entity("ConsensusChessShared.DTO.Participant", b =>

@@ -11,6 +11,7 @@ namespace ConsensusChessEngine.Service
     public class ConsensusChessEngineService : AbstractConsensusService
     {
         protected override TimeSpan PollPeriod => TimeSpan.FromMinutes(1);
+        protected override NodeType NodeType => NodeType.Engine;
 
         public ConsensusChessEngineService(ILogger log, IDictionary env) : base(log, env)
         {
@@ -29,7 +30,8 @@ namespace ConsensusChessEngine.Service
 
         private async Task StartNewGameAsync(IEnumerable<string> words)
         {
-            var networks = words.Skip(1);
+            // TODO: more complex games
+            var networks = words.Skip(1); // everything after "new" is a network (for now)
 
             if (networks.Count() == 0)
             {
