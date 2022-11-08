@@ -16,7 +16,11 @@ namespace ConsensusChessShared.Service
         protected ISocialConnection social;
         protected ILogger log;
         protected bool running;
+        protected bool polling;
         protected IDictionary env;
+        protected CommandProcessor cmd;
+
+        protected abstract TimeSpan PollPeriod { get; }
 
         protected AbstractConsensusService(ILogger log, IDictionary env)
         {
@@ -38,6 +42,15 @@ namespace ConsensusChessShared.Service
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             log.LogInformation("StartAsync at: {time}", DateTimeOffset.Now);
+
+            await social.InitAsync();
+            log.LogDebug($"Display name: {social.DisplayName}");
+            log.LogDebug($"Account name: {social.AccountName}");
+            log.LogDebug($"Authorised accounts: {string.Join(", ", network.AuthorisedAccountsList)}");
+            log.LogDebug($"Active games: {db.Games.ToList().Count(g => g.Active)}");
+
+            cmd = new CommandProcessor(log, network.AuthorisedAccountsList, social.CalculateCommandSkips());
+            RegisterForCommands(cmd);
         }
 
         public async Task ExecuteAsync(CancellationToken cancellationToken)
@@ -47,28 +60,41 @@ namespace ConsensusChessShared.Service
             try
             {
                 running = true;
-                await social.InitAsync();
-                log.LogDebug($"Display name: {social.DisplayName}");
-                log.LogDebug($"Account name: {social.AccountName}");
-                log.LogDebug($"Active games: {db.Games.ToList().Count(g => g.Active)}");
+
+                // listen for commands
+                await social.StartListeningForCommandsAsync(cmd.Parse, null);
+
+                // post readiness
                 var posted = await social.PostAsync(SocialStatus.Started);
 
-                await RunAsync(cancellationToken);
-                log.LogDebug($"Run complete");
+                // poll for events
+                polling = true;
+                while (!cancellationToken.IsCancellationRequested && polling && running)
+                {
+                    log.LogTrace("Polling...");
+                    await PollAsync(cancellationToken);
+                    await Task.Delay(PollPeriod, cancellationToken); // snooze
+                }
+
+                log.LogDebug($"Run complete.");
             }
             finally
             {
+                polling = false;
                 running = false;
                 await FinishAsync(cancellationToken);
                 log.LogInformation("ExecuteAsnyc complete at: {time}", DateTimeOffset.Now);
             }
         }
 
-        protected abstract Task RunAsync(CancellationToken cancellationToken);
+        protected abstract void RegisterForCommands(CommandProcessor processor);
+
+        protected abstract Task PollAsync(CancellationToken cancellationToken);
 
         public async Task StopAsync(CancellationToken cancellationToken)
         {
             log.LogInformation("StopAsync at: {time}", DateTimeOffset.Now);
+            await social.StopListeningForCommandsAsync(cmd.Parse);
             await social.PostAsync(SocialStatus.Stopped);
 
             if (running)

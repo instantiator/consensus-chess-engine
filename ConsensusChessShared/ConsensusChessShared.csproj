@@ -14,12 +14,15 @@
     <None Remove="Social\" />
     <None Remove="Mastonet" />
     <None Remove="Service\" />
+    <None Remove="HtmlAgilityPack" />
+    <None Remove="Helpers\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DTO\" />
     <Folder Include="Database\" />
     <Folder Include="Social\" />
     <Folder Include="Service\" />
+    <Folder Include="Helpers\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.7" />
@@ -28,5 +31,6 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Mastonet" Version="1.9.0" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.46" />
   </ItemGroup>
 </Project>

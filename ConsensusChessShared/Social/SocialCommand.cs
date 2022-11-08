@@ -9,5 +9,6 @@ namespace ConsensusChessShared.Social
         public string NetworkUserId { get; set; }
         public string RawText { get; set; }
 		public long SourceId { get; set; }
+		public bool IsAuthorised { get; set; }
 	}
 }

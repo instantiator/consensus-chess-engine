@@ -18,6 +18,7 @@ namespace ConsensusChessShared.Social
 		public abstract Task InitAsync();
 		public abstract string DisplayName { get; }
         public abstract string AccountName { get; }
+        public abstract IEnumerable<string> CalculateCommandSkips();
         public abstract Task StartListeningForCommandsAsync(Func<SocialCommand, Task> asyncReceiver, long? sinceId);
         public abstract Task StopListeningForCommandsAsync(Func<SocialCommand, Task> asyncReceiver);
 

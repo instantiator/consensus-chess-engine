@@ -7,6 +7,8 @@ namespace ConsensusChessShared.Social
 		string DisplayName { get; }
 		string AccountName { get; }
 
+		IEnumerable<string> CalculateCommandSkips();
+
 		Task StartListeningForCommandsAsync(Func<SocialCommand, Task> receiver, long? sinceId);
 		Task StopListeningForCommandsAsync(Func<SocialCommand, Task> receiver);
 

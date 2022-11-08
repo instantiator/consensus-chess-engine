@@ -87,7 +87,7 @@ namespace ConsensusChessShared.Social
             var isMention = notification.Type == "mention";
             var isForMe = notification.Status?.Mentions.Any(m => m.AccountName == AccountName) ?? false;
             var isFrom = notification.Status?.Account.AccountName;
-            var isFavourited = notification.Status?.Favourited ?? false;
+            var isFavourited = notification.Status?.Favourited ?? false; // favourited == seen
             var isAuthorised = network.AuthorisedAccountsList.Contains(isFrom);
 
             // only log the mentions
@@ -96,14 +96,15 @@ namespace ConsensusChessShared.Social
                 log.LogDebug($"isMention: {isMention}, isForMe: {isForMe}, isAuthorised: {isAuthorised}, isFavourited: {isFavourited}");
             }
 
-            if (isMention && isForMe && !isFavourited && isAuthorised)
+            if (isMention && isForMe && !isFavourited)
             {
                 var command = new SocialCommand()
                 {
                     Network = network,
                     NetworkUserId = notification.Status!.Account.AccountName,
                     RawText = notification.Status!.Content,
-                    SourceId = notification.Status!.Id
+                    SourceId = notification.Status!.Id,
+                    IsAuthorised = isAuthorised
                 };
 
                 var statusId = notification.Status!.Id;
@@ -132,6 +133,11 @@ namespace ConsensusChessShared.Social
 
             asyncCommandReceivers -= asyncCommandReceiver;
         }
+
+        public override IEnumerable<string> CalculateCommandSkips() => new[]
+        {
+            $"@{AccountName}"
+        };
     }
 }
 

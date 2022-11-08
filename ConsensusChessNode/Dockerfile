@@ -10,6 +10,7 @@ COPY ["ConsensusChessEngine.sln", "ConsensusChessEngine.sln"]
 COPY ["ConsensusChessEngine/ConsensusChessEngine.csproj", "ConsensusChessEngine/"]
 COPY ["ConsensusChessNode/ConsensusChessNode.csproj", "ConsensusChessNode/"]
 COPY ["ConsensusChessShared/ConsensusChessShared.csproj", "ConsensusChessShared/"]
+COPY ["ConsensusChessSharedTests/ConsensusChessSharedTests.csproj", "ConsensusChessSharedTests/"]
 
 RUN dotnet restore
 

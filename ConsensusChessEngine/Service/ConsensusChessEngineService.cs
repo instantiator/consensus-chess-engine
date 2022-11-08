@@ -1,47 +1,39 @@
 ﻿using System;
 using System.Collections;
+using ConsensusChessShared.Helpers;
 using ConsensusChessShared.Service;
 using ConsensusChessShared.Social;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace ConsensusChessEngine.Service
 {
     public class ConsensusChessEngineService : AbstractConsensusService
     {
+        protected override TimeSpan PollPeriod => TimeSpan.FromMinutes(1);
+
         public ConsensusChessEngineService(ILogger log, IDictionary env) : base(log, env)
         {
         }
 
-        private bool waiting;
-
-        protected override async Task RunAsync(CancellationToken cancellationToken)
+        protected override async Task PollAsync(CancellationToken cancellationToken)
         {
-            waiting = true;
-            await social.StartListeningForCommandsAsync(CommandReceived, null);
-            while (!cancellationToken.IsCancellationRequested && waiting)
-            {
-                log.LogDebug("Waiting for commands...");
-                await Task.Delay(1000, cancellationToken); // snooze
-            }
         }
 
-        private async Task CommandReceived(SocialCommand command)
+        protected override void RegisterForCommands(CommandProcessor processor)
         {
-            log.LogInformation($"Command received: {command.RawText}");
+            processor.Register("shutdown", true, ShutdownAsync);
+        }
 
-            if (command.RawText.ToLower().Contains("shutdown"))
-            {
-                log.LogInformation("shutdown command");
-                waiting = false;
-            }
-
-            // TODO: interpret commands
-            // waiting = false;
+        private async Task ShutdownAsync(IEnumerable<string> words)
+        {
+            log.LogInformation($"Shutting down.");
+            polling = false;
         }
 
         protected override async Task FinishAsync(CancellationToken cancellationToken)
         {
-            await social.StopListeningForCommandsAsync(CommandReceived);
         }
+
     }
 }
 
