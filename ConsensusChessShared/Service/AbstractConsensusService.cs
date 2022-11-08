@@ -18,7 +18,7 @@ namespace ConsensusChessShared.Service
         protected bool running;
         protected bool polling;
         protected IDictionary env;
-        protected CommandProcessor cmd;
+        protected CommandProcessor? cmd;
 
         protected abstract TimeSpan PollPeriod { get; }
 
@@ -53,6 +53,8 @@ namespace ConsensusChessShared.Service
             RegisterForCommands(cmd);
         }
 
+        CancellationTokenSource pollingCancellation;
+
         public async Task ExecuteAsync(CancellationToken cancellationToken)
         {
             log.LogDebug("ExecuteAsync at: {time}", DateTimeOffset.Now);
@@ -68,12 +70,13 @@ namespace ConsensusChessShared.Service
                 var posted = await social.PostAsync(SocialStatus.Started);
 
                 // poll for events
+                pollingCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 polling = true;
-                while (!cancellationToken.IsCancellationRequested && polling && running)
+                while (!pollingCancellation.Token.IsCancellationRequested && polling && running)
                 {
                     log.LogTrace("Polling...");
-                    await PollAsync(cancellationToken);
-                    await Task.Delay(PollPeriod, cancellationToken); // snooze
+                    await PollAsync(pollingCancellation.Token);
+                    await Task.Delay(PollPeriod, pollingCancellation.Token); // snooze
                 }
 
                 log.LogDebug($"Run complete.");
@@ -82,7 +85,8 @@ namespace ConsensusChessShared.Service
             {
                 polling = false;
                 running = false;
-                await FinishAsync(cancellationToken);
+                pollingCancellation?.Cancel();
+                await FinishAsync();
                 log.LogInformation("ExecuteAsnyc complete at: {time}", DateTimeOffset.Now);
             }
         }
@@ -100,11 +104,11 @@ namespace ConsensusChessShared.Service
             if (running)
             {
                 running = false;
-                await FinishAsync(cancellationToken);
+                await FinishAsync();
             }
         }
 
-        protected abstract Task FinishAsync(CancellationToken cancellationToken);
+        protected abstract Task FinishAsync();
     }
 }
 

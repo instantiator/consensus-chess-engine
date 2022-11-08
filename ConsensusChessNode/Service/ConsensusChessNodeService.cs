@@ -27,7 +27,7 @@ namespace ConsensusChessNode.Service
             polling = false;
         }
 
-        protected override async Task FinishAsync(CancellationToken cancellationToken)
+        protected override async Task FinishAsync()
         {
             log.LogWarning("FinishAsync not implemented");
         }

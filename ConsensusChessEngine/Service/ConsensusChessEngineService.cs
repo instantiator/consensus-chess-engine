@@ -30,7 +30,7 @@ namespace ConsensusChessEngine.Service
             polling = false;
         }
 
-        protected override async Task FinishAsync(CancellationToken cancellationToken)
+        protected override async Task FinishAsync()
         {
         }
 
