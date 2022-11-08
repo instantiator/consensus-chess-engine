@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -14,9 +15,13 @@ namespace ConsensusChessShared.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    FEN = table.Column<string>(type: "text", nullable: false),
-                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    Pieces_FEN = table.Column<string>(type: "text", nullable: false),
+                    ActiveSide = table.Column<int>(type: "integer", nullable: false),
+                    CastlingAvailability_FEN = table.Column<string>(type: "text", nullable: false),
+                    EnPassantTargetSquare_FEN = table.Column<string>(type: "text", nullable: false),
+                    HalfMoveClock = table.Column<int>(type: "integer", nullable: false),
+                    FullMoveNumber = table.Column<int>(type: "integer", nullable: false),
+                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -30,8 +35,11 @@ namespace ConsensusChessShared.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     ScheduledStart = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Finished = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    MoveDuration = table.Column<TimeSpan>(type: "interval", nullable: false),
+                    SideRules = table.Column<int>(type: "integer", nullable: false),
+                    BlackNetworks = table.Column<List<string>>(type: "text[]", nullable: false),
+                    WhiteNetworks = table.Column<List<string>>(type: "text[]", nullable: false),
+                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -49,8 +57,8 @@ namespace ConsensusChessShared.Migrations
                     AppSecret = table.Column<string>(type: "text", nullable: false),
                     AppToken = table.Column<string>(type: "text", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
-                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    AuthorisedAccounts = table.Column<string>(type: "text", nullable: false),
+                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -64,8 +72,8 @@ namespace ConsensusChessShared.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
                     NetworkId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    LastCommandId = table.Column<long>(type: "bigint", nullable: false),
+                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -85,8 +93,7 @@ namespace ConsensusChessShared.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     NetworkId = table.Column<Guid>(type: "uuid", nullable: false),
                     NetworkUserId = table.Column<string>(type: "text", nullable: false),
-                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -108,8 +115,7 @@ namespace ConsensusChessShared.Migrations
                     NetworkId = table.Column<Guid>(type: "uuid", nullable: false),
                     Message = table.Column<string>(type: "text", nullable: false),
                     BoardId = table.Column<Guid>(type: "uuid", nullable: true),
-                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -135,8 +141,7 @@ namespace ConsensusChessShared.Migrations
                     GameId = table.Column<Guid>(type: "uuid", nullable: false),
                     Side = table.Column<int>(type: "integer", nullable: false),
                     ParticipantId = table.Column<Guid>(type: "uuid", nullable: true),
-                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -162,8 +167,7 @@ namespace ConsensusChessShared.Migrations
                     Data = table.Column<byte[]>(type: "bytea", nullable: false),
                     Alt = table.Column<string>(type: "text", nullable: false),
                     PostId = table.Column<Guid>(type: "uuid", nullable: true),
-                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -183,8 +187,7 @@ namespace ConsensusChessShared.Migrations
                     ValidationState = table.Column<bool>(type: "boolean", nullable: false),
                     Note = table.Column<string>(type: "text", nullable: false),
                     PostId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -203,13 +206,12 @@ namespace ConsensusChessShared.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     FromId = table.Column<Guid>(type: "uuid", nullable: false),
-                    ToId = table.Column<Guid>(type: "uuid", nullable: false),
-                    SelectedVoteId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ToId = table.Column<Guid>(type: "uuid", nullable: true),
+                    SelectedVoteId = table.Column<Guid>(type: "uuid", nullable: true),
                     SideToPlay = table.Column<int>(type: "integer", nullable: false),
                     Deadline = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     GameId = table.Column<Guid>(type: "uuid", nullable: true),
-                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -224,8 +226,7 @@ namespace ConsensusChessShared.Migrations
                         name: "FK_Move_Board_ToId",
                         column: x => x.ToId,
                         principalTable: "Board",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Move_Games_GameId",
                         column: x => x.GameId,
@@ -242,8 +243,7 @@ namespace ConsensusChessShared.Migrations
                     ParticipantId = table.Column<Guid>(type: "uuid", nullable: false),
                     ValidationId = table.Column<Guid>(type: "uuid", nullable: false),
                     MoveId = table.Column<Guid>(type: "uuid", nullable: true),
-                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -347,8 +347,7 @@ namespace ConsensusChessShared.Migrations
                 table: "Move",
                 column: "SelectedVoteId",
                 principalTable: "Vote",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                principalColumn: "Id");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

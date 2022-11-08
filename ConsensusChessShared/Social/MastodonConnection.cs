@@ -136,8 +136,8 @@ namespace ConsensusChessShared.Social
 
         public override IEnumerable<string> CalculateCommandSkips() => new[]
         {
-            $"@{AccountName}"
+            $"@{AccountName}",
+            $"@{AccountName}@{network.NetworkServer}",
         };
     }
 }
-

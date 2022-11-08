@@ -1,4 +1,5 @@
 ﻿using System;
+using ConsensusChessShared.Exceptions;
 using ConsensusChessShared.Helpers;
 using ConsensusChessShared.Social;
 using Microsoft.Extensions.Logging;
@@ -43,26 +44,43 @@ namespace ConsensusChessShared.Service
 		public async Task Parse(SocialCommand command)
 		{
             log.LogTrace($"Command raw text: {command.RawText}");
-
             var commandWords = CommandHelper.ParseSocialCommand(command.RawText, skips);
-            var commandWord = commandWords.First().ToLower();
+            var commandWord = commandWords.FirstOrDefault()?.ToLower();
 
-            if (register.ContainsKey(commandWord))
+            try
             {
-                var rule = register[commandWord];
-                if (IsAuthorised(command.NetworkUserId) || !rule.RequireAuthorised)
+                if (string.IsNullOrWhiteSpace(commandWord))
                 {
-                    log.LogInformation($"{command.NetworkUserId} issued command: {commandWord}");
-                    await rule.Enaction.Invoke(commandWords);
+                    throw new CommandRejectionException(commandWords, command.NetworkUserId, CommandRejectionReason.NoCommandWords);
+                }
+
+                if (register.ContainsKey(commandWord))
+                {
+                    var rule = register[commandWord];
+                    if (IsAuthorised(command.NetworkUserId) || !rule.RequireAuthorised)
+                    {
+                        log.LogInformation($"{command.NetworkUserId} issued command: {commandWord}");
+                        await rule.Enaction.Invoke(commandWords);
+                    }
+                    else
+                    {
+                        throw new CommandRejectionException(commandWords, command.NetworkUserId, CommandRejectionReason.NotAuthorised);
+                    }
                 }
                 else
                 {
-                    log.LogWarning($"{command.NetworkUserId} not authorised to execute command: {commandWord}");
+                    throw new CommandRejectionException(commandWords, command.NetworkUserId, CommandRejectionReason.UnrecognisedCommand);
                 }
             }
-            else
+            catch (CommandRejectionException e)
             {
-                log.LogWarning($"Unrecognised command word: {commandWord}");
+                log.LogWarning($"{e.Reason} (from {e.SenderId}): {string.Join(" ",e.Words)}");
+                // TODO: reply with refusal
+            }
+            catch (Exception e)
+            {
+                log.LogError(e, $"Unexpected exception parsing command: {string.Join(", ", commandWords)}");
+                // TODO: reply with refusal
             }
         }
 

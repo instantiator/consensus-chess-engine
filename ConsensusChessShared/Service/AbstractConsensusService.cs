@@ -29,15 +29,17 @@ namespace ConsensusChessShared.Service
             network = Network.FromEnvironment(NetworkType.Mastodon, env);
             social = SocialFactory.From(log, network);
 
-            db = ConsensusChessDbContext.FromEnvironment(env);
-            log.LogDebug($"Database context created.");
+            using (var db = GetDb())
+            {
+                var connection = db.Database.CanConnect();
+                log.LogDebug($"Database connection: {connection}");
 
-            var connection = db.Database.CanConnect();
-            log.LogDebug($"Database connection: {connection}");
-
-            db.Database.Migrate();
-            log.LogDebug($"Migrations run.");
+                db.Database.Migrate();
+                log.LogDebug($"Migrations run.");
+            }
         }
+
+        protected ConsensusChessDbContext GetDb() => ConsensusChessDbContext.FromEnvironment(env);
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
@@ -47,13 +49,23 @@ namespace ConsensusChessShared.Service
             log.LogDebug($"Display name: {social.DisplayName}");
             log.LogDebug($"Account name: {social.AccountName}");
             log.LogDebug($"Authorised accounts: {string.Join(", ", network.AuthorisedAccountsList)}");
-            log.LogDebug($"Active games: {db.Games.ToList().Count(g => g.Active)}");
+            ReportOnGames();
 
-            cmd = new CommandProcessor(log, network.AuthorisedAccountsList, social.CalculateCommandSkips());
+            var skips = social.CalculateCommandSkips();
+            log.LogDebug($"Command prefix skips: {string.Join(", ", skips)}");
+            cmd = new CommandProcessor(log, network.AuthorisedAccountsList, skips);
             RegisterForCommands(cmd);
         }
 
-        CancellationTokenSource pollingCancellation;
+        protected void ReportOnGames()
+        {
+            using (var db = GetDb())
+            {
+                log.LogDebug($"Active games: {db.Games.ToList().Count(g => g.Active)}");
+            }
+        }
+
+        protected CancellationTokenSource pollingCancellation;
 
         public async Task ExecuteAsync(CancellationToken cancellationToken)
         {

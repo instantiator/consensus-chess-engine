@@ -16,6 +16,8 @@
     <None Remove="Service\" />
     <None Remove="HtmlAgilityPack" />
     <None Remove="Helpers\" />
+    <None Remove="Exceptions\" />
+    <None Remove="Migrations\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DTO\" />
@@ -23,6 +25,8 @@
     <Folder Include="Social\" />
     <Folder Include="Service\" />
     <Folder Include="Helpers\" />
+    <Folder Include="Exceptions\" />
+    <Folder Include="Migrations\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.7" />
