@@ -5,7 +5,7 @@ namespace ConsensusChessShared.DTO
 	public class NodeState : AbstractDTO
 	{
 		public string NodeName { get; set; }
-		public long LastMentionId { get; set; }
+		public long LastNotificationId { get; set; }
         public long LastReplyId { get; set; }
 
 		public static NodeState Create(string name)
@@ -13,7 +13,7 @@ namespace ConsensusChessShared.DTO
 			return new NodeState()
 			{
 				NodeName = name,
-				LastMentionId = 0,
+				LastNotificationId = 0,
 				LastReplyId = 0
 			};
         }

@@ -6,12 +6,12 @@ namespace ConsensusChessShared.Social
 {
 	public class SocialFactory
 	{
-		public static ISocialConnection From(ILogger log, Network network)
+		public static ISocialConnection From(ILogger log, Network network, NodeState state)
 		{
 			switch (network.Type)
 			{
 				case NetworkType.Mastodon:
-					return new MastodonConnection(log, network);
+					return new MastodonConnection(log, network, state);
 
 				default:
 					throw new ArgumentException($"Network {network.Type} unknown.");

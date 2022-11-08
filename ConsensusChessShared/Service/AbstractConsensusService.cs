@@ -30,9 +30,6 @@ namespace ConsensusChessShared.Service
             this.log = log;
             this.env = env;
 
-            network = Network.FromEnvironment(env);
-            social = SocialFactory.From(log, network);
-
             using (var db = GetDb())
             {
                 var connection = db.Database.CanConnect();
@@ -42,8 +39,9 @@ namespace ConsensusChessShared.Service
                 db.Database.Migrate();
             }
 
-
             state = RegisterNode();
+            network = Network.FromEnvironment(env);
+            social = SocialFactory.From(log, network, state);
         }
 
         protected NodeState RegisterNode()
@@ -53,9 +51,8 @@ namespace ConsensusChessShared.Service
                 var environment = env.Cast<DictionaryEntry>().ToDictionary(x => (string)x.Key, x => (string)x.Value!);
                 var name = environment["NODE_NAME"];
 
-                log.LogDebug($"Registering node...");
+                log.LogDebug($"Registering node with db...");
                 var currentState = db.NodeStates.Where(s => s.NodeName == name).SingleOrDefault();
-
                 if (currentState == null)
                 {
                     currentState = NodeState.Create(name);
@@ -82,6 +79,16 @@ namespace ConsensusChessShared.Service
             log.LogDebug($"Command prefix skips: {string.Join(", ", skips)}");
             cmd = new CommandProcessor(log, network.AuthorisedAccountsList, skips);
             RegisterForCommands(cmd);
+            social.OnStateChange += Social_OnStateChange;
+        }
+
+        private async Task Social_OnStateChange(NodeState state)
+        {
+            using (var db = GetDb())
+            {
+                db.NodeStates.Update(state);
+                await db.SaveChangesAsync();
+            }
         }
 
         protected void ReportOnGames()
@@ -103,7 +110,7 @@ namespace ConsensusChessShared.Service
                 running = true;
 
                 // listen for commands
-                await social.StartListeningForCommandsAsync(cmd.Parse, null);
+                await social.StartListeningForCommandsAsync(cmd.Parse, true);
 
                 // post readiness
                 var posted = await social.PostAsync(SocialStatus.Started);

@@ -6,7 +6,9 @@ set -o pipefail
 # build containers
 docker compose --env-file environments/database.env build
 
-# print config and then start the containers
-docker compose --env-file environments/database.env config
+# print config
+# docker compose --env-file environments/database.env config
+
+# start the containers
 docker compose --env-file environments/database.env up
 

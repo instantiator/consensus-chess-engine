@@ -15,9 +15,8 @@ namespace ConsensusChessShared.Social
 
         private event Func<SocialCommand, Task>? asyncCommandReceivers;
         private TimelineStreaming? stream;
-        private long lastCommandId = 0;
 
-        public MastodonConnection(ILogger log, Network network) : base(log, network)
+        public MastodonConnection(ILogger log, Network network, NodeState state) : base(log, network, state)
 		{
             AppRegistration reg = new AppRegistration()
             {
@@ -56,12 +55,16 @@ namespace ConsensusChessShared.Social
             }
         }
 
-        public override async Task StartListeningForCommandsAsync(Func<SocialCommand, Task> asyncCommandReceiver, long? sinceId = null)
+        public override async Task StartListeningForCommandsAsync(Func<SocialCommand, Task> asyncCommandReceiver, bool getMissedCommands)
         {
             asyncCommandReceivers += asyncCommandReceiver;
 
-            // fetch conversations up to now, and then start streaming
-            var notifications = await client.GetNotifications(sinceId);
+            // fetch conversations up to now before starting to stream
+            log.LogDebug(
+                getMissedCommands
+                ? $"Retrieving any missed notifications since: {state.LastNotificationId}"
+                : $"Skipping any missed commands.");
+            var notifications = getMissedCommands ? await client.GetNotifications(sinceId: state.LastNotificationId) : null;
             // TODO: paging
 
             // set up the stream
@@ -71,8 +74,11 @@ namespace ConsensusChessShared.Social
             stream.Start(); // not awaited - awaiting blocks
 
             // process notifications already found
-            log.LogDebug("Processing previously found notifications");
-            notifications.ForEach(async n => { await ProcessNotification(n); });
+            if (notifications != null)
+            {
+                log.LogDebug("Processing previously found notifications");
+                notifications.ForEach(async n => { await ProcessNotification(n); });
+            }
         }
 
         private async void Stream_OnNotification(object? sender, StreamNotificationEventArgs e)
@@ -98,6 +104,15 @@ namespace ConsensusChessShared.Social
 
             if (isMention && isForMe && !isFavourited)
             {
+                // immediately update state
+                var statusId = notification.Status!.Id;
+                if (statusId > state.LastNotificationId)
+                {
+                    state.LastNotificationId = statusId;
+                    await ReportStateChangeAsync();
+                }
+
+                // now process command
                 var command = new SocialCommand()
                 {
                     Network = network,
@@ -107,17 +122,20 @@ namespace ConsensusChessShared.Social
                     IsAuthorised = isAuthorised
                 };
 
-                var statusId = notification.Status!.Id;
-                lastCommandId = statusId > lastCommandId ? statusId : lastCommandId;
+                // now favourite to mark the notification as dealt with
+                await client.Favourite(notification.Status!.Id);
 
-                // TODO: update database with last command id
-
+                // now invoke the command (even if this fails we wouldn't want to re-run)
                 if (asyncCommandReceivers != null)
                 {
                     await asyncCommandReceivers.Invoke(command);
                 }
+                else
+                {
+                    log.LogWarning("No receivers for this command.");
+                }
 
-                await client.Favourite(notification.Status!.Id); // favourite to indicate this is dealt with
+                // TODO: catch errors, log, notify the user?
             }
         }
 

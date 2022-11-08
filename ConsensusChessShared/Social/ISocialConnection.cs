@@ -1,4 +1,6 @@
 ﻿using System;
+using ConsensusChessShared.DTO;
+
 namespace ConsensusChessShared.Social
 {
 	public interface ISocialConnection
@@ -7,9 +9,11 @@ namespace ConsensusChessShared.Social
 		string DisplayName { get; }
 		string AccountName { get; }
 
-		IEnumerable<string> CalculateCommandSkips();
+        event Func<NodeState, Task> OnStateChange;
 
-		Task StartListeningForCommandsAsync(Func<SocialCommand, Task> receiver, long? sinceId);
+        IEnumerable<string> CalculateCommandSkips();
+
+		Task StartListeningForCommandsAsync(Func<SocialCommand, Task> receiver, bool retrieveMissedCommands);
 		Task StopListeningForCommandsAsync(Func<SocialCommand, Task> receiver);
 
         Task<PostReport> PostAsync(SocialStatus status);
