@@ -5,7 +5,9 @@ namespace ConsensusChessShared.Exceptions
 	{
         UnrecognisedCommand,
         NotAuthorised,
-        NoCommandWords
+        NoCommandWords,
+        CommandMalformed,
+        UnexpectedException
     }
 }
 

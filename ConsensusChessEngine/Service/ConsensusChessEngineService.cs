@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using ConsensusChessShared.DTO;
+using ConsensusChessShared.Exceptions;
 using ConsensusChessShared.Helpers;
 using ConsensusChessShared.Service;
 using ConsensusChessShared.Social;
@@ -35,7 +36,13 @@ namespace ConsensusChessEngine.Service
 
             if (shortcodes.Count() == 0)
             {
-                log.LogWarning("No sides provided - cannot create game.");
+                var summary = "No sides provided - cannot create game.";
+                log.LogWarning(summary);
+                throw new CommandRejectionException(
+                    words,
+                    origin.NetworkUserId,
+                    CommandRejectionReason.CommandMalformed,
+                    summary);
             }
 
             using (var db = GetDb())

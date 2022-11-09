@@ -145,7 +145,7 @@ namespace ConsensusChessShared.Service
                 await RecordStatePostAsync(posted);
 
                 // listen for commands
-                await social.StartListeningForCommandsAsync(cmd.Parse, true);
+                await social.StartListeningForCommandsAsync(cmd.ParseAsync, true);
 
                 // poll for events
                 pollingCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -192,7 +192,7 @@ namespace ConsensusChessShared.Service
         {
             EraseHealthIndicators();
             log.LogInformation("StopAsync at: {time}", DateTimeOffset.Now);
-            await social.StopListeningForCommandsAsync(cmd!.Parse);
+            await social.StopListeningForCommandsAsync(cmd!.ParseAsync);
             var post = await social.PostAsync(SocialStatus.Stopped);
             await RecordStatePostAsync(post);
 
