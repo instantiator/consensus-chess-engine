@@ -30,6 +30,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{03CBC0A7-8
 	ProjectSection(SolutionItems) = preProject
 		docs\commands.md = docs\commands.md
 		docs\database.md = docs\database.md
+		docs\config.md = docs\config.md
 	EndProjectSection
 EndProject
 Global
