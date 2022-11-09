@@ -11,6 +11,8 @@ namespace ConsensusChessShared.Service
 {
 	public abstract class AbstractConsensusService
 	{
+        public const string HEALTHCHECK_READY_PATH = "/tmp/health.ready";
+
         protected readonly HttpClient http = new HttpClient();
         protected ConsensusChessDbContext db;
         protected ISocialConnection social;
@@ -51,12 +53,13 @@ namespace ConsensusChessShared.Service
             {
                 var environment = env.Cast<DictionaryEntry>().ToDictionary(x => (string)x.Key, x => (string)x.Value!);
                 var name = environment["NODE_NAME"];
+                var shortcode = environment["NODE_SHORTCODE"];
 
                 log.LogDebug($"Registering node with db...");
-                var currentState = db.NodeStates.Where(s => s.NodeName == name).SingleOrDefault();
+                var currentState = db.NodeStates.Where(s => s.Shortcode == shortcode).SingleOrDefault();
                 if (currentState == null)
                 {
-                    currentState = NodeState.Create(name);
+                    currentState = NodeState.Create(name, shortcode);
                     db.NodeStates.Add(currentState);
                     db.SaveChanges();
                 }
@@ -69,6 +72,7 @@ namespace ConsensusChessShared.Service
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             log.LogInformation("StartAsync at: {time}", DateTimeOffset.Now);
+            EraseHealthIndicators();
 
             await social.InitAsync();
             log.LogDebug($"Display name: {social.DisplayName}");
@@ -135,6 +139,7 @@ namespace ConsensusChessShared.Service
 
                 // listen for commands
                 await social.StartListeningForCommandsAsync(cmd.Parse, true);
+                IndicateHealthReady();
 
                 // post readiness
                 var posted = await social.PostAsync(SocialStatus.Started);
@@ -162,12 +167,28 @@ namespace ConsensusChessShared.Service
             }
         }
 
+        protected void IndicateHealthReady()
+        {
+            log.LogInformation("Healthcheck indicator: Ready");
+            File.WriteAllText(
+                HEALTHCHECK_READY_PATH,
+                $"{DateTime.Now.ToUniversalTime().ToString("O")}");
+        }
+
+        protected void EraseHealthIndicators()
+        {
+            log.LogDebug("Deleting old healthcheck indicator.");
+            if (File.Exists(HEALTHCHECK_READY_PATH))
+                File.Delete(HEALTHCHECK_READY_PATH);
+        }
+
         protected abstract void RegisterForCommands(CommandProcessor processor);
 
         protected abstract Task PollAsync(CancellationToken cancellationToken);
 
         public async Task StopAsync(CancellationToken cancellationToken)
         {
+            EraseHealthIndicators();
             log.LogInformation("StopAsync at: {time}", DateTimeOffset.Now);
             await social.StopListeningForCommandsAsync(cmd!.Parse);
             var post = await social.PostAsync(SocialStatus.Stopped);

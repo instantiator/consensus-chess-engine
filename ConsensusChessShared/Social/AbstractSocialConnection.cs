@@ -28,7 +28,7 @@ namespace ConsensusChessShared.Social
 		public abstract Task StopListeningForCommandsAsync(Func<SocialCommand, Task> asyncReceiver);
 
 		public async Task<PostReport> PostAsync(SocialStatus status)
-			=> await PostAsync($"{network.Name}: {status}", PostType.SocialStatus);
+			=> await PostAsync($"{state.Name} ({state.Shortcode}): {status}", PostType.SocialStatus);
 
 		public async Task<PostReport> PostAsync(Game game)
 			=> await PostAsync(

@@ -18,9 +18,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsensusChessShared", "Con
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "environments", "environments", "{19B49F4A-EE4B-4D1B-BA53-5E033E771F52}"
 	ProjectSection(SolutionItems) = preProject
-		environments\node-basic.env = environments\node-basic.env
 		environments\database.env = environments\database.env
 		environments\engine.env = environments\engine.env
+		environments\node-1-gamedev.env = environments\node-1-gamedev.env
+		environments\node-0-test.env = environments\node-0-test.env
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsensusChessSharedTests", "ConsensusChessSharedTests\ConsensusChessSharedTests.csproj", "{0794AE53-29E5-48BC-9B18-5ED192C3C98A}"

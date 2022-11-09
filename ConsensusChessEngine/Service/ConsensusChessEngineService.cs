@@ -30,35 +30,36 @@ namespace ConsensusChessEngine.Service
 
         private async Task StartNewGameAsync(SocialCommand origin, IEnumerable<string> words)
         {
-            // TODO: more complex games
-            var nodeNames = words.Skip(1); // everything after "new" is a network (for now)
+            // TODO: more complex games, better structure for issuing commands
+            var shortcodes = words.Skip(1); // everything after "new" is a shortcode (for now)
 
-            if (nodeNames.Count() == 0)
+            if (shortcodes.Count() == 0)
             {
                 log.LogWarning("No sides provided - cannot create game.");
             }
 
             using (var db = GetDb())
             {
-                var networksOk = nodeNames.All(network => db.NodeStates.Any(ns => ns.NodeName == network));
+                var networksOk = shortcodes.All(network => db.NodeStates.Any(ns => ns.Shortcode == network));
 
                 if (networksOk)
                 {
-                    var game = new Game(nodeNames, nodeNames, SideRules.MoveLock);
+                    // TODO: not all game types will use the same nodes for both sides
+                    var game = new Game(shortcodes, shortcodes, SideRules.MoveLock);
 
                     db.Games.Add(game);
                     await db.SaveChangesAsync();
 
-                    var summary = $"New {game.SideRules} game for: {string.Join(", ", nodeNames)}";
+                    var summary = $"New {game.SideRules} game for: {string.Join(", ", shortcodes)}";
                     log.LogInformation(summary);
                     await social.PostAsync(game);
                     await social.ReplyAsync(origin, summary);
                 }
                 else
                 {
-                    var unrecognised = nodeNames.Where(network => !db.NodeStates.Any(ns => ns.NodeName == network));
-                    log.LogWarning($"New game node names unrecognised: {string.Join(", ",unrecognised)}");
-                    await social.ReplyAsync(origin, $"Nodes unrecognised: {string.Join(", ",unrecognised)}");
+                    var unrecognised = shortcodes.Where(network => !db.NodeStates.Any(ns => ns.Shortcode == network));
+                    log.LogWarning($"New game node shortcodes unrecognised: {string.Join(", ",unrecognised)}");
+                    await social.ReplyAsync(origin, $"Unrecognised shortcodes: {string.Join(", ",unrecognised)}");
                 }
                 ReportOnGames();
             }
