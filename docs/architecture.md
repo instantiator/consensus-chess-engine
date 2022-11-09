@@ -1,4 +1,4 @@
-# Architecture
+# Architecture
 
 The application is composed of a number of microservices:
 
