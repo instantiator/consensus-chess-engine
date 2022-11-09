@@ -49,8 +49,10 @@ namespace ConsensusChessEngine.Service
                     db.Games.Add(game);
                     await db.SaveChangesAsync();
 
-                    log.LogInformation($"New {game.SideRules} game for: {string.Join(", ", nodeNames)}");
+                    var summary = $"New {game.SideRules} game for: {string.Join(", ", nodeNames)}";
+                    log.LogInformation(summary);
                     await social.PostAsync(game);
+                    await social.ReplyAsync(origin, summary);
                 }
                 else
                 {
