@@ -137,13 +137,15 @@ namespace ConsensusChessShared.Service
             {
                 running = true;
 
-                // listen for commands
-                await social.StartListeningForCommandsAsync(cmd.Parse, true);
+                // permit dependencies to start
                 IndicateHealthReady();
 
                 // post readiness
                 var posted = await social.PostAsync(SocialStatus.Started);
                 await RecordStatePostAsync(posted);
+
+                // listen for commands
+                await social.StartListeningForCommandsAsync(cmd.Parse, true);
 
                 // poll for events
                 pollingCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);

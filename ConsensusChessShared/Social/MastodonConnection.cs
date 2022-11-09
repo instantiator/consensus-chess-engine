@@ -16,6 +16,8 @@ namespace ConsensusChessShared.Social
         private event Func<SocialCommand, Task>? asyncCommandReceivers;
         private TimelineStreaming? stream;
 
+        private const int MAX_PAGES = 100; // TODO: revisit this limit
+
         public MastodonConnection(ILogger log, Network network, NodeState state) : base(log, network, state)
 		{
             AppRegistration reg = new AppRegistration()
@@ -64,8 +66,7 @@ namespace ConsensusChessShared.Social
                 getMissedCommands
                 ? $"Retrieving any missed notifications since: {state.LastNotificationId}"
                 : $"Skipping any missed commands.");
-            var missedNotifications = getMissedCommands ? await client.GetNotifications(sinceId: state.LastNotificationId) : null;
-            // TODO: paging
+            var missedNotifications = getMissedCommands ? await GetAllNotificationSince(state.LastNotificationId) : null;
 
             // set up the stream
             stream = client.GetUserStreaming();
@@ -73,12 +74,32 @@ namespace ConsensusChessShared.Social
             log.LogDebug("Starting stream");
             stream.Start(); // not awaited - awaiting blocks
 
-            // process notifications already found
+            // retrospectively process notifications already found
             if (missedNotifications != null)
             {
-                log.LogDebug("Processing previously found notifications");
-                missedNotifications.ForEach(async n => { await ProcessNotification(n, true); });
+                log.LogDebug("Retrospectively processing previously found notifications...");
+                foreach (var missedNotification in missedNotifications)
+                {
+                    await ProcessNotification(missedNotification, true);
+                }
             }
+        }
+
+        private async Task<IEnumerable<Notification>> GetAllNotificationSince(long sinceId)
+        {
+            var list = new List<Notification>();
+            long? nextPageMaxId = null;
+            int iterations = 0;
+
+            do
+            {
+                var page = await client.GetNotifications(sinceId: sinceId, maxId: nextPageMaxId);
+                list.AddRange(page.Where(pn => !list.Select(n => n.Id).Contains(pn.Id)));
+                nextPageMaxId = page.NextPageMaxId;
+                iterations++;
+            } while (nextPageMaxId != null && iterations < MAX_PAGES);
+
+            return list;
         }
 
         private async void Stream_OnNotification(object? sender, StreamNotificationEventArgs e)
@@ -153,6 +174,10 @@ namespace ConsensusChessShared.Social
             asyncCommandReceivers -= asyncCommandReceiver;
         }
 
+        /// <summary>
+        /// All the words that should be skipped when processing a command
+        /// ie. the account name (short and long forms)
+        /// </summary>
         public override IEnumerable<string> CalculateCommandSkips() => new[]
         {
             $"@{AccountName}",
