@@ -13,6 +13,7 @@ namespace ConsensusChessShared.Service
         {
             public CommandEnactionAsync Enaction;
             public bool RequireAuthorised;
+            public bool MayRunRetrospectively;
         }
 
         public delegate Task CommandEnactionAsync(SocialCommand origin, IEnumerable<string> words);
@@ -32,12 +33,13 @@ namespace ConsensusChessShared.Service
             register = new Dictionary<string, CommandRule>();
         }
 
-        public void Register(string commandWord, bool requireAuthorised, CommandEnactionAsync enaction)
+        public void Register(string commandWord, bool requireAuthorised, bool runsRetrospectively, CommandEnactionAsync enaction)
         {
             register.Add(commandWord.ToLower(), new CommandRule()
             {
                 Enaction = enaction,
-                RequireAuthorised = requireAuthorised
+                RequireAuthorised = requireAuthorised,
+                MayRunRetrospectively = runsRetrospectively
             });
         }
 
@@ -61,8 +63,15 @@ namespace ConsensusChessShared.Service
                     var rule = register[commandWord];
                     if (IsAuthorised(command.NetworkUserId) || !rule.RequireAuthorised)
                     {
-                        log.LogInformation($"{command.NetworkUserId} issued command: {commandWord}");
-                        await rule.Enaction.Invoke(command, commandWords);
+                        if (!command.IsRetrospective || rule.MayRunRetrospectively)
+                        {
+                            log.LogInformation($"Executing command: {commandWord} from: {command.NetworkUserId}");
+                            await rule.Enaction.Invoke(command, commandWords);
+                        }
+                        else
+                        {
+                            log.LogDebug($"Skipping retrospective command: {commandWord} from: {command.NetworkUserId}");
+                        }
                     }
                     else
                     {

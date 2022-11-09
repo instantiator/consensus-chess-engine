@@ -21,13 +21,14 @@ namespace ConsensusChessNode.Service
 
         protected override void RegisterForCommands(CommandProcessor processor)
         {
-            processor.Register("shutdown", true, ShutdownAsync);
+            processor.Register("shutdown", requireAuthorised: true, runsRetrospectively: false, ShutdownAsync);
         }
 
         private async Task ShutdownAsync(SocialCommand origin, IEnumerable<string> words)
         {
             log.LogInformation($"Shutting down.");
             polling = false;
+            pollingCancellation.Cancel();
         }
 
         protected override async Task FinishAsync()

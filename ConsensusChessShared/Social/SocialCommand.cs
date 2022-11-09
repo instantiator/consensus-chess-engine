@@ -10,5 +10,6 @@ namespace ConsensusChessShared.Social
         public string RawText { get; set; }
 		public long SourceId { get; set; }
 		public bool IsAuthorised { get; set; }
+		public bool IsRetrospective { get; set; }
 	}
 }

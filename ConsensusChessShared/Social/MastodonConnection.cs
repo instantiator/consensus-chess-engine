@@ -64,7 +64,7 @@ namespace ConsensusChessShared.Social
                 getMissedCommands
                 ? $"Retrieving any missed notifications since: {state.LastNotificationId}"
                 : $"Skipping any missed commands.");
-            var notifications = getMissedCommands ? await client.GetNotifications(sinceId: state.LastNotificationId) : null;
+            var missedNotifications = getMissedCommands ? await client.GetNotifications(sinceId: state.LastNotificationId) : null;
             // TODO: paging
 
             // set up the stream
@@ -74,21 +74,21 @@ namespace ConsensusChessShared.Social
             stream.Start(); // not awaited - awaiting blocks
 
             // process notifications already found
-            if (notifications != null)
+            if (missedNotifications != null)
             {
                 log.LogDebug("Processing previously found notifications");
-                notifications.ForEach(async n => { await ProcessNotification(n); });
+                missedNotifications.ForEach(async n => { await ProcessNotification(n, true); });
             }
         }
 
         private async void Stream_OnNotification(object? sender, StreamNotificationEventArgs e)
         {
-            await ProcessNotification(e.Notification);
+            await ProcessNotification(e.Notification, false);
         }
 
-        private async Task ProcessNotification(Notification notification)
+        private async Task ProcessNotification(Notification notification, bool retrospective)
         {
-            log.LogDebug($"Processing notification, type: {notification.Type}");
+            log.LogDebug($"Processing notification, type: {notification.Type}, retrospectively: {retrospective}");
 
             var isMention = notification.Type == "mention";
             var isForMe = notification.Status?.Mentions.Any(m => m.AccountName == AccountName) ?? false;
@@ -119,7 +119,8 @@ namespace ConsensusChessShared.Social
                     NetworkUserId = notification.Status!.Account.AccountName,
                     RawText = notification.Status!.Content,
                     SourceId = notification.Status!.Id,
-                    IsAuthorised = isAuthorised
+                    IsAuthorised = isAuthorised,
+                    IsRetrospective = retrospective
                 };
 
                 // now favourite to mark the notification as dealt with

@@ -24,8 +24,8 @@ namespace ConsensusChessEngine.Service
 
         protected override void RegisterForCommands(CommandProcessor processor)
         {
-            processor.Register("shutdown", true, ShutdownAsync);
-            processor.Register("new", true, StartNewGameAsync);
+            processor.Register("shutdown", requireAuthorised: true, runsRetrospectively: false, ShutdownAsync);
+            processor.Register("new", requireAuthorised: true, runsRetrospectively: true, StartNewGameAsync);
         }
 
         private async Task StartNewGameAsync(SocialCommand origin, IEnumerable<string> words)
