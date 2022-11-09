@@ -79,13 +79,30 @@ namespace ConsensusChessShared.Service
             log.LogDebug($"Command prefix skips: {string.Join(", ", skips)}");
             cmd = new CommandProcessor(log, network.AuthorisedAccountsList, skips);
             RegisterForCommands(cmd);
-            social.OnStateChange += Social_OnStateChange;
+            social.OnStateChange += RecordStateChangeAsync;
         }
 
-        private async Task Social_OnStateChange(NodeState state)
+        private async Task RecordStateChangeAsync(NodeState newState)
+        {
+            if (state.Id != newState.Id) { throw new InvalidOperationException($"state.Id = {state.Id}, newState.Id = {newState.Id}"); }
+
+            using (var db = GetDb())
+            {
+                // copy things that might change over?
+                state.LastNotificationId = newState.LastNotificationId;
+                state.StatePosts = newState.StatePosts;
+
+                db.NodeStates.Update(state);
+                await db.SaveChangesAsync();
+            }
+        }
+
+        private async Task RecordStatePostAsync(PostReport report)
         {
             using (var db = GetDb())
             {
+                state.StatePosts.Add(report);
+                db.Add(report);
                 db.NodeStates.Update(state);
                 await db.SaveChangesAsync();
             }
@@ -114,6 +131,7 @@ namespace ConsensusChessShared.Service
 
                 // post readiness
                 var posted = await social.PostAsync(SocialStatus.Started);
+                await RecordStatePostAsync(posted);
 
                 // poll for events
                 pollingCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -145,7 +163,8 @@ namespace ConsensusChessShared.Service
         {
             log.LogInformation("StopAsync at: {time}", DateTimeOffset.Now);
             await social.StopListeningForCommandsAsync(cmd.Parse);
-            await social.PostAsync(SocialStatus.Stopped);
+            var post = await social.PostAsync(SocialStatus.Stopped);
+            await RecordStatePostAsync(post);
 
             if (running)
             {

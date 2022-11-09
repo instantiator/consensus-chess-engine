@@ -3,9 +3,11 @@ namespace ConsensusChessShared.DTO
 {
 	public enum PostType
 	{
+		SocialStatus,
 		BoardUpdate,
 		BoardReminder,
-		MoveResponse
+		MoveResponse,
+		Unspecified
 	}
 }
 

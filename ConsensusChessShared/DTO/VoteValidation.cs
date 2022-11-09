@@ -5,7 +5,7 @@ namespace ConsensusChessShared.DTO
 	{
 		public bool ValidationState { get; set; }
 		public string Note { get; set; }
-		public Post Post { get; set; }
+		public PostReport VoteValidationPost { get; set; }
 	}
 }
 

@@ -17,7 +17,8 @@ namespace ConsensusChessShared.Social
 		Task StopListeningForCommandsAsync(Func<SocialCommand, Task> receiver);
 
         Task<PostReport> PostAsync(SocialStatus status);
-		Task<PostReport> PostAsync(string text);
+		Task<PostReport> PostAsync(string text, PostType type);
+		Task<PostReport> PostToNetworkAsync(Post post);
 
     }
 }

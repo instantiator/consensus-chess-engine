@@ -8,7 +8,7 @@ namespace ConsensusChessShared.DTO
 
 		public Board() : base()
 		{
-			Posts = new List<Post>();
+			BoardPosts = new List<PostReport>();
 		}
 
 		public string Pieces_FEN { get; set; }
@@ -27,7 +27,7 @@ namespace ConsensusChessShared.DTO
 			}
 		}
 
-		public List<Post> Posts { get; set; }
+		public List<PostReport> BoardPosts { get; set; }
 
 		public static Board CreateStartingBoard()
 		{

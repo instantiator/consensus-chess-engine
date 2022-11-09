@@ -42,16 +42,16 @@ namespace ConsensusChessShared.Social
         public override string DisplayName => user!.DisplayName;
         public override string AccountName => user!.AccountName;
 
-        protected override async Task<PostReport> PostToNetworkAsync(string text)
+        public override async Task<PostReport> PostToNetworkAsync(Post post)
         {
             try
             {
-                var status = await client.PostStatus(text);
-                return PostReport.Success();
+                var status = await client.PostStatus(post.Message);
+                return PostReport.Success(post);
             }
             catch (Exception e)
             {
-                return PostReport.From(e);
+                return PostReport.From(e, post);
             }
         }
 
