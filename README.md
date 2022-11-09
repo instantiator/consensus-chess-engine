@@ -10,7 +10,7 @@ _NB. This is a work in progress - the engine is not yet ready to host games._
 * [database](docs/database.md)
 * [commands](docs/commands.md)
 
-## Prerequisites
+## Prerequisites
 
 * [Docker](https://www.docker.com/products/docker-desktop/)
 
