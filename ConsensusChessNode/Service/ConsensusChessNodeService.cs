@@ -2,6 +2,7 @@
 using System.Collections;
 using ConsensusChessShared.DTO;
 using ConsensusChessShared.Service;
+using ConsensusChessShared.Social;
 
 namespace ConsensusChessNode.Service
 {
@@ -23,7 +24,7 @@ namespace ConsensusChessNode.Service
             processor.Register("shutdown", true, ShutdownAsync);
         }
 
-        private async Task ShutdownAsync(IEnumerable<string> words)
+        private async Task ShutdownAsync(SocialCommand origin, IEnumerable<string> words)
         {
             log.LogInformation($"Shutting down.");
             polling = false;

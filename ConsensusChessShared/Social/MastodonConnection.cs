@@ -46,7 +46,7 @@ namespace ConsensusChessShared.Social
         {
             try
             {
-                var status = await client.PostStatus(post.Message);
+                var status = await client.PostStatus(post.Message, replyStatusId: post.ReplyTo);
                 return PostReport.Success(post);
             }
             catch (Exception e)

@@ -10,7 +10,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		compose.yaml = compose.yaml
 		run-all.sh = run-all.sh
 		README.md = README.md
-		docs\database.md = docs\database.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsensusChessNode", "ConsensusChessNode\ConsensusChessNode.csproj", "{630D8F9B-EE53-42AB-97B6-AD64F85F3425}"
@@ -25,6 +24,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "environments", "environment
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsensusChessSharedTests", "ConsensusChessSharedTests\ConsensusChessSharedTests.csproj", "{0794AE53-29E5-48BC-9B18-5ED192C3C98A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{03CBC0A7-8DC6-4F37-AC17-C7A295295820}"
+	ProjectSection(SolutionItems) = preProject
+		docs\commands.md = docs\commands.md
+		docs\database.md = docs\database.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -57,5 +62,6 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{19B49F4A-EE4B-4D1B-BA53-5E033E771F52} = {557D0D38-D9F7-44ED-9D12-E9255F13888A}
+		{03CBC0A7-8DC6-4F37-AC17-C7A295295820} = {557D0D38-D9F7-44ED-9D12-E9255F13888A}
 	EndGlobalSection
 EndGlobal

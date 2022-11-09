@@ -11,11 +11,13 @@ namespace ConsensusChessShared.Service
     {
         public struct CommandRule
         {
-            public CommandEnaction Enaction;
+            public CommandEnactionAsync Enaction;
             public bool RequireAuthorised;
         }
 
-        public delegate Task CommandEnaction(IEnumerable<string> words);
+        public delegate Task CommandEnactionAsync(SocialCommand origin, IEnumerable<string> words);
+
+        public event Func<SocialCommand, string, Task> OnFailAsync;
 
         private IEnumerable<string> skips;
         private IEnumerable<string> authorisedAccounts;
@@ -30,7 +32,7 @@ namespace ConsensusChessShared.Service
             register = new Dictionary<string, CommandRule>();
         }
 
-        public void Register(string commandWord, bool requireAuthorised, CommandEnaction enaction)
+        public void Register(string commandWord, bool requireAuthorised, CommandEnactionAsync enaction)
         {
             register.Add(commandWord.ToLower(), new CommandRule()
             {
@@ -60,7 +62,7 @@ namespace ConsensusChessShared.Service
                     if (IsAuthorised(command.NetworkUserId) || !rule.RequireAuthorised)
                     {
                         log.LogInformation($"{command.NetworkUserId} issued command: {commandWord}");
-                        await rule.Enaction.Invoke(commandWords);
+                        await rule.Enaction.Invoke(command, commandWords);
                     }
                     else
                     {
@@ -75,12 +77,18 @@ namespace ConsensusChessShared.Service
             catch (CommandRejectionException e)
             {
                 log.LogWarning($"{e.Reason} (from {e.SenderId}): {string.Join(" ",e.Words)}");
-                // TODO: reply with refusal
+                if (OnFailAsync != null)
+                {
+                    await OnFailAsync.Invoke(command, e.Reason.ToString());
+                }
             }
             catch (Exception e)
             {
                 log.LogError(e, $"Unexpected exception parsing command: {string.Join(", ", commandWords)}");
-                // TODO: reply with refusal
+                if (OnFailAsync != null)
+                {
+                    await OnFailAsync.Invoke(command, "Unexpected error.");
+                }
             }
         }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Diagnostics;
 using ConsensusChessShared.Database;
 using ConsensusChessShared.DTO;
 using ConsensusChessShared.Social;
@@ -78,8 +79,14 @@ namespace ConsensusChessShared.Service
             var skips = social.CalculateCommandSkips();
             log.LogDebug($"Command prefix skips: {string.Join(", ", skips)}");
             cmd = new CommandProcessor(log, network.AuthorisedAccountsList, skips);
+            cmd.OnFailAsync += Cmd_OnFailAsync;
             RegisterForCommands(cmd);
             social.OnStateChange += RecordStateChangeAsync;
+        }
+
+        private async Task Cmd_OnFailAsync(SocialCommand origin, string message)
+        {
+            await social.ReplyAsync(origin, message);
         }
 
         private async Task RecordStateChangeAsync(NodeState newState)
@@ -162,7 +169,7 @@ namespace ConsensusChessShared.Service
         public async Task StopAsync(CancellationToken cancellationToken)
         {
             log.LogInformation("StopAsync at: {time}", DateTimeOffset.Now);
-            await social.StopListeningForCommandsAsync(cmd.Parse);
+            await social.StopListeningForCommandsAsync(cmd!.Parse);
             var post = await social.PostAsync(SocialStatus.Stopped);
             await RecordStatePostAsync(post);
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using ConsensusChessShared.DTO;
 using Microsoft.Extensions.Logging;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace ConsensusChessShared.Social
 {
@@ -29,6 +30,15 @@ namespace ConsensusChessShared.Social
 		public async Task<PostReport> PostAsync(SocialStatus status)
 			=> await PostAsync($"{network.Name}: {status}", PostType.SocialStatus);
 
+		public async Task<PostReport> PostAsync(Game game)
+			=> await PostAsync(
+				string.Format("New {0} game...\nWhite: {1}\nBlack: {2}\nMove duration: {3}\n",
+					game.SideRules,
+                    string.Join(", ", game.WhiteNetworks),
+                    string.Join(", ", game.BlackNetworks),
+                    game.MoveDuration),
+                PostType.EngineUpdate);
+
 		public async Task<PostReport> PostAsync(string text, PostType type = PostType.Unspecified)
 		{
 			log.LogInformation($"Posting: {text}");
@@ -44,7 +54,23 @@ namespace ConsensusChessShared.Social
             return await PostToNetworkAsync(post);
 		}
 
-		public abstract Task<PostReport> PostToNetworkAsync(Post post);
+		public async Task<PostReport> ReplyAsync(SocialCommand origin, string message)
+		{
+            log.LogInformation($"Replying: {message}");
+
+            var post = new Post()
+            {
+                Created = DateTime.Now.ToUniversalTime(),
+                Message = message,
+                NetworkName = network.Name,
+                Type = PostType.TextResponse,
+				ReplyTo = origin.SourceId
+            };
+
+            return await PostToNetworkAsync(post);
+        }
+
+        public abstract Task<PostReport> PostToNetworkAsync(Post post);
 
 		protected async Task ReportStateChangeAsync()
 		{
@@ -52,6 +78,7 @@ namespace ConsensusChessShared.Social
 			if (OnStateChange != null)
 				await OnStateChange.Invoke(state);
 		}
+
     }
 }
 

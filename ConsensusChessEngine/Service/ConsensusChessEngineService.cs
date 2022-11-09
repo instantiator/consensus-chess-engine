@@ -28,30 +28,41 @@ namespace ConsensusChessEngine.Service
             processor.Register("new", true, StartNewGameAsync);
         }
 
-        private async Task StartNewGameAsync(IEnumerable<string> words)
+        private async Task StartNewGameAsync(SocialCommand origin, IEnumerable<string> words)
         {
             // TODO: more complex games
-            var networks = words.Skip(1); // everything after "new" is a network (for now)
+            var nodeNames = words.Skip(1); // everything after "new" is a network (for now)
 
-            if (networks.Count() == 0)
+            if (nodeNames.Count() == 0)
             {
                 log.LogWarning("No sides provided - cannot create game.");
             }
 
-            var game = new Game(networks, networks, SideRules.MoveLock);
-
-            log.LogInformation($"New MoveLock game for: {string.Join(", ",networks)}");
-
             using (var db = GetDb())
             {
-                db.Games.Add(game);
-                await db.SaveChangesAsync();
-            }
+                var networksOk = nodeNames.All(network => db.NodeStates.Any(ns => ns.NodeName == network));
 
-            ReportOnGames();
+                if (networksOk)
+                {
+                    var game = new Game(nodeNames, nodeNames, SideRules.MoveLock);
+
+                    db.Games.Add(game);
+                    await db.SaveChangesAsync();
+
+                    log.LogInformation($"New {game.SideRules} game for: {string.Join(", ", nodeNames)}");
+                    await social.PostAsync(game);
+                }
+                else
+                {
+                    var unrecognised = nodeNames.Where(network => !db.NodeStates.Any(ns => ns.NodeName == network));
+                    log.LogWarning($"New game node names unrecognised: {string.Join(", ",unrecognised)}");
+                    await social.ReplyAsync(origin, $"Nodes unrecognised: {string.Join(", ",unrecognised)}");
+                }
+                ReportOnGames();
+            }
         }
 
-        private async Task ShutdownAsync(IEnumerable<string> words)
+        private async Task ShutdownAsync(SocialCommand origin, IEnumerable<string> words)
         {
             log.LogInformation($"Shutting down.");
             polling = false;
