@@ -1,6 +1,7 @@
 ﻿using System;
 using ConsensusChessEngine.Service;
 using ConsensusChessShared.DTO;
+using ConsensusChessShared.Service;
 using Microsoft.Extensions.Logging;
 using Moq;
 

@@ -3,6 +3,7 @@ namespace ConsensusChessShared.DTO
 {
 	public class Board : AbstractDTO
 	{
+		// white are upper case
 		public static readonly string INITIAL_PIECES_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
 		public static readonly string INITIAL_CASTLING_FEN = "KQkq";
 

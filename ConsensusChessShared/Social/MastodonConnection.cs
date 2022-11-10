@@ -48,6 +48,7 @@ namespace ConsensusChessShared.Social
         {
             try
             {
+                log.LogDebug($"Posting:\n{post.Message}");
                 var status = await client.PostStatus(post.Message, replyStatusId: post.ReplyTo);
                 return PostReport.Success(post);
             }
@@ -125,6 +126,9 @@ namespace ConsensusChessShared.Social
 
             if (isMention && isForMe && !isFavourited)
             {
+                // favourite to mark the notification as seen - we won't try again, even if execution fails
+                await client.Favourite(notification.Status!.Id);
+
                 // immediately update state
                 var statusId = notification.Status!.Id;
                 if (statusId > state.LastNotificationId)
@@ -144,9 +148,6 @@ namespace ConsensusChessShared.Social
                     IsRetrospective = retrospective
                 };
 
-                // now favourite to mark the notification as dealt with
-                await client.Favourite(notification.Status!.Id);
-
                 // now invoke the command (even if this fails we wouldn't want to re-run)
                 if (asyncCommandReceivers != null)
                 {
@@ -156,8 +157,6 @@ namespace ConsensusChessShared.Social
                 {
                     log.LogWarning("No receivers for this command.");
                 }
-
-                // TODO: catch errors, log, notify the user?
             }
         }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using ConsensusChessShared.DTO;
+using ConsensusChessShared.Service;
 using Microsoft.Extensions.Logging;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -32,14 +33,21 @@ namespace ConsensusChessShared.Social
 
 		public async Task<PostReport> PostAsync(Game game)
 			=> await PostAsync(
-				string.Format("New {0} game...\nWhite: {1}\nBlack: {2}\nMove duration: {3}\n",
+				string.Format("New {0} game...\nWhite: {1}\nBlack: {2}\nMove duration: {3}",
 					game.SideRules,
                     string.Join(", ", game.WhiteNetworks),
                     string.Join(", ", game.BlackNetworks),
                     game.MoveDuration),
                 PostType.EngineUpdate);
 
-		public async Task<PostReport> PostAsync(string text, PostType type = PostType.Unspecified)
+        public async Task<PostReport> PostAsync(Game game, Board board)
+            => await PostAsync(
+                string.Format("New board. You have {1} to vote.\n{0}",
+                    BoardFormatter.PiecesFENtoVisualEmoji(board.Pieces_FEN),
+					game.MoveDuration.ToString()),
+                PostType.BoardUpdate);
+
+        public async Task<PostReport> PostAsync(string text, PostType type = PostType.Unspecified)
 		{
 			log.LogInformation($"Posting: {text}");
 

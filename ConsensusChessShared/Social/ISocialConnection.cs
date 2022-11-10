@@ -18,6 +18,7 @@ namespace ConsensusChessShared.Social
 
         Task<PostReport> PostAsync(SocialStatus status);
 		Task<PostReport> PostAsync(Game game);
+        Task<PostReport> PostAsync(Game game, Board board);
         Task<PostReport> PostAsync(string text, PostType type);
 		Task<PostReport> ReplyAsync(SocialCommand origin, string message);
         Task<PostReport> PostToNetworkAsync(Post post);

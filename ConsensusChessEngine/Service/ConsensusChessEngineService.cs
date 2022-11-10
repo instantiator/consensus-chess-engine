@@ -5,6 +5,7 @@ using ConsensusChessShared.Exceptions;
 using ConsensusChessShared.Helpers;
 using ConsensusChessShared.Service;
 using ConsensusChessShared.Social;
+using Newtonsoft.Json;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace ConsensusChessEngine.Service
@@ -14,16 +15,13 @@ namespace ConsensusChessEngine.Service
         protected override TimeSpan PollPeriod => TimeSpan.FromMinutes(1);
         protected override NodeType NodeType => NodeType.Engine;
 
-        private GameManager gm;
-
         public ConsensusChessEngineService(ILogger log, IDictionary env) : base(log, env)
         {
-            gm = new GameManager(log);
         }
 
         protected override async Task PollAsync(CancellationToken cancellationToken)
         {
-            // TODO: check each game, if the current move has expired tally votes and recalculate the board!
+            // TODO: check each game, if the current move has expired tally votes and recalculate the board
         }
 
         protected override void RegisterForCommands(CommandProcessor processor)
@@ -61,6 +59,8 @@ namespace ConsensusChessEngine.Service
 
                     var summary = $"New {game.SideRules} game for: {string.Join(", ", shortcodes)}";
                     log.LogInformation(summary);
+
+                    // exceptions during posting will roll back the db transaction - that's good I guess!
                     await social.PostAsync(game);
                     await social.ReplyAsync(origin, summary);
                 }
