@@ -407,5 +407,7 @@ ASALocalRun/
 # Actual secrets
 environments/*.env
 
+# vscode
+.vscode
 
 
