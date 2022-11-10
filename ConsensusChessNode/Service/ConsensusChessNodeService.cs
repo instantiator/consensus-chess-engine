@@ -29,9 +29,10 @@ namespace ConsensusChessNode.Service
                         log.LogInformation($"Found a new board to post in game: {check.Key.Id}");
                         var posted = await social.PostAsync(check.Key, check.Value);
 
-                        db.Add(posted);
+                        db.Posts.Add(posted.Post);
+                        db.PostReports.Add(posted);
                         check.Value.BoardPosts.Add(posted);
-                        db.Update(check.Value);
+                        db.Boards.Update(check.Value);
                         await db.SaveChangesAsync();
                     }
                 }

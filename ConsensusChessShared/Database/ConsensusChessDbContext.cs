@@ -9,8 +9,21 @@ namespace ConsensusChessShared.Database
 	public class ConsensusChessDbContext : DbContext
 	{
         public DbSet<Game> Games { get; set; }
+        public DbSet<Move> Moves { get; set; }
+        public DbSet<Board> Boards { get; set; }
+        public DbSet<Commitment> Commitments { get; set; }
+        public DbSet<Media> Medias { get; set; }
+        public DbSet<Participant> Participants { get; set; }
+        public DbSet<Vote> Votes { get; set; }
+        public DbSet<VoteValidation> VoteValidations { get; set; }
+
+        public DbSet<Post> Posts { get; set; }
+        public DbSet<PostReport> PostReports { get; set; }
+
+        public DbSet<Network> Networks { get; set; }
         public DbSet<NodeState> NodeStates { get; set; }
 
+        
         private string host;
         private string database;
         private string username;
