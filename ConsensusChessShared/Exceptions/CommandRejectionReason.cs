@@ -7,7 +7,8 @@ namespace ConsensusChessShared.Exceptions
         NotAuthorised,
         NoCommandWords,
         CommandMalformed,
-        UnexpectedException
+        UnexpectedException,
+        NotForRetrospectiveExecution
     }
 }
 

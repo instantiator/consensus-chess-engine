@@ -3,6 +3,7 @@ using System.Collections;
 using System.Diagnostics;
 using ConsensusChessShared.Database;
 using ConsensusChessShared.DTO;
+using ConsensusChessShared.Exceptions;
 using ConsensusChessShared.Social;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -88,7 +89,7 @@ namespace ConsensusChessShared.Service
             social.OnStateChange += RecordStateChangeAsync;
         }
 
-        private async Task Cmd_OnFailAsync(SocialCommand origin, string message)
+        private async Task Cmd_OnFailAsync(SocialCommand origin, string message, CommandRejectionReason? reason)
         {
             await social.ReplyAsync(origin, message);
         }

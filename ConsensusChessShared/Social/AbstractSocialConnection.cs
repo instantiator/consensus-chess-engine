@@ -43,11 +43,13 @@ namespace ConsensusChessShared.Social
 		{
 			log.LogInformation($"Posting: {text}");
 
-            var post = new Post()
-            {
-                Created = DateTime.Now.ToUniversalTime(),
-                Message = text,
-                NetworkName = network.Name,
+			var post = new Post()
+			{
+				Created = DateTime.Now.ToUniversalTime(),
+				Message = text,
+				NodeShortcode = state.Shortcode,
+                NetworkServer = network.NetworkServer,
+                AppName = network.AppName,
                 Type = type
             };
 
@@ -62,7 +64,9 @@ namespace ConsensusChessShared.Social
             {
                 Created = DateTime.Now.ToUniversalTime(),
                 Message = message,
-                NetworkName = network.Name,
+                NodeShortcode = state.Shortcode,
+                NetworkServer = network.NetworkServer,
+                AppName = network.AppName,
                 Type = PostType.TextResponse,
 				ReplyTo = origin.SourceId
             };

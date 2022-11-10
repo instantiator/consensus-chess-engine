@@ -1,6 +1,3 @@
-# See https://aka.ms/containerfastmode to understand how Visual Studio uses this
-# Dockerfile to build your images for faster debugging.
-
 FROM mcr.microsoft.com/dotnet/runtime:7.0 AS base
 WORKDIR /app
 
@@ -15,6 +12,10 @@ COPY ["ConsensusChessSharedTests/ConsensusChessSharedTests.csproj", "ConsensusCh
 RUN dotnet restore
 
 COPY . .
+
+WORKDIR "/src"
+RUN dotnet test
+
 WORKDIR "/src/ConsensusChessEngine"
 RUN dotnet build "ConsensusChessEngine.csproj" -c Release -o /app/build
 

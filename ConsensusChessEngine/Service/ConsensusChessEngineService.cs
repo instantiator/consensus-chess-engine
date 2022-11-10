@@ -14,8 +14,11 @@ namespace ConsensusChessEngine.Service
         protected override TimeSpan PollPeriod => TimeSpan.FromMinutes(1);
         protected override NodeType NodeType => NodeType.Engine;
 
+        private GameManager gm;
+
         public ConsensusChessEngineService(ILogger log, IDictionary env) : base(log, env)
         {
+            gm = new GameManager(log);
         }
 
         protected override async Task PollAsync(CancellationToken cancellationToken)
@@ -52,8 +55,7 @@ namespace ConsensusChessEngine.Service
                 if (networksOk)
                 {
                     // TODO: not all game types will use the same nodes for both sides
-                    var game = new Game(shortcodes, shortcodes, SideRules.MoveLock);
-
+                    var game = gm.CreateSimpleMoveLockGame(shortcodes);
                     db.Games.Add(game);
                     await db.SaveChangesAsync();
 

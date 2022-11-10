@@ -24,7 +24,7 @@ namespace ConsensusChessShared.Service
         /// <exception cref="CommandRejectionException">An issue occurred whilst executing the command</throws>
         public delegate Task CommandEnactionAsync(SocialCommand origin, IEnumerable<string> words);
 
-        public event Func<SocialCommand, string, Task> OnFailAsync;
+        public event Func<SocialCommand, string, CommandRejectionReason?, Task> OnFailAsync;
 
         private IEnumerable<string> skips;
         private IEnumerable<string> authorisedAccounts;
@@ -56,8 +56,6 @@ namespace ConsensusChessShared.Service
             });
         }
 
-        private bool IsAuthorised(string userId) { return authorisedAccounts.Contains(userId); }
-
         /// <summary>
         /// Parse a command delivered from a social network. See also: <seealso cref="SocialCommand"/>
         /// </summary>
@@ -78,8 +76,11 @@ namespace ConsensusChessShared.Service
                 if (register.ContainsKey(commandWord))
                 {
                     var rule = register[commandWord];
-                    if (IsAuthorised(command.NetworkUserId) || !rule.RequireAuthorised)
+
+                    // check authorised
+                    if (!rule.RequireAuthorised || command.IsAuthorised)
                     {
+                        // check retrospective
                         if (!command.IsRetrospective || rule.MayRunRetrospectively)
                         {
                             log.LogInformation($"Executing command: {commandWord} from: {command.NetworkUserId}");
@@ -87,16 +88,19 @@ namespace ConsensusChessShared.Service
                         }
                         else
                         {
-                            log.LogDebug($"Skipping retrospective command: {commandWord} from: {command.NetworkUserId}");
+                            log.LogDebug($"Rejecting retrospective command: {commandWord} from: {command.NetworkUserId}");
+                            throw new CommandRejectionException(commandWords, command.NetworkUserId, CommandRejectionReason.NotForRetrospectiveExecution);
                         }
                     }
                     else
                     {
+                        log.LogDebug($"Rejecting unauthorised command: {commandWord} from: {command.NetworkUserId}");
                         throw new CommandRejectionException(commandWords, command.NetworkUserId, CommandRejectionReason.NotAuthorised);
                     }
                 }
                 else
                 {
+                    log.LogDebug($"Rejecting unrecognised command: {commandWord} from: {command.NetworkUserId}");
                     throw new CommandRejectionException(commandWords, command.NetworkUserId, CommandRejectionReason.UnrecognisedCommand);
                 }
             }
@@ -105,7 +109,7 @@ namespace ConsensusChessShared.Service
                 log.LogWarning($"{e.Reason} (from {e.SenderId}): {string.Join(" ",e.Words)}");
                 if (OnFailAsync != null)
                 {
-                    await OnFailAsync.Invoke(command, e.Reason.ToString());
+                    await OnFailAsync.Invoke(command, e.Reason.ToString(), e.Reason);
                 }
             }
             catch (Exception e)
@@ -113,7 +117,7 @@ namespace ConsensusChessShared.Service
                 log.LogError(e, $"Unexpected exception parsing command: {string.Join(", ", commandWords)}");
                 if (OnFailAsync != null)
                 {
-                    await OnFailAsync.Invoke(command, "Unexpected error.");
+                    await OnFailAsync.Invoke(command, "Unexpected error.", CommandRejectionReason.UnexpectedException);
                 }
             }
         }
