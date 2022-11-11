@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ConsensusChessShared.Migrations
 {
     [DbContext(typeof(ConsensusChessDbContext))]
-    [Migration("20221111014624_Initial")]
+    [Migration("20221111021713_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
