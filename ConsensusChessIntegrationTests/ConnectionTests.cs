@@ -1,17 +1,39 @@
 ﻿using ConsensusChessShared.Database;
+using ConsensusChessShared.DTO;
+using Mastonet;
+using Mastonet.Entities;
 
 namespace ConsensusChessIntegrationTests;
 
 [TestClass]
 public class ConnectionTests
 {
+    private static readonly HttpClient http = new HttpClient();
 
     protected ConsensusChessDbContext GetDb()
         => ConsensusChessDbContext.FromEnvironment(Environment.GetEnvironmentVariables());
 
-    [ClassInitialize]
-    public static void Init(TestContext context)
+    protected Network GetNetwork()
+        => Network.FromEnvironment(Environment.GetEnvironmentVariables());
+
+    protected MastodonClient GetMastodonClient()
     {
+        var network = GetNetwork();
+
+        AppRegistration reg = new AppRegistration()
+        {
+            ClientId = network.AppKey,
+            ClientSecret = network.AppSecret,
+            Instance = network.NetworkServer,
+            Scope = Scope.Read | Scope.Write
+        };
+
+        Auth token = new Auth()
+        {
+            AccessToken = network.AppToken
+        };
+
+        return new MastodonClient(reg, token, http);
     }
 
     [TestMethod]
@@ -25,8 +47,10 @@ public class ConnectionTests
     }
 
     [TestMethod]
-    public void CheckSocialConnection()
+    public async Task CheckSocialConnection()
     {
-        throw new NotImplementedException();
+        var client = GetMastodonClient();
+        var account = await client.GetCurrentUser();
+        Assert.AreEqual("instantiator", account.AccountName);
     }
 }
