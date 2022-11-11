@@ -7,7 +7,6 @@ WORKDIR /src
 COPY ["ConsensusChessShared/ConsensusChessShared.csproj", "ConsensusChessShared/"]
 COPY ["ConsensusChessIntegrationTests/ConsensusChessIntegrationTests.csproj", "ConsensusChessIntegrationTests/"]
 
-RUN dotnet restore ConsensusChessShared/ConsensusChessShared.csproj
 RUN dotnet restore ConsensusChessIntegrationTests/ConsensusChessIntegrationTests.csproj
 
 COPY . .

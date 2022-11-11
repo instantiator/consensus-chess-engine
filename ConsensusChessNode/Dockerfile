@@ -3,22 +3,21 @@ WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
-COPY ["ConsensusChessEngine.sln", "ConsensusChessEngine.sln"]
 COPY ["ConsensusChessEngine/ConsensusChessEngine.csproj", "ConsensusChessEngine/"]
 COPY ["ConsensusChessNode/ConsensusChessNode.csproj", "ConsensusChessNode/"]
 COPY ["ConsensusChessShared/ConsensusChessShared.csproj", "ConsensusChessShared/"]
 COPY ["ConsensusChessSharedTests/ConsensusChessSharedTests.csproj", "ConsensusChessSharedTests/"]
 
-RUN dotnet restore
+RUN dotnet restore ConsensusChessNode/ConsensusChessNode.csproj
+RUN dotnet restore ConsensusChessSharedTests/ConsensusChessSharedTests.csproj
 
 COPY . .
 
 WORKDIR "/src"
-RUN dotnet test
+RUN dotnet test ConsensusChessSharedTests/ConsensusChessSharedTests.csproj
 
 WORKDIR "/src/ConsensusChessNode"
 RUN dotnet build "ConsensusChessNode.csproj" -c Release -o /app/build
-RUN dotnet test
 
 FROM build AS publish
 RUN dotnet publish "ConsensusChessNode.csproj" -c Release -o /app/publish
