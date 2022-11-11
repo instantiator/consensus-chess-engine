@@ -12,7 +12,7 @@ namespace ConsensusChessShared.DTO
         }
 
         [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public long Id { get; set; }
+        public Guid Id { get; set; }
         public DateTime Created { get; set; }
 
         public byte[] Data { get; set; }

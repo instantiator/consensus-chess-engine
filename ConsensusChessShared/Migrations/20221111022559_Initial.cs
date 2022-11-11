@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Migrations;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
@@ -17,8 +16,7 @@ namespace ConsensusChessShared.Migrations
                 name: "Board",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     PiecesFEN = table.Column<string>(name: "Pieces_FEN", type: "text", nullable: false),
                     ActiveSide = table.Column<int>(type: "integer", nullable: false),
@@ -36,8 +34,7 @@ namespace ConsensusChessShared.Migrations
                 name: "Games",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     ScheduledStart = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Finished = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -55,8 +52,7 @@ namespace ConsensusChessShared.Migrations
                 name: "NodeStates",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
                     Shortcode = table.Column<string>(type: "text", nullable: false),
@@ -72,8 +68,7 @@ namespace ConsensusChessShared.Migrations
                 name: "Participant",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     NetworkUserId = table.Column<string>(type: "text", nullable: false),
                     NetworkServer = table.Column<string>(type: "text", nullable: false)
@@ -87,8 +82,7 @@ namespace ConsensusChessShared.Migrations
                 name: "Post",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Type = table.Column<int>(type: "integer", nullable: false),
                     NetworkServer = table.Column<string>(type: "text", nullable: false),
@@ -100,8 +94,8 @@ namespace ConsensusChessShared.Migrations
                     Succeeded = table.Column<bool>(type: "boolean", nullable: false),
                     ErrorMessage = table.Column<string>(type: "text", nullable: true),
                     ExceptionType = table.Column<string>(type: "text", nullable: true),
-                    BoardId = table.Column<long>(type: "bigint", nullable: true),
-                    NodeStateId = table.Column<long>(type: "bigint", nullable: true)
+                    BoardId = table.Column<Guid>(type: "uuid", nullable: true),
+                    NodeStateId = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -122,12 +116,11 @@ namespace ConsensusChessShared.Migrations
                 name: "Commitment",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     GameShortcode = table.Column<string>(type: "text", nullable: false),
                     GameSide = table.Column<int>(type: "integer", nullable: false),
-                    ParticipantId = table.Column<long>(type: "bigint", nullable: true)
+                    ParticipantId = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -143,12 +136,11 @@ namespace ConsensusChessShared.Migrations
                 name: "Media",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Data = table.Column<byte[]>(type: "bytea", nullable: false),
                     Alt = table.Column<string>(type: "text", nullable: false),
-                    PostId = table.Column<long>(type: "bigint", nullable: true)
+                    PostId = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -164,12 +156,11 @@ namespace ConsensusChessShared.Migrations
                 name: "VoteValidation",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     ValidationState = table.Column<bool>(type: "boolean", nullable: false),
                     Note = table.Column<string>(type: "text", nullable: false),
-                    VoteValidationPostId = table.Column<long>(type: "bigint", nullable: false)
+                    VoteValidationPostId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -186,15 +177,14 @@ namespace ConsensusChessShared.Migrations
                 name: "Move",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    FromId = table.Column<long>(type: "bigint", nullable: false),
-                    ToId = table.Column<long>(type: "bigint", nullable: true),
-                    SelectedVoteId = table.Column<long>(type: "bigint", nullable: true),
+                    FromId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ToId = table.Column<Guid>(type: "uuid", nullable: true),
+                    SelectedVoteId = table.Column<Guid>(type: "uuid", nullable: true),
                     SideToPlay = table.Column<int>(type: "integer", nullable: false),
                     Deadline = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    GameId = table.Column<long>(type: "bigint", nullable: true)
+                    GameId = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -221,13 +211,12 @@ namespace ConsensusChessShared.Migrations
                 name: "Vote",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     MoveText = table.Column<string>(type: "text", nullable: false),
-                    ParticipantId = table.Column<long>(type: "bigint", nullable: false),
-                    ValidationId = table.Column<long>(type: "bigint", nullable: false),
-                    MoveId = table.Column<long>(type: "bigint", nullable: true)
+                    ParticipantId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ValidationId = table.Column<Guid>(type: "uuid", nullable: false),
+                    MoveId = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
                 {

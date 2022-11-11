@@ -3,7 +3,7 @@ namespace ConsensusChessShared.DTO
 {
 	public interface IDTO
 	{
-		long Id { get; }
+		Guid Id { get; }
 		DateTime Created { get; }
 	}
 }

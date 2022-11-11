@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ConsensusChessShared.Migrations
 {
     [DbContext(typeof(ConsensusChessDbContext))]
-    [Migration("20221111021713_Initial")]
+    [Migration("20221111022559_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -31,11 +31,9 @@ namespace ConsensusChessShared.Migrations
 
             modelBuilder.Entity("ConsensusChessShared.DTO.Board", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<int>("ActiveSide")
                         .HasColumnType("integer");
@@ -68,11 +66,9 @@ namespace ConsensusChessShared.Migrations
 
             modelBuilder.Entity("ConsensusChessShared.DTO.Commitment", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
@@ -84,8 +80,8 @@ namespace ConsensusChessShared.Migrations
                     b.Property<int>("GameSide")
                         .HasColumnType("integer");
 
-                    b.Property<long?>("ParticipantId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid?>("ParticipantId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -96,11 +92,9 @@ namespace ConsensusChessShared.Migrations
 
             modelBuilder.Entity("ConsensusChessShared.DTO.Game", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<List<string>>("BlackNetworks")
                         .IsRequired()
@@ -132,11 +126,9 @@ namespace ConsensusChessShared.Migrations
 
             modelBuilder.Entity("ConsensusChessShared.DTO.Media", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Alt")
                         .IsRequired()
@@ -149,8 +141,8 @@ namespace ConsensusChessShared.Migrations
                         .IsRequired()
                         .HasColumnType("bytea");
 
-                    b.Property<long?>("PostId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid?>("PostId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -161,11 +153,9 @@ namespace ConsensusChessShared.Migrations
 
             modelBuilder.Entity("ConsensusChessShared.DTO.Move", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
@@ -173,20 +163,20 @@ namespace ConsensusChessShared.Migrations
                     b.Property<DateTime>("Deadline")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<long>("FromId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid>("FromId")
+                        .HasColumnType("uuid");
 
-                    b.Property<long?>("GameId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid?>("GameId")
+                        .HasColumnType("uuid");
 
-                    b.Property<long?>("SelectedVoteId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid?>("SelectedVoteId")
+                        .HasColumnType("uuid");
 
                     b.Property<int>("SideToPlay")
                         .HasColumnType("integer");
 
-                    b.Property<long?>("ToId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid?>("ToId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -203,11 +193,9 @@ namespace ConsensusChessShared.Migrations
 
             modelBuilder.Entity("ConsensusChessShared.DTO.NodeState", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
@@ -236,11 +224,9 @@ namespace ConsensusChessShared.Migrations
 
             modelBuilder.Entity("ConsensusChessShared.DTO.Participant", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
@@ -260,11 +246,9 @@ namespace ConsensusChessShared.Migrations
 
             modelBuilder.Entity("ConsensusChessShared.DTO.Post", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<string>("AppName")
                         .IsRequired()
@@ -273,8 +257,8 @@ namespace ConsensusChessShared.Migrations
                     b.Property<DateTime?>("Attempted")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<long?>("BoardId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid?>("BoardId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
@@ -297,8 +281,8 @@ namespace ConsensusChessShared.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<long?>("NodeStateId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid?>("NodeStateId")
+                        .HasColumnType("uuid");
 
                     b.Property<long?>("ReplyTo")
                         .HasColumnType("bigint");
@@ -320,27 +304,25 @@ namespace ConsensusChessShared.Migrations
 
             modelBuilder.Entity("ConsensusChessShared.DTO.Vote", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<long?>("MoveId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid?>("MoveId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("MoveText")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<long>("ParticipantId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid>("ParticipantId")
+                        .HasColumnType("uuid");
 
-                    b.Property<long>("ValidationId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid>("ValidationId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -355,11 +337,9 @@ namespace ConsensusChessShared.Migrations
 
             modelBuilder.Entity("ConsensusChessShared.DTO.VoteValidation", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
@@ -371,8 +351,8 @@ namespace ConsensusChessShared.Migrations
                     b.Property<bool>("ValidationState")
                         .HasColumnType("boolean");
 
-                    b.Property<long>("VoteValidationPostId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid>("VoteValidationPostId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
