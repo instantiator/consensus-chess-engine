@@ -4,11 +4,11 @@ set -e
 set -o pipefail
 
 # build containers
-docker compose --env-file environments/database.env build
-
-# print config
-# docker compose --env-file environments/database.env config
+docker compose -p consensus-chess \
+  --env-file environments/database.env \
+  build
 
 # start the containers
-docker compose --env-file environments/database.env up
-
+docker compose -p consensus-chess \
+  --env-file environments/database.env \
+  up

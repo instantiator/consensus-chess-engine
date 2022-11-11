@@ -12,6 +12,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 		start-db.sh = start-db.sh
 		erase-all-docker-artefacts.sh = erase-all-docker-artefacts.sh
+		integration-tests.sh = integration-tests.sh
+		compose.int.yaml = compose.int.yaml
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsensusChessNode", "ConsensusChessNode\ConsensusChessNode.csproj", "{630D8F9B-EE53-42AB-97B6-AD64F85F3425}"
@@ -24,6 +26,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "environments", "environment
 		environments\engine.env = environments\engine.env
 		environments\node-1-gamedev.env = environments\node-1-gamedev.env
 		environments\node-0-test.env = environments\node-0-test.env
+		environments\integration-tests.env = environments\integration-tests.env
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsensusChessSharedTests", "ConsensusChessSharedTests\ConsensusChessSharedTests.csproj", "{0794AE53-29E5-48BC-9B18-5ED192C3C98A}"
@@ -35,6 +38,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{03CBC0A7-8
 		docs\config.md = docs\config.md
 		docs\architecture.md = docs\architecture.md
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsensusChessIntegrationTests", "ConsensusChessIntegrationTests\ConsensusChessIntegrationTests.csproj", "{9D6C353B-7BAC-48B5-8640-6F46E97BE955}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -58,6 +63,10 @@ Global
 		{0794AE53-29E5-48BC-9B18-5ED192C3C98A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0794AE53-29E5-48BC-9B18-5ED192C3C98A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0794AE53-29E5-48BC-9B18-5ED192C3C98A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D6C353B-7BAC-48B5-8640-6F46E97BE955}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D6C353B-7BAC-48B5-8640-6F46E97BE955}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D6C353B-7BAC-48B5-8640-6F46E97BE955}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D6C353B-7BAC-48B5-8640-6F46E97BE955}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

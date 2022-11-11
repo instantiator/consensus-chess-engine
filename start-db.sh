@@ -3,9 +3,8 @@
 set -e
 set -o pipefail
 
-# print config
-# docker compose --env-file environments/database.env config
-
 # start the containers
-docker compose --env-file environments/database.env start database
-
+docker compose -p consensus-chess \
+  --env-file environments/database.env \
+  up --exit-code-from database \
+  database

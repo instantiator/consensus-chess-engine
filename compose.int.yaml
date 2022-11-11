@@ -1,0 +1,22 @@
+version: "3.8"
+services:
+
+  database:
+    volumes:
+      - db-data-int:/var/lib/postgresql/data/
+
+  integration-tests:
+    depends_on:
+      database:
+        condition: service_healthy
+      engine:
+        condition: service_healthy
+    env_file:
+      - environments/integration-tests.env
+      - environments/database.env
+    build:
+      context: .
+      dockerfile: ConsensusChessIntegrationTests/Dockerfile
+
+volumes:
+  db-data-int:
