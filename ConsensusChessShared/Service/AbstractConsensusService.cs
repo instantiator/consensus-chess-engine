@@ -17,8 +17,8 @@ namespace ConsensusChessShared.Service
         protected readonly HttpClient http = new HttpClient();
         protected ConsensusChessDbContext db;
         protected ISocialConnection social;
-        protected NodeState state;
         protected Network network;
+        protected NodeState state;
         protected ILogger log;
         protected bool running;
         protected bool polling;
@@ -45,9 +45,11 @@ namespace ConsensusChessShared.Service
                 db.Database.Migrate();
             }
 
+
             gm = new GameManager(log);
-            state = RegisterNode();
             network = Network.FromEnvironment(env);
+
+            state = RegisterNode();
             social = SocialFactory.From(log, network, state, network.DryRuns);
         }
 
@@ -120,8 +122,6 @@ namespace ConsensusChessShared.Service
             using (var db = GetDb())
             {
                 state.StatePosts.Add(report);
-                db.Add(report);
-                db.NodeStates.Update(state);
                 await db.SaveChangesAsync();
             }
         }

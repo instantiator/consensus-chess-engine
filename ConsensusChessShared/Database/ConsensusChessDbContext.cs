@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections;
-using System.Linq;
+﻿using System.Collections;
 using ConsensusChessShared.DTO;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace ConsensusChessShared.Database
 {
@@ -40,7 +39,8 @@ namespace ConsensusChessShared.Database
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-            => optionsBuilder
+        => optionsBuilder
+                .ConfigureWarnings((wcb) => wcb.Log(CoreEventId.LazyLoadOnDisposedContextWarning))
                 .UseLazyLoadingProxies()
                 .UseNpgsql($"Host={host};Database={database};Username={username};Password={password};Include Error Detail=true");
 
