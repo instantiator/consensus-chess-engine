@@ -18,7 +18,7 @@ namespace ConsensusChessShared.Social
 
         private const int MAX_PAGES = 100; // TODO: revisit this limit
 
-        public MastodonConnection(ILogger log, Network network, NodeState state) : base(log, network, state)
+        public MastodonConnection(ILogger log, Network network, NodeState state, bool dryRuns) : base(log, network, state, dryRuns)
 		{
             AppRegistration reg = new AppRegistration()
             {
@@ -44,17 +44,26 @@ namespace ConsensusChessShared.Social
         public override string DisplayName => user!.DisplayName;
         public override string AccountName => user!.AccountName;
 
-        public override async Task<PostReport> PostToNetworkAsync(Post post)
+        public override async Task<Post> PostToNetworkAsync(Post post, bool dryRun)
         {
             try
             {
-                var status = await client.PostStatus(post.Message, replyStatusId: post.ReplyTo);
-                return PostReport.Success(post);
+                if (!dryRun)
+                {
+                    log.LogDebug($"Posting to network...");
+                    var status = await client.PostStatus(post.Message, replyStatusId: post.ReplyTo);
+                }
+                else
+                {
+                    log.LogWarning($"Dry run.");
+                }
+                post.Succeed();
             }
             catch (Exception e)
             {
-                return PostReport.From(e, post);
+                post.Fail(e: e);
             }
+            return post;
         }
 
         public override async Task StartListeningForCommandsAsync(Func<SocialCommand, Task> asyncCommandReceiver, bool getMissedCommands)
@@ -125,6 +134,9 @@ namespace ConsensusChessShared.Social
 
             if (isMention && isForMe && !isFavourited)
             {
+                // favourite to mark the notification as seen - we won't try again, even if execution fails
+                await client.Favourite(notification.Status!.Id);
+
                 // immediately update state
                 var statusId = notification.Status!.Id;
                 if (statusId > state.LastNotificationId)
@@ -144,9 +156,6 @@ namespace ConsensusChessShared.Social
                     IsRetrospective = retrospective
                 };
 
-                // now favourite to mark the notification as dealt with
-                await client.Favourite(notification.Status!.Id);
-
                 // now invoke the command (even if this fails we wouldn't want to re-run)
                 if (asyncCommandReceivers != null)
                 {
@@ -156,8 +165,6 @@ namespace ConsensusChessShared.Social
                 {
                     log.LogWarning("No receivers for this command.");
                 }
-
-                // TODO: catch errors, log, notify the user?
             }
         }
 

@@ -22,6 +22,7 @@ namespace ConsensusChessSharedTests
             Assert.AreEqual(2, network.AuthorisedAccountsList.Count());
             Assert.AreEqual("instantiator@mastodon.social", network.AuthorisedAccountsList.ElementAt(0));
             Assert.AreEqual("icgames@botsin.space", network.AuthorisedAccountsList.ElementAt(1));
+            Assert.IsTrue(network.DryRuns);
         }
 
         /*

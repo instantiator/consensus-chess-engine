@@ -9,9 +9,9 @@ services:
       - db-data:/var/lib/postgresql/data/
     healthcheck:
       test: [ "CMD", "pg_isready", "-U","${POSTGRES_USER}", "-d","${POSTGRES_DB}" ]
-      interval: 2s
-      timeout: 2s
-      retries: 5
+      interval: 5s
+      timeout: 10s
+      retries: 12
     restart: unless-stopped
 
   engine:
@@ -20,9 +20,9 @@ services:
         condition: service_healthy
     healthcheck:
       test: bash -c "[ -f /tmp/health.ready ]"
-      interval: 2s
-      timeout: 2s
-      retries: 5
+      interval: 5s
+      timeout: 10s
+      retries: 12
     env_file:
       - environments/engine.env
       - environments/database.env
@@ -39,9 +39,9 @@ services:
         condition: service_healthy
     healthcheck:
       test: bash -c "[ -f /tmp/health.ready ]"
-      interval: 2s
-      timeout: 2s
-      retries: 5
+      interval: 5s
+      timeout: 10s
+      retries: 12
     env_file:
       - environments/node-0-test.env
       - environments/database.env

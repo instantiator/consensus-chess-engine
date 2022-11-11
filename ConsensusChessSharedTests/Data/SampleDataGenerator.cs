@@ -56,6 +56,7 @@ namespace ConsensusChessSharedTests.Data
             {"NETWORK_APP_SECRET","app-secret"},
             {"NETWORK_ACCESS_TOKEN","access-token"},
             {"NETWORK_AUTHORISED_ACCOUNTS","@instantiator@mastodon.social,@icgames@botsin.space"},
+            {"NETWORK_DRY_RUNS","true"},
         };
     }
 }

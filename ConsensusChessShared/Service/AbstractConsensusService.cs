@@ -23,7 +23,9 @@ namespace ConsensusChessShared.Service
         protected bool running;
         protected bool polling;
         protected IDictionary env;
+
         protected CommandProcessor? cmd;
+        protected GameManager gm;
 
         protected abstract TimeSpan PollPeriod { get; }
 
@@ -43,9 +45,10 @@ namespace ConsensusChessShared.Service
                 db.Database.Migrate();
             }
 
+            gm = new GameManager(log);
             state = RegisterNode();
             network = Network.FromEnvironment(env);
-            social = SocialFactory.From(log, network, state);
+            social = SocialFactory.From(log, network, state, network.DryRuns);
         }
 
         protected NodeState RegisterNode()
@@ -87,6 +90,9 @@ namespace ConsensusChessShared.Service
             cmd.OnFailAsync += Cmd_OnFailAsync;
             RegisterForCommands(cmd);
             social.OnStateChange += RecordStateChangeAsync;
+
+            // permit dependencies to start
+            IndicateHealthReady();
         }
 
         private async Task Cmd_OnFailAsync(SocialCommand origin, string message, CommandRejectionReason? reason)
@@ -109,7 +115,7 @@ namespace ConsensusChessShared.Service
             }
         }
 
-        private async Task RecordStatePostAsync(PostReport report)
+        private async Task RecordStatePostAsync(Post report)
         {
             using (var db = GetDb())
             {
@@ -137,9 +143,6 @@ namespace ConsensusChessShared.Service
             try
             {
                 running = true;
-
-                // permit dependencies to start
-                IndicateHealthReady();
 
                 // post readiness
                 var posted = await social.PostAsync(SocialStatus.Started);

@@ -16,11 +16,12 @@ namespace ConsensusChessShared.Social
 		Task StartListeningForCommandsAsync(Func<SocialCommand, Task> receiver, bool retrieveMissedCommands);
 		Task StopListeningForCommandsAsync(Func<SocialCommand, Task> receiver);
 
-        Task<PostReport> PostAsync(SocialStatus status);
-		Task<PostReport> PostAsync(Game game);
-        Task<PostReport> PostAsync(string text, PostType type);
-		Task<PostReport> ReplyAsync(SocialCommand origin, string message);
-        Task<PostReport> PostToNetworkAsync(Post post);
+        Task<Post> PostAsync(SocialStatus status, bool? dryRun = null);
+		Task<Post> PostAsync(Game game, bool? dryRun = null);
+        Task<Post> PostAsync(Game game, Board board, bool? dryRun = null);
+        Task<Post> PostAsync(string text, PostType type, bool? dryRun = null);
+		Task<Post> ReplyAsync(SocialCommand origin, string message, bool? dryRun = null);
+        Task<Post> PostToNetworkAsync(Post post, bool dryRun);
 
     }
 }
