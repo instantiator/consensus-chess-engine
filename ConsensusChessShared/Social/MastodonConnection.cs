@@ -18,7 +18,7 @@ namespace ConsensusChessShared.Social
 
         private const int MAX_PAGES = 100; // TODO: revisit this limit
 
-        public MastodonConnection(ILogger log, Network network, NodeState state) : base(log, network, state)
+        public MastodonConnection(ILogger log, Network network, NodeState state, bool dryRuns) : base(log, network, state, dryRuns)
 		{
             AppRegistration reg = new AppRegistration()
             {
@@ -44,18 +44,26 @@ namespace ConsensusChessShared.Social
         public override string DisplayName => user!.DisplayName;
         public override string AccountName => user!.AccountName;
 
-        public override async Task<PostReport> PostToNetworkAsync(Post post)
+        public override async Task<Post> PostToNetworkAsync(Post post, bool dryRun)
         {
             try
             {
-                log.LogDebug($"Posting:\n{post.Message}");
-                var status = await client.PostStatus(post.Message, replyStatusId: post.ReplyTo);
-                return PostReport.Success(post);
+                if (!dryRun)
+                {
+                    log.LogDebug($"Posting to network...");
+                    var status = await client.PostStatus(post.Message, replyStatusId: post.ReplyTo);
+                }
+                else
+                {
+                    log.LogWarning($"Dry run.");
+                }
+                post.Succeed();
             }
             catch (Exception e)
             {
-                return PostReport.From(e, post);
+                post.Fail(e: e);
             }
+            return post;
         }
 
         public override async Task StartListeningForCommandsAsync(Func<SocialCommand, Task> asyncCommandReceiver, bool getMissedCommands)

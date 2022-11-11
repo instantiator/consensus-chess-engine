@@ -3,6 +3,8 @@ using System.Collections;
 using ConsensusChessShared.DTO;
 using ConsensusChessShared.Service;
 using ConsensusChessShared.Social;
+using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace ConsensusChessNode.Service
 {
@@ -17,22 +19,42 @@ namespace ConsensusChessNode.Service
 
         protected override async Task PollAsync(CancellationToken cancellationToken)
         {
-            log.LogTrace("Polling...");
             using (var db = GetDb())
             {
-                var games = db.Games.ToList();
+                var games = db.Games
+                    //.Include(g => g.Moves.Select(m => m.From).Select(b => b.BoardPosts))
+                    //.Include(g => g.Moves.Select(m => m.To).Select(b => b.BoardPosts))
+                    //.Include(g => g.Moves.Select(m => m.Votes))
+                    .ToList();
+
+                log.LogDebug(JsonConvert.SerializeObject(games));
+
                 var unpostedBoardChecks = gm.FindUnpostedBoards(games, state.Shortcode);
                 foreach (var check in unpostedBoardChecks)
                 {
-                    if (check.Value != null)
-                    {
-                        log.LogInformation($"Found a new board to post in game: {check.Key.Id}");
-                        var posted = await social.PostAsync(check.Key, check.Value);
+                    var game = check.Key;
+                    var board = check.Value;
 
-                        db.Posts.Add(posted.Post);
-                        db.PostReports.Add(posted);
-                        check.Value.BoardPosts.Add(posted);
-                        db.Boards.Update(check.Value);
+                    if (board != null)
+                    {
+                        log.LogInformation($"Found a new board to post in game: {game.Id}");
+
+                        var posted = await social.PostAsync(game, board);
+
+                        log.LogDebug("Saving board and new board posts...");
+
+
+                        board.BoardPosts.Add(posted);
+                        //db.Attach(posted);
+                        //db.Games.Update(game);
+
+                        log.LogTrace($"board.Id = {board.Id}");
+                        log.LogTrace($"posted.Id = {posted.Id}");
+                        log.LogTrace($"board.BoardPosts.Count = {board.BoardPosts.Count()}");
+                        //db.Entry(posted).State = Microsoft.EntityFrameworkCore.EntityState.Added;
+                        //db.Entry(board).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                        //db.Entry(game).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+
                         await db.SaveChangesAsync();
                     }
                 }
@@ -53,7 +75,7 @@ namespace ConsensusChessNode.Service
 
         protected override async Task FinishAsync()
         {
-            log.LogWarning("FinishAsync not implemented");
+            log.LogDebug("FinishAsync");
         }
 
     }

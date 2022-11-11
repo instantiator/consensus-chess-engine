@@ -1,7 +1,6 @@
 ﻿using System;
 using ConsensusChessShared.Database;
 using ConsensusChessShared.DTO;
-using ConsensusChessShared.Migrations;
 using Microsoft.Extensions.Logging;
 
 namespace ConsensusChessShared.Service
@@ -14,11 +13,9 @@ namespace ConsensusChessShared.Service
         {
             this.log = log;
         }
+
         public Game CreateSimpleMoveLockGame(IEnumerable<string> shortcodes)
-        {
-            var game = new Game(shortcodes, shortcodes, SideRules.MoveLock);
-            return game;
-        }
+            => Game.NewGame(shortcodes, shortcodes, SideRules.MoveLock);
 
         public Dictionary<Game,Board?> FindUnpostedBoards(IEnumerable<Game> games, string shortcode)
         {
@@ -41,7 +38,7 @@ namespace ConsensusChessShared.Service
 
             // if shortcode found amongst currently playing, check to see if there's already a post
             var board = game.CurrentMove.From;
-            var alreadyPosted = board.BoardPosts.Any(bp => bp.Post.NodeShortcode == shortcode);
+            var alreadyPosted = board.BoardPosts.Any(bp => bp.NodeShortcode == shortcode);
 
             // if not already posted, then return the board, otherwise null
             return alreadyPosted

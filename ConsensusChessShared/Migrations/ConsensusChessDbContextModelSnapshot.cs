@@ -18,16 +18,21 @@ namespace ConsensusChessShared.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.7")
+                .HasAnnotation("ProductVersion", "7.0.0")
+                .HasAnnotation("Proxies:ChangeTracking", false)
+                .HasAnnotation("Proxies:CheckEquality", false)
+                .HasAnnotation("Proxies:LazyLoading", true)
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("ConsensusChessShared.DTO.Board", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<int>("ActiveSide")
                         .HasColumnType("integer");
@@ -55,41 +60,44 @@ namespace ConsensusChessShared.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Boards");
+                    b.ToTable("Board");
                 });
 
             modelBuilder.Entity("ConsensusChessShared.DTO.Commitment", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("GameId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("GameShortcode")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.Property<Guid?>("ParticipantId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("Side")
+                    b.Property<int>("GameSide")
                         .HasColumnType("integer");
+
+                    b.Property<long?>("ParticipantId")
+                        .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("GameId");
-
                     b.HasIndex("ParticipantId");
 
-                    b.ToTable("Commitments");
+                    b.ToTable("Commitment");
                 });
 
             modelBuilder.Entity("ConsensusChessShared.DTO.Game", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<List<string>>("BlackNetworks")
                         .IsRequired()
@@ -121,9 +129,11 @@ namespace ConsensusChessShared.Migrations
 
             modelBuilder.Entity("ConsensusChessShared.DTO.Media", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<string>("Alt")
                         .IsRequired()
@@ -136,21 +146,23 @@ namespace ConsensusChessShared.Migrations
                         .IsRequired()
                         .HasColumnType("bytea");
 
-                    b.Property<Guid?>("PostId")
-                        .HasColumnType("uuid");
+                    b.Property<long?>("PostId")
+                        .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
                     b.HasIndex("PostId");
 
-                    b.ToTable("Medias");
+                    b.ToTable("Media");
                 });
 
             modelBuilder.Entity("ConsensusChessShared.DTO.Move", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
@@ -158,20 +170,20 @@ namespace ConsensusChessShared.Migrations
                     b.Property<DateTime>("Deadline")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("FromId")
-                        .HasColumnType("uuid");
+                    b.Property<long>("FromId")
+                        .HasColumnType("bigint");
 
-                    b.Property<Guid?>("GameId")
-                        .HasColumnType("uuid");
+                    b.Property<long?>("GameId")
+                        .HasColumnType("bigint");
 
-                    b.Property<Guid?>("SelectedVoteId")
-                        .HasColumnType("uuid");
+                    b.Property<long?>("SelectedVoteId")
+                        .HasColumnType("bigint");
 
                     b.Property<int>("SideToPlay")
                         .HasColumnType("integer");
 
-                    b.Property<Guid?>("ToId")
-                        .HasColumnType("uuid");
+                    b.Property<long?>("ToId")
+                        .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
@@ -183,55 +195,16 @@ namespace ConsensusChessShared.Migrations
 
                     b.HasIndex("ToId");
 
-                    b.ToTable("Moves");
-                });
-
-            modelBuilder.Entity("ConsensusChessShared.DTO.Network", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("AppKey")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("AppName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("AppSecret")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("AppToken")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("AuthorisedAccounts")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("NetworkServer")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Networks");
+                    b.ToTable("Move");
                 });
 
             modelBuilder.Entity("ConsensusChessShared.DTO.NodeState", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
@@ -260,15 +233,18 @@ namespace ConsensusChessShared.Migrations
 
             modelBuilder.Entity("ConsensusChessShared.DTO.Participant", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("NetworkId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("NetworkServer")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("NetworkUserId")
                         .IsRequired()
@@ -276,23 +252,35 @@ namespace ConsensusChessShared.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("NetworkId");
-
-                    b.ToTable("Participants");
+                    b.ToTable("Participant");
                 });
 
             modelBuilder.Entity("ConsensusChessShared.DTO.Post", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<string>("AppName")
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateTime?>("Attempted")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long?>("BoardId")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ExceptionType")
+                        .HasColumnType("text");
 
                     b.Property<string>("Message")
                         .IsRequired()
@@ -306,43 +294,17 @@ namespace ConsensusChessShared.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<long?>("NodeStateId")
+                        .HasColumnType("bigint");
+
                     b.Property<long?>("ReplyTo")
                         .HasColumnType("bigint");
 
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Posts");
-                });
-
-            modelBuilder.Entity("ConsensusChessShared.DTO.PostReport", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("BoardId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("ErrorMessage")
-                        .HasColumnType("text");
-
-                    b.Property<string>("ExceptionType")
-                        .HasColumnType("text");
-
-                    b.Property<Guid?>("NodeStateId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("PostId")
-                        .HasColumnType("uuid");
-
                     b.Property<bool>("Succeeded")
                         .HasColumnType("boolean");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -350,32 +312,32 @@ namespace ConsensusChessShared.Migrations
 
                     b.HasIndex("NodeStateId");
 
-                    b.HasIndex("PostId");
-
-                    b.ToTable("PostReports");
+                    b.ToTable("Post");
                 });
 
             modelBuilder.Entity("ConsensusChessShared.DTO.Vote", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid?>("MoveId")
-                        .HasColumnType("uuid");
+                    b.Property<long?>("MoveId")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("MoveText")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid>("ParticipantId")
-                        .HasColumnType("uuid");
+                    b.Property<long>("ParticipantId")
+                        .HasColumnType("bigint");
 
-                    b.Property<Guid>("ValidationId")
-                        .HasColumnType("uuid");
+                    b.Property<long>("ValidationId")
+                        .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
@@ -385,14 +347,16 @@ namespace ConsensusChessShared.Migrations
 
                     b.HasIndex("ValidationId");
 
-                    b.ToTable("Votes");
+                    b.ToTable("Vote");
                 });
 
             modelBuilder.Entity("ConsensusChessShared.DTO.VoteValidation", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
@@ -404,29 +368,21 @@ namespace ConsensusChessShared.Migrations
                     b.Property<bool>("ValidationState")
                         .HasColumnType("boolean");
 
-                    b.Property<Guid>("VoteValidationPostId")
-                        .HasColumnType("uuid");
+                    b.Property<long>("VoteValidationPostId")
+                        .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
                     b.HasIndex("VoteValidationPostId");
 
-                    b.ToTable("VoteValidations");
+                    b.ToTable("VoteValidation");
                 });
 
             modelBuilder.Entity("ConsensusChessShared.DTO.Commitment", b =>
                 {
-                    b.HasOne("ConsensusChessShared.DTO.Game", "Game")
-                        .WithMany()
-                        .HasForeignKey("GameId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("ConsensusChessShared.DTO.Participant", null)
                         .WithMany("Commitments")
                         .HasForeignKey("ParticipantId");
-
-                    b.Navigation("Game");
                 });
 
             modelBuilder.Entity("ConsensusChessShared.DTO.Media", b =>
@@ -463,18 +419,7 @@ namespace ConsensusChessShared.Migrations
                     b.Navigation("To");
                 });
 
-            modelBuilder.Entity("ConsensusChessShared.DTO.Participant", b =>
-                {
-                    b.HasOne("ConsensusChessShared.DTO.Network", "Network")
-                        .WithMany()
-                        .HasForeignKey("NetworkId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Network");
-                });
-
-            modelBuilder.Entity("ConsensusChessShared.DTO.PostReport", b =>
+            modelBuilder.Entity("ConsensusChessShared.DTO.Post", b =>
                 {
                     b.HasOne("ConsensusChessShared.DTO.Board", null)
                         .WithMany("BoardPosts")
@@ -483,14 +428,6 @@ namespace ConsensusChessShared.Migrations
                     b.HasOne("ConsensusChessShared.DTO.NodeState", null)
                         .WithMany("StatePosts")
                         .HasForeignKey("NodeStateId");
-
-                    b.HasOne("ConsensusChessShared.DTO.Post", "Post")
-                        .WithMany()
-                        .HasForeignKey("PostId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Post");
                 });
 
             modelBuilder.Entity("ConsensusChessShared.DTO.Vote", b =>
@@ -518,7 +455,7 @@ namespace ConsensusChessShared.Migrations
 
             modelBuilder.Entity("ConsensusChessShared.DTO.VoteValidation", b =>
                 {
-                    b.HasOne("ConsensusChessShared.DTO.PostReport", "VoteValidationPost")
+                    b.HasOne("ConsensusChessShared.DTO.Post", "VoteValidationPost")
                         .WithMany()
                         .HasForeignKey("VoteValidationPostId")
                         .OnDelete(DeleteBehavior.Cascade)

@@ -13,12 +13,14 @@ namespace ConsensusChessShared.Social
 		protected ILogger log;
 		protected Network network;
 		protected NodeState state;
+		protected bool dryRuns;
 
-		public AbstractSocialConnection(ILogger log, Network network, NodeState state)
+		public AbstractSocialConnection(ILogger log, Network network, NodeState state, bool dryRuns)
 		{
 			this.log = log;
 			this.network = network;
 			this.state = state;
+			this.dryRuns = dryRuns;
 		}
 
 		public abstract Task InitAsync();
@@ -28,32 +30,33 @@ namespace ConsensusChessShared.Social
 		public abstract Task StartListeningForCommandsAsync(Func<SocialCommand, Task> asyncReceiver, bool retrieveMissedCommands);
 		public abstract Task StopListeningForCommandsAsync(Func<SocialCommand, Task> asyncReceiver);
 
-		public async Task<PostReport> PostAsync(SocialStatus status)
-			=> await PostAsync($"{state.Name} ({state.Shortcode}): {status}", PostType.SocialStatus);
+		public async Task<Post> PostAsync(SocialStatus status, bool? dryRun = null)
+			=> await PostAsync($"{state.Name} ({state.Shortcode}): {status}", PostType.SocialStatus, dryRun);
 
-		public async Task<PostReport> PostAsync(Game game)
+		public async Task<Post> PostAsync(Game game, bool? dryRun = null)
 			=> await PostAsync(
 				string.Format("New {0} game...\nWhite: {1}\nBlack: {2}\nMove duration: {3}",
 					game.SideRules,
                     string.Join(", ", game.WhiteNetworks),
                     string.Join(", ", game.BlackNetworks),
                     game.MoveDuration),
-                PostType.EngineUpdate);
+                PostType.EngineUpdate,
+                dryRun);
 
-        public async Task<PostReport> PostAsync(Game game, Board board)
+        public async Task<Post> PostAsync(Game game, Board board, bool? dryRun = null)
             => await PostAsync(
                 string.Format("New board. You have {1} to vote.\n{0}",
                     BoardFormatter.PiecesFENtoVisualEmoji(board.Pieces_FEN),
 					game.MoveDuration.ToString()),
-                PostType.BoardUpdate);
+                PostType.BoardUpdate,
+				dryRun);
 
-        public async Task<PostReport> PostAsync(string text, PostType type = PostType.Unspecified)
+        public async Task<Post> PostAsync(string text, PostType type = PostType.Unspecified, bool? dryRun = null)
 		{
 			log.LogInformation($"Posting: {text}");
 
 			var post = new Post()
 			{
-				Created = DateTime.Now.ToUniversalTime(),
 				Message = text,
 				NodeShortcode = state.Shortcode,
                 NetworkServer = network.NetworkServer,
@@ -61,16 +64,15 @@ namespace ConsensusChessShared.Social
                 Type = type
             };
 
-            return await PostToNetworkAsync(post);
+            return await PostToNetworkAsync(post, dryRun ?? dryRuns);
 		}
 
-		public async Task<PostReport> ReplyAsync(SocialCommand origin, string message)
+		public async Task<Post> ReplyAsync(SocialCommand origin, string message, bool? dryRun = null)
 		{
             log.LogInformation($"Replying: {message}");
 
             var post = new Post()
             {
-                Created = DateTime.Now.ToUniversalTime(),
                 Message = message,
                 NodeShortcode = state.Shortcode,
                 NetworkServer = network.NetworkServer,
@@ -79,10 +81,10 @@ namespace ConsensusChessShared.Social
 				ReplyTo = origin.SourceId
             };
 
-            return await PostToNetworkAsync(post);
+            return await PostToNetworkAsync(post, dryRun ?? dryRuns);
         }
 
-        public abstract Task<PostReport> PostToNetworkAsync(Post post);
+        public abstract Task<Post> PostToNetworkAsync(Post post, bool dryRun);
 
 		protected async Task ReportStateChangeAsync()
 		{

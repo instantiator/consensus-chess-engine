@@ -83,6 +83,7 @@ namespace ConsensusChessEngine.Service
 
         protected override async Task FinishAsync()
         {
+            log.LogDebug("FinishAsync");
         }
 
     }

@@ -1,23 +1,32 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace ConsensusChessShared.DTO
 {
-	public class Board : AbstractDTO
+	public class Board : IDTO
 	{
 		// white are upper case
 		public static readonly string INITIAL_PIECES_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
 		public static readonly string INITIAL_CASTLING_FEN = "KQkq";
 
-		public Board() : base()
+		public Board()
 		{
-			BoardPosts = new List<PostReport>();
+			BoardPosts = new List<Post>();
+			Created = DateTime.Now.ToUniversalTime();
 		}
 
-		public string Pieces_FEN { get; set; }
+        [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public long Id { get; set; }
+        public DateTime Created { get; set; }
+
+        public string Pieces_FEN { get; set; }
 		public Side ActiveSide { get; set; }
 		public string CastlingAvailability_FEN { get; set; }
 		public string EnPassantTargetSquare_FEN { get; set; }
 		public int HalfMoveClock { get; set; }
 		public int FullMoveNumber { get; set; }
+		public virtual List<Post> BoardPosts { get; set; }
 
 		public string FEN
 		{
@@ -28,7 +37,6 @@ namespace ConsensusChessShared.DTO
 			}
 		}
 
-		public List<PostReport> BoardPosts { get; set; }
 
 		public static Board CreateStartingBoard()
 		{

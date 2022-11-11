@@ -48,7 +48,7 @@ namespace ConsensusChessShared.Service
             gm = new GameManager(log);
             state = RegisterNode();
             network = Network.FromEnvironment(env);
-            social = SocialFactory.From(log, network, state);
+            social = SocialFactory.From(log, network, state, network.DryRuns);
         }
 
         protected NodeState RegisterNode()
@@ -115,7 +115,7 @@ namespace ConsensusChessShared.Service
             }
         }
 
-        private async Task RecordStatePostAsync(PostReport report)
+        private async Task RecordStatePostAsync(Post report)
         {
             using (var db = GetDb())
             {
