@@ -1,18 +1,26 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace ConsensusChessShared.DTO
 {
-	public class Move : AbstractDTO
-	{
-		public Move() : base()
+	public class Move : IDTO
+    {
+		public Move()
 		{
 			Votes = new List<Vote>();
-		}
+            Created = DateTime.Now.ToUniversalTime();
+        }
 
-		public Board From { get; set; }
-		public Board? To { get; set; }
-		public Vote? SelectedVote { get; set; }
+        [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public Guid Id { get; set; }
+        public DateTime Created { get; set; }
+
+        public virtual Board From { get; set; }
+		public virtual Board? To { get; set; }
+		public virtual Vote? SelectedVote { get; set; }
 		public Side SideToPlay { get; set; }
-		public List<Vote> Votes { get; set; }
+		public virtual List<Vote> Votes { get; set; }
 		public DateTime Deadline { get; set; }
 
 		public static Move CreateStartingMove(TimeSpan duration)

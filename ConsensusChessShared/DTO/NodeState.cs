@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Net.Mail;
 using ConsensusChessShared.Social;
 using Microsoft.EntityFrameworkCore;
@@ -7,19 +9,24 @@ using Microsoft.EntityFrameworkCore;
 namespace ConsensusChessShared.DTO
 {
     [Index(nameof(Shortcode), IsUnique = true)]
-    public class NodeState : AbstractDTO
-	{
+    public class NodeState : IDTO
+    {
 		public NodeState()
 		{
-			StatePosts = new List<PostReport>();
+			StatePosts = new List<Post>();
+			Created = DateTime.Now.ToUniversalTime();
 		}
+
+        [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public Guid Id { get; set; }
+		public DateTime Created { get; set; }
 
 		public string Name { get; set; }
 
 		public string Shortcode { get; set; }
 		public long LastNotificationId { get; set; }
         public long LastReplyId { get; set; }
-		public List<PostReport> StatePosts { get; set; }
+		public virtual List<Post> StatePosts { get; set; }
 
 		public static NodeState Create(string name, string shortcode)
 		{

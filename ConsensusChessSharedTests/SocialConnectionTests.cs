@@ -27,7 +27,7 @@ namespace ConsensusChessSharedTests
         [TestMethod]
         public void SocialFactory_creates_MastodonConnection()
 		{
-            var connection = SocialFactory.From(mockLogger.Object, network, state);
+            var connection = SocialFactory.From(mockLogger.Object, network, state, true);
             var mastodonConnection = connection as MastodonConnection;
             Assert.IsNotNull(mastodonConnection);
 

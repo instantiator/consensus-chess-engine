@@ -3,6 +3,8 @@ using System.Collections;
 using ConsensusChessShared.DTO;
 using ConsensusChessShared.Service;
 using ConsensusChessShared.Social;
+using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace ConsensusChessNode.Service
 {
@@ -17,21 +19,23 @@ namespace ConsensusChessNode.Service
 
         protected override async Task PollAsync(CancellationToken cancellationToken)
         {
-            log.LogTrace("Polling...");
             using (var db = GetDb())
             {
                 var games = db.Games.ToList();
                 var unpostedBoardChecks = gm.FindUnpostedBoards(games, state.Shortcode);
+
                 foreach (var check in unpostedBoardChecks)
                 {
-                    if (check.Value != null)
-                    {
-                        log.LogInformation($"Found a new board to post in game: {check.Key.Id}");
-                        var posted = await social.PostAsync(check.Key, check.Value);
+                    var game = check.Key;
+                    var board = check.Value;
 
-                        db.Add(posted);
-                        check.Value.BoardPosts.Add(posted);
-                        db.Update(check.Value);
+                    if (board != null)
+                    {
+                        log.LogInformation($"Found a new board to post in game: {game.Id}");
+                        var posted = await social.PostAsync(game, board);
+                        board.BoardPosts.Add(posted);
+
+                        log.LogDebug("Saving board and new board posts...");
                         await db.SaveChangesAsync();
                     }
                 }
@@ -52,7 +56,7 @@ namespace ConsensusChessNode.Service
 
         protected override async Task FinishAsync()
         {
-            log.LogWarning("FinishAsync not implemented");
+            log.LogDebug("FinishAsync");
         }
 
     }
