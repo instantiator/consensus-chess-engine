@@ -7,9 +7,10 @@ WORKDIR /src
 COPY ["ConsensusChessShared/ConsensusChessShared.csproj", "ConsensusChessShared/"]
 COPY ["ConsensusChessIntegrationTests/ConsensusChessIntegrationTests.csproj", "ConsensusChessIntegrationTests/"]
 
+RUN dotnet restore ConsensusChessShared/ConsensusChessShared.csproj
 RUN dotnet restore ConsensusChessIntegrationTests/ConsensusChessIntegrationTests.csproj
 
 COPY . .
 
-WORKDIR "/src/ConsensusChessIntegrationTests"
-ENTRYPOINT ["dotnet", "test"]
+RUN dotnet build ConsensusChessIntegrationTests/ConsensusChessIntegrationTests.csproj
+ENTRYPOINT ["dotnet", "test", "ConsensusChessIntegrationTests/ConsensusChessIntegrationTests.csproj"]

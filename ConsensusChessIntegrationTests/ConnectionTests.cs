@@ -22,8 +22,14 @@ public class ConnectionTests : AbstractIntegrationTests
     [TestMethod]
     public async Task CheckSocialConnection()
     {
-        var client = GetMastodonClient();
-        var account = await client.GetCurrentUser();
+        var account = await social.GetCurrentUser();
         Assert.AreEqual("instantiator", account.AccountName);
+    }
+
+    [TestMethod]
+    public async Task CanSendMessage()
+    {
+        var sent = await SendMessageAsync("This is a test message, please ignore.");
+        Assert.IsNotNull(sent);
     }
 }
