@@ -27,9 +27,10 @@ namespace ConsensusChessShared.Database
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder
-                .ConfigureWarnings((wcb) => wcb.Log(CoreEventId.LazyLoadOnDisposedContextWarning))
-                .UseLazyLoadingProxies()
-                .UseNpgsql($"Host={host};Database={database};Username={username};Password={password};Include Error Detail=true");
+            .ConfigureWarnings((wcb) => wcb.Log(CoreEventId.LazyLoadOnDisposedContextWarning))
+            .UseLazyLoadingProxies()
+            .UseNpgsql($"Host={host};Database={database};Username={username};Password={password};Include Error Detail=true")
+            .UseSnakeCaseNamingConvention();
 
         public static ConsensusChessDbContext FromEnvironment(System.Collections.IDictionary env)
         {

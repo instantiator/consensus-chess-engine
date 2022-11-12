@@ -15,11 +15,12 @@ docker compose -p consensus-chess-int-tests \
   --env-file environments/database.env \
   build integration-tests
 
-# start the database container only
+# start all containers required for the test, exit when it finishes
 docker compose -p consensus-chess-int-tests \
   -f compose.yaml -f compose.int.yaml \
   --env-file environments/database.env \
   up --exit-code-from integration-tests \
+  --abort-on-container-exit \
   integration-tests
 
 TEST_CODE=$?
@@ -66,6 +67,6 @@ EOF
 fi
 
 # remove all containers and the attached database volume after run
-docker compose -p consensus-chess-int-tests -f compose.yaml -f compose.int.yaml --env-file environments/database.env down -v
+docker compose -p consensus-chess-int-tests -f compose.yaml -f compose.int.yaml --env-file environments/database.env stop
 
 exit $TEST_CODE

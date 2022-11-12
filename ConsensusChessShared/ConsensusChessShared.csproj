@@ -20,6 +20,7 @@
     <None Remove="Migrations\" />
     <None Remove="Newtonsoft.Json" />
     <None Remove="Microsoft.EntityFrameworkCore.Proxies" />
+    <None Remove="EFCore.NamingConventions" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DTO\" />
@@ -40,5 +41,6 @@
     <PackageReference Include="HtmlAgilityPack" Version="1.11.46" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="7.0.0" />
+    <PackageReference Include="EFCore.NamingConventions" Version="7.0.0" />
   </ItemGroup>
 </Project>
