@@ -1,8 +1,5 @@
 #!/bin/bash
 
-set -e
-set -o pipefail
-
 # remove any residual containers and the attached database volume before run
 docker compose -p consensus-chess-int-tests \
   -f compose.yaml -f compose.int.yaml \

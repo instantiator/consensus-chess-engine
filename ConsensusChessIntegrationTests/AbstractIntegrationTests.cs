@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using ConsensusChessShared.Database;
 using ConsensusChessShared.DTO;
 using Mastonet;
@@ -14,6 +15,8 @@ namespace ConsensusChessIntegrationTests
 
         protected List<Status> SentMessages { get; } = new List<Status>();
 
+        protected List<Notification> ReceivedNotifications { get; } = new List<Notification>();
+
         protected ConsensusChessDbContext GetDb()
             => ConsensusChessDbContext.FromEnvironment(Environment.GetEnvironmentVariables());
 
@@ -21,6 +24,7 @@ namespace ConsensusChessIntegrationTests
             => Network.FromEnvironment(Environment.GetEnvironmentVariables());
 
         protected MastodonClient social;
+        protected TimelineStreaming? stream;
 
         protected AbstractIntegrationTests()
         {
@@ -54,17 +58,55 @@ namespace ConsensusChessIntegrationTests
                 ? visibilityOverride
                 : Visibility.Direct;
             message = string.IsNullOrWhiteSpace(directRecipient) ? message : $"{directRecipient} {message}";
+
+            
+
             var status = await social.PostStatus(message, visibility: visibility, replyStatusId: inReplyTo);
             SentMessages.Add(status);
             return status;
         }
 
+        protected async Task<Notification?> AwaitNotification(TimeSpan timeoutAfter, Func<Notification,bool> matcher)
+        {
+            var timeout = DateTime.Now.Add(timeoutAfter);
+            Notification? notification;
+            do
+            {
+                notification = ReceivedNotifications.FirstOrDefault(n => matcher(n));
+                if (notification != null)
+                {
+                    ReceivedNotifications.Remove(notification);
+                }
+                else
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(1));
+                }
+            }
+            while (notification == null && DateTime.Now < timeout);
+            return notification;
+        }
+
+        [TestInitialize]
+        public void TestInit()
+        {
+            stream = social.GetUserStreaming();
+            stream.OnNotification += (obj,e) => { ReceivedNotifications.Add(e.Notification); };
+            stream.Start(); // not awaited - awaiting blocks
+        }
+
         [TestCleanup]
         public async Task CleanupAsync()
         {
+            // stop listening
+            stream!.Stop();
+            ReceivedNotifications.Clear();
+
             // delete sent messages
             foreach (var status in SentMessages)
+            {
                 await social.DeleteStatus(status.Id);
+            }
+            SentMessages.Clear();
 
             // crucially, don't delete node_status from the db
             var tables = new[]
@@ -98,7 +140,6 @@ namespace ConsensusChessIntegrationTests
                     await db.Database.ExecuteSqlRawAsync($"TRUNCATE {table} CASCADE;");
                 }
             }
-
         }
 
     }
