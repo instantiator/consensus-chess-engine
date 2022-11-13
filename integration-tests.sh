@@ -6,17 +6,11 @@ docker compose -p consensus-chess-int \
   --env-file environments/int-database.env \
   down -v
 
-# build containers
-docker compose -p consensus-chess-int \
-  -f compose.yaml -f compose.int.yaml \
-  --env-file environments/int-database.env \
-  build integration-tests
-
 # start all containers required for the test, exit when it finishes
 docker compose -p consensus-chess-int \
   -f compose.yaml -f compose.int.yaml \
   --env-file environments/int-database.env \
-  up integration-tests \
+  up --build integration-tests \
   --exit-code-from integration-tests \
   --abort-on-container-exit
 

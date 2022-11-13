@@ -31,20 +31,38 @@ _NB. This is a work in progress - the engine is not yet ready to host games._
 
   ![](docs/images/int-tests-pass.png)
 
-When you're ready to launch, you can use `./run-prod.sh` to launch an instance with production db, config, and nodes. `Ctrl`+`C` to halt.
-
-For a real production service, you'll actually want to disconnect from docker compose. Docker compose accepts a `-d` option for that - but the script doesn't yet suppor that.
-
-_I'll be making the run scripts a little more flexible soon to allow you to run `int`/`prod` sessions and choose between foreground and background._
-
 ## Scripts
 
 The following scripts exist for common operations:
 
 | Script | Description |
 |-|-|
-| `erase-all-docker-artefacts.sh` | Use carefully! This clears down your docker instance - erasing all containers and volumes. |
 | `integration-tests.sh` | Launches the db, engine, a node, and the integration test runner for the `int` environment. |
-| `run-prod.sh` | Launches the db, engine and all nodes defined for the `prod` environment. |
-| `start-db-prod.sh` | Starts the `prod` environment db (only). |
-| `stop-all.sh` | Stop all running containers in any environment. |
+| `run.sh` | Launches the db, engine and all nodes defined for environment specified. |
+| `start-db.sh` | Starts the database (only) for the environment specified. |
+| `stop.sh` | Stop all running containers in the environment specified. |
+| `erase.sh` | Use carefully! This clears down your docker compose project - erasing all containers and volumes for the environment specified. |
+
+If you don't provide any parameters, all scripts except `integration-tests.sh` will halt and display their parameter options.
+
+### Environment
+
+For all except the `integration-tests.sh` script, you must specify the environment with the `-e` or `--environment` option.
+
+Choices of environment: `int`, `prod`
+
+eg.
+
+```shell
+./run.sh --environment int
+```
+
+### Run in background
+
+The `run.sh` and `start-db.sh` scripts can run your services in the background. Set the `-d` or `--detach` option.
+
+eg.
+
+```shell
+./run.sh --environment prod --detach
+```
