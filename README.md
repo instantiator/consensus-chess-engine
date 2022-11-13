@@ -6,11 +6,12 @@ _NB. This is a work in progress - the engine is not yet ready to host games._
 
 ## Documentation
 
-* [architecture](docs/architecture.md)
-* [accounts](docs/accounts.md)
-* [config](docs/config.md)
-* [database](docs/database.md)
-* [commands](docs/commands.md)
+* [Architecture](docs/architecture.md)
+* [Accounts](docs/accounts.md)
+* [Commands](docs/commands.md)
+* [Config](docs/config.md)
+* [Database](docs/database.md)
+* [Dependencies](docs/dependencies.md)
 
 ### Blog posts
 
