@@ -2,7 +2,7 @@
 
 A single postgres database instance serves all nodes in an environment (eg. `int` or `prod`).
 
-Each node and the database itself are configured with a single environment file found in the `environments` directory. See: [config](config.md)
+Each node and the database itself are configured with an environment file found in the `environments` directory. See: [config](config.md)
 
 ## Entity Framework
 

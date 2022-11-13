@@ -45,10 +45,11 @@ This is the name to give the database itself.
 
 This is the port that the database will run at, and be exposed on.
 
-There should be a different port per environment.
-These are entirely separate postgres instances that ought to be able to run concurrently on testing machines.
+There should be a different port per environment. These are entirely separate postgres instances that ought to be able to run concurrently.
 
-In reality, the production database ought to run on a dedicated machine.
+In reality, the production database should run on a dedicated machine (or vm), but setting the port allows you to test different configurations concurrently on your dev machine (should you need to).
+
+NB. The default port for postgres is `5432` - you _may_ wish to set one of your instances to use this for the sake of simplicity, but it's not required.
 
 ## Nodes
 
