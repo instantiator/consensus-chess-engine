@@ -21,6 +21,8 @@ services:
         condition: service_healthy
       engine:
         condition: service_healthy
+      int-node-000-test:
+        condition: service_healthy
     env_file:
       - environments/int-database.env
       - environments/int-integration-tester.env

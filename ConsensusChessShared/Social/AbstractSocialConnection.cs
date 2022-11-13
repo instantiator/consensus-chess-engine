@@ -83,8 +83,6 @@ namespace ConsensusChessShared.Social
                 {
                     log.LogDebug("Not processing this command.");
                 }
-
-
             }
             catch (Exception e)
             {

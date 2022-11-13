@@ -26,9 +26,6 @@ namespace ConsensusChessShared.Service
         {
             if (!game.Active) { return null; }
 
-            // TODO check if the board (should have been and) has been posted...
-
-
             // examine game - get for currently playing side (shortcodes)
             var isThisNetwork = game.CurrentMove.SideToPlay == Side.White ?
                 game.WhiteNetworks.Contains(shortcode) :
