@@ -6,6 +6,7 @@ using Mastonet;
 using Mastonet.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Newtonsoft.Json;
 
 namespace ConsensusChessIntegrationTests
 {
@@ -59,8 +60,6 @@ namespace ConsensusChessIntegrationTests
                 : Visibility.Direct;
             message = string.IsNullOrWhiteSpace(directRecipient) ? message : $"{directRecipient} {message}";
 
-            
-
             var status = await social.PostStatus(message, visibility: visibility, replyStatusId: inReplyTo);
             SentMessages.Add(status);
             return status;
@@ -90,7 +89,12 @@ namespace ConsensusChessIntegrationTests
         public void TestInit()
         {
             stream = social.GetUserStreaming();
-            stream.OnNotification += (obj,e) => { ReceivedNotifications.Add(e.Notification); };
+            stream.OnNotification += (obj,e) =>
+            {
+                Console.WriteLine(JsonConvert.SerializeObject(e.Notification));
+                ReceivedNotifications.Add(e.Notification);
+
+            };
             stream.Start(); // not awaited - awaiting blocks
         }
 
@@ -124,6 +128,7 @@ namespace ConsensusChessIntegrationTests
             }
         }
 
+        [Obsolete("No longer used, as we'd prefer the db to retain data about the node registrations")]
         protected async Task DeleteAllDataAsync()
         {
             using (var db = GetDb())
