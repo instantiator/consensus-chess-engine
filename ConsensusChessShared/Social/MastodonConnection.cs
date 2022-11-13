@@ -71,11 +71,16 @@ namespace ConsensusChessShared.Social
             asyncCommandReceivers += asyncCommandReceiver;
 
             // fetch conversations up to now before starting to stream
+            var firstStart = state.LastNotificationId == 0;
+
             log.LogDebug(
-                getMissedCommands
-                ? $"Retrieving any missed notifications since: {state.LastNotificationId}"
-                : $"Skipping any missed commands.");
-            var missedNotifications = getMissedCommands ? await GetAllNotificationSince(state.LastNotificationId) : null;
+                getMissedCommands && !firstStart
+                    ? $"Retrieving any missed notifications since: {state.LastNotificationId}"
+                    : $"Skipping any missed commands.");
+            var missedNotifications =
+                getMissedCommands && !firstStart
+                    ? await GetAllNotificationSince(state.LastNotificationId)
+                    : null;
 
             // set up the stream
             stream = client.GetUserStreaming();
@@ -132,19 +137,22 @@ namespace ConsensusChessShared.Social
                 log.LogDebug($"isMention: {isMention}, isForMe: {isForMe}, isAuthorised: {isAuthorised}, isFavourited: {isFavourited}");
             }
 
+            // favourite to mark the status as seen - we won't try again, even if execution fails
+            if (isForMe && notification.Status != null && !isFavourited)
+            {
+                await client.Favourite(notification.Status.Id);
+            }
+
+            // always update the last notification id
+            var statusId = notification.Status!.Id;
+            if (statusId > state.LastNotificationId)
+            {
+                state.LastNotificationId = statusId;
+                await ReportStateChangeAsync();
+            }
+
             if (isMention && isForMe && !isFavourited)
             {
-                // favourite to mark the notification as seen - we won't try again, even if execution fails
-                await client.Favourite(notification.Status!.Id);
-
-                // immediately update state
-                var statusId = notification.Status!.Id;
-                if (statusId > state.LastNotificationId)
-                {
-                    state.LastNotificationId = statusId;
-                    await ReportStateChangeAsync();
-                }
-
                 // now process command
                 var command = new SocialCommand()
                 {
