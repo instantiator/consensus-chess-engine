@@ -12,6 +12,10 @@ _NB. This is a work in progress - the engine is not yet ready to host games._
 * [database](docs/database.md)
 * [commands](docs/commands.md)
 
+### Blog posts
+
+* [International Consensus Games](https://instantiator.dev/post/consensus-games/) (personal blog)
+
 ### Roadmap
 
 * [Consensus chess 2022](https://trello.com/b/r0OX2iCq/consensus-chess-2022) (Trello board)
