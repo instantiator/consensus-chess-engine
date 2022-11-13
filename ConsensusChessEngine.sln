@@ -8,15 +8,15 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{557D0D38-D9F7-44ED-9D12-E9255F13888A}"
 	ProjectSection(SolutionItems) = preProject
 		README.md = README.md
-		erase-all-docker-artefacts.sh = erase-all-docker-artefacts.sh
 		integration-tests.sh = integration-tests.sh
 		compose.int.yaml = compose.int.yaml
-		stop-all.sh = stop-all.sh
 		compose.prod.yaml = compose.prod.yaml
 		compose.yaml = compose.yaml
-		start-db-prod.sh = start-db-prod.sh
-		run-prod.sh = run-prod.sh
 		.editorconfig = .editorconfig
+		stop.sh = stop.sh
+		run.sh = run.sh
+		erase.sh = erase.sh
+		start-db.sh = start-db.sh
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsensusChessNode", "ConsensusChessNode\ConsensusChessNode.csproj", "{630D8F9B-EE53-42AB-97B6-AD64F85F3425}"
