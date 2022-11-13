@@ -85,6 +85,13 @@ NETWORK_AUTHORISED_ACCOUNTS=<authorised accounts>
 NETWORK_DRY_RUNS=<true|false>
 ```
 
+Additionally, the integration tester needs a few more pointers so it knows where the engine and node is to bother:
+
+```env
+INT_ENGINE_ACCOUNT=<account>
+INT_NODE_ACCOUNT<account>
+```
+
 ### `NODE_NAME`
 
 * Node name should be helpful, human readable, and distinctive.
@@ -118,3 +125,8 @@ Shortcodes are used to refer to participating nodes when setting up games. They 
 ### `NETWORK_DRY_RUNS`
 
 * Set to `true` to prevent posting to social networks. You'll still see logs about the intention to post. (Useful for testing!)
+
+### `INT_ENGINE_ACCOUNT`, `INT_NODE_ACCOUNT`
+
+* These are for the integration tester.
+* Provide the account name for your integration testing engine and node (eg. `@icgames_engine@botsin.space`, or `@icgames@botsin.space`)

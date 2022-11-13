@@ -8,7 +8,7 @@ namespace ConsensusChessIntegrationTests
 		public async Task SendAMessageToEngine_ItIsFavourited()
 		{
 
-			var status = await SendMessageAsync("hello", Mastonet.Visibility.Direct, "@icgames_engine@botsin.space");
+			var status = await SendMessageAsync("hello", Mastonet.Visibility.Direct, accounts["engine"]);
 			var notification = await AwaitNotification(
 				TimeSpan.FromSeconds(30),
 				(n) => n.Type == "favourite" && n.Status.Id == status.Id);

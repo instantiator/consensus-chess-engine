@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.IO;
 using ConsensusChessShared.Database;
 using ConsensusChessShared.DTO;
@@ -18,6 +19,8 @@ namespace ConsensusChessIntegrationTests
 
         protected List<Notification> ReceivedNotifications { get; } = new List<Notification>();
 
+        protected Dictionary<string, string> accounts;
+
         protected ConsensusChessDbContext GetDb()
             => ConsensusChessDbContext.FromEnvironment(Environment.GetEnvironmentVariables());
 
@@ -30,6 +33,14 @@ namespace ConsensusChessIntegrationTests
         protected AbstractIntegrationTests()
         {
             social = GetMastodonClient();
+            var environment = Environment.GetEnvironmentVariables()
+                .Cast<DictionaryEntry>().ToDictionary(x => (string)x.Key, x => (string)x.Value!);
+
+            accounts = new Dictionary<string, string>()
+            {
+                { "engine", environment["INT_ENGINE_ACCOUNT"] },
+                { "node", environment["INT_NODE_ACCOUNT"] },
+            };
         }
 
         private MastodonClient GetMastodonClient()
