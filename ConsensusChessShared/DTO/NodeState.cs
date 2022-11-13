@@ -25,7 +25,6 @@ namespace ConsensusChessShared.DTO
 
 		public string Shortcode { get; set; }
 		public long LastNotificationId { get; set; }
-        public long LastReplyId { get; set; }
 		public virtual List<Post> StatePosts { get; set; }
 
 		public static NodeState Create(string name, string shortcode)
@@ -34,8 +33,7 @@ namespace ConsensusChessShared.DTO
 			{
 				Name = name,
 				Shortcode = shortcode,
-				LastNotificationId = 0,
-				LastReplyId = 0
+				LastNotificationId = 0
 			};
         }
     }

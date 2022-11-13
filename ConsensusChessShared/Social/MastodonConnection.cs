@@ -13,10 +13,10 @@ namespace ConsensusChessShared.Social
         private MastodonClient client;
         private Account? user;
 
-        private event Func<SocialCommand, Task>? asyncCommandReceivers;
         private TimelineStreaming? stream;
 
-        private const int MAX_PAGES = 100; // TODO: revisit this limit
+        // TODO: revisit the paging limit - may or may not be necessary
+        private const int MAX_PAGES = 100;
 
         public MastodonConnection(ILogger log, Network network, NodeState state, bool dryRuns) : base(log, network, state, dryRuns)
 		{
@@ -66,40 +66,37 @@ namespace ConsensusChessShared.Social
             return post;
         }
 
-        public override async Task StartListeningForCommandsAsync(Func<SocialCommand, Task> asyncCommandReceiver, bool getMissedCommands)
+        protected override async Task StartListeningForNotificationsAsync()
         {
-            asyncCommandReceivers += asyncCommandReceiver;
-
-            // fetch conversations up to now before starting to stream
-            var firstStart = state.LastNotificationId == 0;
-
-            log.LogDebug(
-                getMissedCommands && !firstStart
-                    ? $"Retrieving any missed notifications since: {state.LastNotificationId}"
-                    : $"Skipping any missed commands.");
-            var missedNotifications =
-                getMissedCommands && !firstStart
-                    ? await GetAllNotificationSince(state.LastNotificationId)
-                    : null;
-
             // set up the stream
             stream = client.GetUserStreaming();
             stream.OnNotification += Stream_OnNotification;
             log.LogDebug("Starting stream");
             stream.Start(); // not awaited - awaiting blocks
+        }
 
-            // retrospectively process notifications already found
-            if (missedNotifications != null)
+        protected override async Task GetMissedCommands()
+        {
+            // fetch conversations up to now before starting to stream
+            var firstStart = state.LastNotificationId == 0;
+
+            log.LogDebug(
+                !firstStart
+                    ? $"Retrieving any missed notifications since: {state.LastNotificationId}"
+                    : $"Skipping missed commands - this is a first start.");
+
+            if (!firstStart)
             {
-                log.LogDebug("Retrospectively processing previously found notifications...");
-                foreach (var missedNotification in missedNotifications)
-                {
-                    await ProcessNotification(missedNotification, true);
-                }
+                var missedNotifications = await GetAllNotificationSinceAsync(state.LastNotificationId);
+                missedCommands = missedNotifications.Select(n => ConvertToSocialCommand(n, true));
+            }
+            else
+            {
+                missedCommands = null;
             }
         }
 
-        private async Task<IEnumerable<Notification>> GetAllNotificationSince(long sinceId)
+        protected override async Task<IEnumerable<Notification>> GetAllNotificationSinceAsync(long sinceId)
         {
             var list = new List<Notification>();
             long? nextPageMaxId = null;
@@ -118,62 +115,16 @@ namespace ConsensusChessShared.Social
 
         private async void Stream_OnNotification(object? sender, StreamNotificationEventArgs e)
         {
-            await ProcessNotification(e.Notification, false);
+            var cmd = ConvertToSocialCommand(e.Notification, false);
+            if (cmd != null)
+            {
+                await ProcessCommand(cmd);
+            }
         }
 
-        private async Task ProcessNotification(Notification notification, bool retrospective)
+        protected override async Task MarkCommandProcessed(long id)
         {
-            log.LogDebug($"Processing notification, type: {notification.Type}, retrospectively: {retrospective}");
-
-            var isMention = notification.Type == "mention";
-            var isForMe = notification.Status?.Mentions.Any(m => m.AccountName == AccountName) ?? false;
-            var isFrom = notification.Status?.Account.AccountName;
-            var isFavourited = notification.Status?.Favourited ?? false; // favourited == seen
-            var isAuthorised = network.AuthorisedAccountsList.Contains(isFrom);
-
-            // only log the mentions
-            if (isMention)
-            {
-                log.LogDebug($"isMention: {isMention}, isForMe: {isForMe}, isAuthorised: {isAuthorised}, isFavourited: {isFavourited}");
-            }
-
-            // favourite to mark the status as seen - we won't try again, even if execution fails
-            if (isForMe && notification.Status != null && !isFavourited)
-            {
-                await client.Favourite(notification.Status.Id);
-            }
-
-            // always update the last notification id
-            var statusId = notification.Status!.Id;
-            if (statusId > state.LastNotificationId)
-            {
-                state.LastNotificationId = statusId;
-                await ReportStateChangeAsync();
-            }
-
-            if (isMention && isForMe && !isFavourited)
-            {
-                // now process command
-                var command = new SocialCommand()
-                {
-                    Network = network,
-                    NetworkUserId = notification.Status!.Account.AccountName,
-                    RawText = notification.Status!.Content,
-                    SourceId = notification.Status!.Id,
-                    IsAuthorised = isAuthorised,
-                    IsRetrospective = retrospective
-                };
-
-                // now invoke the command (even if this fails we wouldn't want to re-run)
-                if (asyncCommandReceivers != null)
-                {
-                    await asyncCommandReceivers.Invoke(command);
-                }
-                else
-                {
-                    log.LogWarning("No receivers for this command.");
-                }
-            }
+            await client.Favourite(id);
         }
 
         public override async Task StopListeningForCommandsAsync(Func<SocialCommand, Task> asyncCommandReceiver)
@@ -198,5 +149,29 @@ namespace ConsensusChessShared.Social
             $"@{AccountName}",
             $"@{AccountName}@{network.NetworkServer}",
         };
+
+        public SocialCommand ConvertToSocialCommand(Notification notification, bool isRetrospective)
+        {
+            var isForMe = notification.Status?.Mentions.Any(m => m.AccountName == AccountName) ?? false;
+            var isFrom = notification.Status?.Account.AccountName;
+            var isFavourited = notification.Status?.Favourited ?? false; // favourited == processed
+            var isAuthorised = network.AuthorisedAccountsList.Contains(isFrom);
+
+            return new SocialCommand()
+            {
+                Network = network,
+                NetworkUserId = notification.Status!.Account.AccountName,
+                RawText = notification.Status!.Content,
+                SourceId = notification.Status!.Id,
+                SourceAccount = isFrom,
+                IsAuthorised = isAuthorised,
+                IsRetrospective = isRetrospective,
+                IsForThisNode = isForMe,
+                IsProcessed = isFavourited,
+                DeliveryMedium = "mastodon",
+                DeliveryType = notification.Type
+            };
+
+        }
     }
 }

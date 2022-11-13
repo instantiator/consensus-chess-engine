@@ -1,6 +1,7 @@
 ﻿using System;
 using ConsensusChessShared.DTO;
 using ConsensusChessShared.Service;
+using Mastonet.Entities;
 using Microsoft.Extensions.Logging;
 
 namespace ConsensusChessShared.Social
@@ -14,7 +15,10 @@ namespace ConsensusChessShared.Social
 		protected NodeState state;
 		protected bool dryRuns;
 
-		public AbstractSocialConnection(ILogger log, Network network, NodeState state, bool dryRuns)
+        protected event Func<SocialCommand, Task>? asyncCommandReceivers;
+        protected IEnumerable<SocialCommand>? missedCommands;
+
+        public AbstractSocialConnection(ILogger log, Network network, NodeState state, bool dryRuns)
 		{
 			this.log = log;
 			this.network = network;
@@ -26,8 +30,82 @@ namespace ConsensusChessShared.Social
 		public abstract string DisplayName { get; }
 		public abstract string AccountName { get; }
 		public abstract IEnumerable<string> CalculateCommandSkips();
-		public abstract Task StartListeningForCommandsAsync(Func<SocialCommand, Task> asyncReceiver, bool retrieveMissedCommands);
-		public abstract Task StopListeningForCommandsAsync(Func<SocialCommand, Task> asyncReceiver);
+        protected abstract Task GetMissedCommands();
+        protected abstract Task MarkCommandProcessed(long id);
+        protected abstract Task StartListeningForNotificationsAsync();
+        protected abstract Task<IEnumerable<Notification>> GetAllNotificationSinceAsync(long sinceId);
+        public abstract Task StopListeningForCommandsAsync(Func<SocialCommand, Task> asyncReceiver);
+        public abstract Task<Post> PostToNetworkAsync(Post post, bool dryRun);
+
+        public async Task StartListeningForCommandsAsync(Func<SocialCommand, Task> asyncCommandReceiver, bool getMissedCommands)
+		{
+            asyncCommandReceivers += asyncCommandReceiver;
+            if (getMissedCommands) { await GetMissedCommands(); }
+            await StartListeningForNotificationsAsync();
+            if (getMissedCommands) { await ProcessMissedCommands(); }
+        }
+
+        protected async Task ProcessMissedCommands()
+        {
+            if (missedCommands != null)
+            {
+                log.LogDebug($"Retrospectively processing {missedCommands.Count()} notifications...");
+                foreach (var command in missedCommands.Where(c => c != null))
+                {
+                    await ProcessCommand(command);
+                }
+            }
+        }
+
+        protected async Task ProcessCommand(SocialCommand command)
+        {
+            log.LogDebug(
+                $"Processing {command.DeliveryMedium}:{command.DeliveryType} command." + "{0}",
+                command.IsRetrospective ? " (retrospectively)" : "");
+
+            log.LogDebug($"IsForMe: {command.IsForThisNode}, IsAuthorised: {command.IsAuthorised}, IsProcessed: {command.IsProcessed}");
+
+            try
+            {
+                if (command.IsForThisNode && !command.IsProcessed)
+                {
+                    // now invoke the command (even if this fails we wouldn't want to re-run)
+                    if (asyncCommandReceivers != null)
+                    {
+                        await asyncCommandReceivers.Invoke(command);
+                    }
+                    else
+                    {
+                        log.LogWarning("No receivers for this command.");
+                    }
+                }
+                else
+                {
+                    log.LogDebug("Not processing this command.");
+                }
+
+
+            }
+            catch (Exception e)
+            {
+                // log something went wrong
+            }
+            finally
+            {
+                // always mark the status as seen - we won't try again, even if execution fails
+                if (command.IsForThisNode && command.SourceId != null && !command.IsProcessed)
+                {
+                    await MarkCommandProcessed(command.SourceId.Value);
+                }
+
+                // always update the last notification id
+                if (command.SourceId.HasValue && command.SourceId.Value > state.LastNotificationId)
+                {
+                    state.LastNotificationId = command.SourceId.Value;
+                    await ReportStateChangeAsync();
+                }
+            }
+        }
 
 		public async Task<Post> PostAsync(SocialStatus status, bool? dryRun = null)
 			=> await PostAsync($"{state.Name} ({state.Shortcode}): {status}", PostType.SocialStatus, dryRun);
@@ -82,8 +160,6 @@ namespace ConsensusChessShared.Social
 
             return await PostToNetworkAsync(post, dryRun ?? dryRuns);
         }
-
-        public abstract Task<Post> PostToNetworkAsync(Post post, bool dryRun);
 
 		protected async Task ReportStateChangeAsync()
 		{
