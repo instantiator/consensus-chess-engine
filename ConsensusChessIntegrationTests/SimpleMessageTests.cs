@@ -10,7 +10,7 @@ namespace ConsensusChessIntegrationTests
 
 			var status = await SendMessageAsync("hello", Mastonet.Visibility.Direct, accounts["engine"]);
 			var notification = await AwaitNotification(
-				TimeSpan.FromSeconds(30),
+				TimeSpan.FromSeconds(60),
 				(n) => n.Type == "favourite" && n.Status.Id == status.Id);
 
 			Assert.IsNotNull(status);
