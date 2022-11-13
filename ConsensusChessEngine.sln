@@ -42,6 +42,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{03CBC0A7-8
 		docs\config.md = docs\config.md
 		docs\architecture.md = docs\architecture.md
 		docs\accounts.md = docs\accounts.md
+		docs\testing.md = docs\testing.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsensusChessIntegrationTests", "ConsensusChessIntegrationTests\ConsensusChessIntegrationTests.csproj", "{9D6C353B-7BAC-48B5-8640-6F46E97BE955}"
