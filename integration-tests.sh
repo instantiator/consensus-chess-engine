@@ -1,24 +1,24 @@
 #!/bin/bash
 
 # remove any residual containers and the attached database volume before run
-docker compose -p consensus-chess-int-tests \
+docker compose -p consensus-chess-int \
   -f compose.yaml -f compose.int.yaml \
-  --env-file environments/database.env \
+  --env-file environments/int-database.env \
   down -v
 
 # build containers
-docker compose -p consensus-chess-int-tests \
+docker compose -p consensus-chess-int \
   -f compose.yaml -f compose.int.yaml \
-  --env-file environments/database.env \
+  --env-file environments/int-database.env \
   build integration-tests
 
 # start all containers required for the test, exit when it finishes
-docker compose -p consensus-chess-int-tests \
+docker compose -p consensus-chess-int \
   -f compose.yaml -f compose.int.yaml \
-  --env-file environments/database.env \
-  up --exit-code-from integration-tests \
-  --abort-on-container-exit \
-  integration-tests
+  --env-file environments/int-database.env \
+  up integration-tests \
+  --exit-code-from integration-tests \
+  --abort-on-container-exit
 
 TEST_CODE=$?
 
@@ -63,7 +63,10 @@ EOF
 	echo -e "${NC}"
 fi
 
-# remove all containers and the attached database volume after run
-docker compose -p consensus-chess-int-tests -f compose.yaml -f compose.int.yaml --env-file environments/database.env stop
+# stop all containers (leave the db intact) after the run
+docker compose -p consensus-chess-int \
+  -f compose.yaml -f compose.int.yaml \
+  --env-file environments/int-database.env \
+  stop
 
 exit $TEST_CODE

@@ -1,14 +1,17 @@
 version: "3.8"
+
+# basic services are partially defined here: database and engine
+# environment variables are provided for these in the int and prod compose yaml
 services:
   database:
     image: 'postgres:latest'
+    expose:
+      - "${DB_PORT}"
     ports:
-      - "5432:5432"
-    env_file: environments/database.env
-    volumes:
-      - db-data:/var/lib/postgresql/data/
+      - "${DB_PORT}:${DB_PORT}"
+    command: "-p ${DB_PORT}"
     healthcheck:
-      test: [ "CMD", "pg_isready", "-U","${POSTGRES_USER}", "-d","${POSTGRES_DB}" ]
+      test: [ "CMD", "pg_isready", "-U","${POSTGRES_USER}", "-d","${POSTGRES_DB}","-p","${DB_PORT}" ]
       interval: 5s
       timeout: 10s
       retries: 12
@@ -23,32 +26,7 @@ services:
       interval: 5s
       timeout: 10s
       retries: 12
-    env_file:
-      - environments/engine.env
-      - environments/database.env
     build:
       context: .
       dockerfile: ConsensusChessEngine/Dockerfile
     restart: unless-stopped
-
-  node-0-test:
-    depends_on:
-      database:
-        condition: service_healthy
-      engine:
-        condition: service_healthy
-    healthcheck:
-      test: bash -c "[ -f /tmp/health.ready ]"
-      interval: 5s
-      timeout: 10s
-      retries: 12
-    env_file:
-      - environments/node-0-test.env
-      - environments/database.env
-    build:
-      context: .
-      dockerfile: ConsensusChessNode/Dockerfile
-    restart: unless-stopped
-
-volumes:
-  db-data:

@@ -1,0 +1,38 @@
+version: "3.8"
+services:
+
+  # additional configuration for the database
+  database:
+    env_file:
+      - environments/prod-database.env
+    volumes:
+      - db-data-prod:/var/lib/postgresql/data/
+
+  # additional configuration for the database
+  engine:
+    env_file:
+      - environments/prod-database.env
+      - environments/prod-engine.env
+
+  # node (icgames@mastodon.gamedev.place)
+  prod-node-1-gamedev:
+    depends_on:
+      database:
+        condition: service_healthy
+      engine:
+        condition: service_healthy
+    healthcheck:
+      test: bash -c "[ -f /tmp/health.ready ]"
+      interval: 5s
+      timeout: 10s
+      retries: 12
+    env_file:
+      - environments/prod-database.env
+      - environments/prod-node-001-gamedev.env
+    build:
+      context: .
+      dockerfile: ConsensusChessNode/Dockerfile
+    restart: unless-stopped
+
+volumes:
+  db-data-prod:

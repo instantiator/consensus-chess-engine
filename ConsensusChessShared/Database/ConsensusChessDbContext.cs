@@ -14,22 +14,24 @@ namespace ConsensusChessShared.Database
         private string database;
         private string username;
         private string password;
+        private int port;
 
         public ConsensusChessDbContext() { } // design time constructor
 
-        public ConsensusChessDbContext(string host, string database, string username, string password)
+        public ConsensusChessDbContext(string host, string database, string username, string password, int port)
         {
             this.host = host;
             this.database = database;
             this.username = username;
             this.password = password;
+            this.port = port;
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder
             .ConfigureWarnings((wcb) => wcb.Log(CoreEventId.LazyLoadOnDisposedContextWarning))
             .UseLazyLoadingProxies()
-            .UseNpgsql($"Host={host};Database={database};Username={username};Password={password};Include Error Detail=true")
+            .UseNpgsql($"Host={host};Database={database};Username={username};Password={password};Port={port};Include Error Detail=true")
             .UseSnakeCaseNamingConvention();
 
         public static ConsensusChessDbContext FromEnvironment(System.Collections.IDictionary env)
@@ -39,7 +41,8 @@ namespace ConsensusChessShared.Database
             var database = environment["POSTGRES_DB"];
             var username = environment["POSTGRES_USER"];
             var password = environment["POSTGRES_PASSWORD"];
-            return new ConsensusChessDbContext(host, database, username, password);
+            var port = int.Parse(environment["DB_PORT"]);
+            return new ConsensusChessDbContext(host, database, username, password, port);
         }
     }
 }

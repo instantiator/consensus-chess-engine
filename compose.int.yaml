@@ -1,10 +1,20 @@
 version: "3.8"
 services:
 
+  # additional configuration for the database
   database:
+    env_file:
+      - environments/int-database.env
     volumes:
       - db-data-int:/var/lib/postgresql/data/
+  
+  # additional configuration for the engine
+  engine:
+    env_file:
+      - environments/int-database.env
+      - environments/int-engine.env
 
+  # integration tests
   integration-tests:
     depends_on:
       database:
@@ -12,11 +22,31 @@ services:
       engine:
         condition: service_healthy
     env_file:
-      - environments/integration-tests.env
-      - environments/database.env
+      - environments/int-database.env
+      - environments/int-integration-tester.env
     build:
       context: .
       dockerfile: ConsensusChessIntegrationTests/Dockerfile
+
+  # test node (botsin.space)
+  int-node-000-test:
+    depends_on:
+      database:
+        condition: service_healthy
+      engine:
+        condition: service_healthy
+    healthcheck:
+      test: bash -c "[ -f /tmp/health.ready ]"
+      interval: 5s
+      timeout: 10s
+      retries: 12
+    env_file:
+      - environments/int-database.env
+      - environments/int-node-000-test.env
+    build:
+      context: .
+      dockerfile: ConsensusChessNode/Dockerfile
+    restart: unless-stopped
 
 volumes:
   db-data-int:
