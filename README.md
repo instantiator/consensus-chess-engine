@@ -29,6 +29,14 @@ _NB. This is a work in progress - the engine is not yet ready to host games._
   * For each database instance
 3. Launch and run integration tests with: `./integration-tests.sh`
 
+  ![](docs/images/int-tests-pass.png)
+
+When you're ready to launch, you can use `./run-prod.sh` to launch an instance with production db, config, and nodes. `Ctrl`+`C` to halt.
+
+For a real production service, you'll actually want to disconnect from docker compose. Docker compose accepts a `-d` option for that - but the script doesn't yet suppor that.
+
+_I'll be making the run scripts a little more flexible soon to allow you to run `int`/`prod` sessions and choose between foreground and background._
+
 ## Scripts
 
 The following scripts exist for common operations:
