@@ -99,7 +99,7 @@ namespace ConsensusChessNode.Service
                     game.CurrentMove.Votes.Add(vote);
                     await db.SaveChangesAsync();
                 }
-
+                await social.ReplyAsync(origin, "Move accepted - thank you", PostType.MoveValidation);
             }
             catch (GameNotFoundException e)
             {

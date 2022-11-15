@@ -81,12 +81,12 @@ namespace ConsensusChessShared.Social
                 }
                 else
                 {
-                    log.LogDebug("Not processing this command.");
+                    log.LogWarning("Command received, but not for this node.");
                 }
             }
             catch (Exception e)
             {
-                // log something went wrong
+                log.LogError(e, $"Unexpected exception processing command: {command.RawText}");
             }
             finally
             {
@@ -94,6 +94,7 @@ namespace ConsensusChessShared.Social
                 if (command.IsForThisNode && command.SourceId != null && !command.IsProcessed)
                 {
                     await MarkCommandProcessed(command.SourceId.Value);
+                    command.IsProcessed = true;
                 }
 
                 // always update the last notification id
@@ -153,7 +154,7 @@ namespace ConsensusChessShared.Social
                 NetworkServer = network.NetworkServer,
                 AppName = network.AppName,
                 Type = postType ?? PostType.Unspecified,
-				NetworkReplyToId = origin.SourceId
+				NetworkReplyToId = origin.SourceId,
             };
 
             return await PostToNetworkAsync(post, dryRun ?? dryRuns);
