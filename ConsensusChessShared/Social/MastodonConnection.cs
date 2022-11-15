@@ -122,7 +122,7 @@ namespace ConsensusChessShared.Social
             }
         }
 
-        protected override async Task MarkCommandProcessed(long id)
+        protected override async Task MarkCommandProcessedAsync(long id)
         {
             await client.Favourite(id);
         }
