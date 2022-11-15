@@ -111,7 +111,7 @@ namespace ConsensusChessNode.Service
             }
             catch (VoteRejectionException e)
             {
-                var summary = $"{e.Reason} from {e.Command.SourceAccount}: {voteSAN}, {e.Message}";
+                var summary = $"{e.Reason} from {e.Command?.SourceAccount ?? "unknown"}: {voteSAN}, {e.Message}";
                 log.LogWarning(summary);
 
                 var post = await social.ReplyAsync(origin, summary, PostType.MoveValidation);

@@ -9,15 +9,7 @@ namespace ConsensusChessShared.Service
 		public static string VisualiseEmoji(Board board)
 		{
             return board.PiecesFEN
-                .Replace("1", "◽️")
-                .Replace("2", "◽️◽️")
-                .Replace("3", "◽️◽️◽️")
-                .Replace("4", "◽️◽️◽️◽️")
-                .Replace("5", "◽️◽️◽️◽️◽️")
-                .Replace("6", "◽️◽️◽️◽️◽️◽️")
-                .Replace("7", "◽️◽️◽️◽️◽️◽️◽️")
-                .Replace("8", "◽️◽️◽️◽️◽️◽️◽️◽️")
-                .Replace('/', '\n')
+                .Replace("/", "/\n")
                 .Replace('R', '♖')
                 .Replace('N', '♘')
                 .Replace('B', '♗')
