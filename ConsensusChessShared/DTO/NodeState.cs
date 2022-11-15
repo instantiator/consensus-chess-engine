@@ -15,6 +15,14 @@ namespace ConsensusChessShared.DTO
 		{
 			StatePosts = new List<Post>();
 			Created = DateTime.Now.ToUniversalTime();
+			LastNotificationId = 0;
+		}
+
+		public NodeState(string name, string shortcode, Network network) : this()
+		{
+			this.Name = name;
+			this.Shortcode = shortcode;
+			this.Network = network;
 		}
 
         [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -26,16 +34,7 @@ namespace ConsensusChessShared.DTO
 		public string Shortcode { get; set; }
 		public long LastNotificationId { get; set; }
 		public virtual List<Post> StatePosts { get; set; }
-
-		public static NodeState Create(string name, string shortcode)
-		{
-			return new NodeState()
-			{
-				Name = name,
-				Shortcode = shortcode,
-				LastNotificationId = 0
-			};
-        }
+		public virtual Network Network { get; set; }
     }
 }
 

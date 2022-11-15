@@ -5,11 +5,10 @@ namespace ConsensusChessShared.DTO
 	{
 		SocialStatus,
 		EngineUpdate,
-		TextResponse,
 		BoardUpdate,
-		BoardReminder,
-		MoveResponse,
-		Unspecified
+		MoveValidation,
+		Unspecified,
+		CommandResponse
 	}
 
 }

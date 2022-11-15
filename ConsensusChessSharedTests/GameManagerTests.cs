@@ -1,7 +1,10 @@
 ﻿using System;
+using Chess;
 using ConsensusChessEngine.Service;
 using ConsensusChessShared.DTO;
+using ConsensusChessShared.Exceptions;
 using ConsensusChessShared.Service;
+using ConsensusChessShared.Social;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -24,14 +27,16 @@ namespace ConsensusChessSharedTests
         [TestMethod]
         public void CreateSimpleMoveLockGame_creates_Game()
         {
-            var game = gm.CreateSimpleMoveLockGame(new[] { "node-0-test" });
+            var game = gm.CreateSimpleMoveLockGame("test-game","Test game", new[] { "mastodon.something.social" }, new[] { "node-0-test" });
 
             Assert.IsNotNull(game);
             Assert.AreEqual(SideRules.MoveLock, game.SideRules);
             Assert.IsTrue(game.ScheduledStart <= DateTime.Now);
             Assert.AreEqual(Game.DEFAULT_MOVE_DURATION, game.MoveDuration);
-            Assert.AreEqual(1, game.WhiteNetworks.Count());
-            Assert.AreEqual(1, game.BlackNetworks.Count());
+            Assert.AreEqual(1, game.WhiteParticipantNetworkServers!.Count());
+            Assert.AreEqual(1, game.BlackParticipantNetworkServers!.Count());
+            Assert.AreEqual(1, game.WhitePostingNodeShortcodes.Count());
+            Assert.AreEqual(1, game.BlackPostingNodeShortcodes.Count());
             Assert.AreEqual(1, game.Moves.Count());
 
             var move = game.Moves.First();
@@ -43,14 +48,129 @@ namespace ConsensusChessSharedTests
 
             var board = move.From;
             Assert.AreEqual(0, board.BoardPosts.Count());
-            Assert.AreEqual("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", board.Pieces_FEN);
+            Assert.AreEqual("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", board.PiecesFEN);
             Assert.AreEqual(Side.White, board.ActiveSide);
-            Assert.AreEqual("KQkq", board.CastlingAvailability_FEN);
-            Assert.AreEqual("-", board.EnPassantTargetSquare_FEN);
+            Assert.AreEqual("KQkq", board.CastlingFEN);
+            Assert.AreEqual("-", board.EnPassantSq);
             Assert.AreEqual(0, board.HalfMoveClock);
             Assert.AreEqual(1, board.FullMoveNumber);
             Assert.AreEqual("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", board.FEN);
         }
+
+        [TestMethod]
+        public void UnpostedBoardOrNull_finds_firstBoard()
+        {
+            var game = gm.CreateSimpleMoveLockGame("test-game", "Test game", new[] { "network.server" }, new[] { "node-0-test" });
+            var board = gm.UnpostedBoardOrNull(game, "node-0-test");
+            Assert.IsNotNull(board);
+            Assert.AreSame(game.CurrentBoard, board);
+        }
+
+        [TestMethod]
+        public void ValidateSAN_validates_GoodVoteSAN()
+        {
+            var game = gm.CreateSimpleMoveLockGame("test-game", "Test game", new[] { "mastodon.something.social" }, new[] { "node-0-test" });
+            var move_SAN = "e4";
+            var board = gm.ValidateSAN(game.CurrentBoard, move_SAN);
+            Assert.IsNotNull(board);
+            Assert.AreEqual("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1", board.FEN);
+        }
+
+        [TestMethod]
+        public void ValidateSAN_invalidates_IllegalVoteSAN()
+        {
+            var game = gm.CreateSimpleMoveLockGame("test-game", "Test game", new[] { "mastodon.something.social" }, new[] { "node-0-test" });
+            var move_SAN = "e7";
+            var e = Assert.ThrowsException<VoteRejectionException>(() => gm.ValidateSAN(game.CurrentBoard, move_SAN));
+            Assert.AreEqual(typeof(ChessSanNotFoundException), e.InnerException!.GetType());
+        }
+
+        [TestMethod]
+        public void ValidateSAN_invalidates_GarbageVote()
+        {
+            var game = gm.CreateSimpleMoveLockGame("test-game", "Test game", new[] { "mastodon.something.social" }, new[] { "node-0-test" });
+            var move_SAN = "horsey to king 4";
+            var e = Assert.ThrowsException<VoteRejectionException>(() => gm.ValidateSAN(game.CurrentBoard, move_SAN));
+            Assert.AreEqual(typeof(ChessArgumentException), e.InnerException!.GetType());
+        }
+
+        // TODO: clarify + resolve node shortcodes vs. side networks (eg. in Game, Participant)
+
+        [TestMethod]
+        public void ParticipantMayVote_withMoveLockGame_permits_NewParticipantFromAnyNetwork()
+        {
+            var network = new Network()
+            {
+                NetworkServer = "mastodon.something.social"
+            };
+
+            // no need to specify networks for move lock game
+            var game = gm.CreateSimpleMoveLockGame("test-game", "Test game", null, new[] { "node-0-test" });
+
+            var cmd = new SocialCommand()
+            {
+                SourceId = 999,
+                Network = network
+            };
+
+            var participant = Participant.From(cmd);
+
+            var ok = gm.ParticipantMayVote(game, participant);
+            Assert.IsTrue(ok);
+        }
+
+        [TestMethod]
+        public void ParticipantMayVote_withMoveLockGame_permits_ParticipantCommittedToCurrentSide()
+        {
+            var network = new Network()
+            {
+                NetworkServer = "mastodon.something.social"
+            };
+
+            var game = gm.CreateSimpleMoveLockGame("test-game", "Test game", null, new[] { "node-0-test" });
+
+            var cmd = new SocialCommand()
+            {
+                SourceId = 999,
+                Network = network
+            };
+
+            var participant = Participant.From(cmd);
+            participant.Commitments.Add(new Commitment()
+            {
+                GameShortcode = game.Shortcode,
+                GameSide = Side.White
+            });
+
+            var ok = gm.ParticipantMayVote(game, participant);
+            Assert.IsTrue(ok);
+        }
+
+        [TestMethod]
+        public void ParticipantMayVote_withMoveLockGame_rejects_ParticipantAlreadyCommittedToTheOtherSide()
+        {
+            var network = new Network()
+            {
+                NetworkServer = "mastodon.somethingelse.social"
+            };
+            var game = gm.CreateSimpleMoveLockGame("test-game", "Test game", null, new[] { "node-0-test" });
+
+            var cmd = new SocialCommand()
+            {
+                SourceId = 999,
+                Network = network
+            };
+            var participant = Participant.From(cmd);
+            participant.Commitments.Add(new Commitment()
+            {
+                GameShortcode = game.Shortcode,
+                GameSide = Side.Black
+            });
+
+            var ok = gm.ParticipantMayVote(game, participant);
+            Assert.IsFalse(ok);
+        }
+
     }
 }
 

@@ -15,7 +15,6 @@ namespace ConsensusChessShared.Service
         public const string HEALTHCHECK_READY_PATH = "/tmp/health.ready";
 
         protected readonly HttpClient http = new HttpClient();
-        protected ConsensusChessDbContext db;
         protected ISocialConnection social;
         protected Network network;
         protected NodeState state;
@@ -49,11 +48,11 @@ namespace ConsensusChessShared.Service
             gm = new GameManager(log);
             network = Network.FromEnvironment(env);
 
-            state = RegisterNode();
+            state = RegisterNode(network);
             social = SocialFactory.From(log, network, state, network.DryRuns);
         }
 
-        protected NodeState RegisterNode()
+        protected NodeState RegisterNode(Network net)
         {
             using (var db = GetDb())
             {
@@ -62,11 +61,11 @@ namespace ConsensusChessShared.Service
                 var shortcode = environment["NODE_SHORTCODE"];
 
                 log.LogDebug($"Registering node with db...");
-                var currentState = db.NodeStates.Where(s => s.Shortcode == shortcode).SingleOrDefault();
+                var currentState = db.NodeState.Where(s => s.Shortcode == shortcode).SingleOrDefault();
                 if (currentState == null)
                 {
-                    currentState = NodeState.Create(name, shortcode);
-                    db.NodeStates.Add(currentState);
+                    currentState = new NodeState(name, shortcode, net);
+                    db.NodeState.Add(currentState);
                     db.SaveChanges();
                 }
                 return currentState;
@@ -99,7 +98,7 @@ namespace ConsensusChessShared.Service
 
         private async Task Cmd_OnFailAsync(SocialCommand origin, string message, CommandRejectionReason? reason)
         {
-            await social.ReplyAsync(origin, message);
+            await social.ReplyAsync(origin, message, PostType.CommandResponse);
         }
 
         private async Task RecordStateChangeAsync(NodeState newState)
@@ -112,7 +111,7 @@ namespace ConsensusChessShared.Service
                 state.LastNotificationId = newState.LastNotificationId;
                 state.StatePosts = newState.StatePosts;
 
-                db.NodeStates.Update(state);
+                db.NodeState.Update(state);
                 await db.SaveChangesAsync();
             }
         }

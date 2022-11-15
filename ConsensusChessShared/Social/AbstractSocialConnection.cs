@@ -112,8 +112,8 @@ namespace ConsensusChessShared.Social
 			=> await PostAsync(
 				string.Format("New {0} game...\nWhite: {1}\nBlack: {2}\nMove duration: {3}",
 					game.SideRules,
-                    string.Join(", ", game.WhiteNetworks),
-                    string.Join(", ", game.BlackNetworks),
+                    string.Join(", ", game.WhiteParticipantNetworkServers),
+                    string.Join(", ", game.BlackParticipantNetworkServers),
                     game.MoveDuration),
                 PostType.EngineUpdate,
                 dryRun);
@@ -121,7 +121,7 @@ namespace ConsensusChessShared.Social
         public async Task<Post> PostAsync(Game game, Board board, bool? dryRun = null)
             => await PostAsync(
                 string.Format("New board. You have {1} to vote.\n{0}",
-                    BoardFormatter.PiecesFENtoVisualEmoji(board.Pieces_FEN),
+                    BoardFormatter.VisualiseEmoji(board),
 					game.MoveDuration.ToString()),
                 PostType.BoardUpdate,
 				dryRun);
@@ -142,7 +142,7 @@ namespace ConsensusChessShared.Social
             return await PostToNetworkAsync(post, dryRun ?? dryRuns);
 		}
 
-		public async Task<Post> ReplyAsync(SocialCommand origin, string message, bool? dryRun = null)
+		public async Task<Post> ReplyAsync(SocialCommand origin, string message, PostType? postType = null, bool? dryRun = null)
 		{
             log.LogInformation($"Replying: {message}");
 
@@ -152,8 +152,8 @@ namespace ConsensusChessShared.Social
                 NodeShortcode = state.Shortcode,
                 NetworkServer = network.NetworkServer,
                 AppName = network.AppName,
-                Type = PostType.TextResponse,
-				ReplyTo = origin.SourceId
+                Type = postType ?? PostType.Unspecified,
+				NetworkReplyToId = origin.SourceId
             };
 
             return await PostToNetworkAsync(post, dryRun ?? dryRuns);

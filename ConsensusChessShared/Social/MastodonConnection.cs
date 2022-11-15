@@ -51,7 +51,7 @@ namespace ConsensusChessShared.Social
                 if (!dryRun)
                 {
                     log.LogDebug($"Posting to network...");
-                    var status = await client.PostStatus(post.Message, replyStatusId: post.ReplyTo);
+                    var status = await client.PostStatus(post.Message, replyStatusId: post.NetworkReplyToId);
                 }
                 else
                 {
@@ -163,6 +163,7 @@ namespace ConsensusChessShared.Social
                 NetworkUserId = notification.Status!.Account.AccountName,
                 RawText = notification.Status!.Content,
                 SourceId = notification.Status!.Id,
+                InReplyToId = notification.Status!.InReplyToId,
                 SourceAccount = isFrom,
                 IsAuthorised = isAuthorised,
                 IsRetrospective = isRetrospective,

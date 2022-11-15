@@ -15,9 +15,13 @@ namespace ConsensusChessShared.DTO
         public Guid Id { get; set; }
         public DateTime Created { get; set; }
 
+		public long NetworkMovePostId { get; set; }
 		public string MoveText { get; set; }
 		public virtual Participant Participant { get; set; }
-		public virtual VoteValidation Validation { get; set; }
+
+		public VoteValidationState ValidationState { get; set; }
+		public virtual Post ValidationPost { get; set; }
+
 	}
 }
 

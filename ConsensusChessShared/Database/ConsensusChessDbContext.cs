@@ -8,7 +8,8 @@ namespace ConsensusChessShared.Database
 	public class ConsensusChessDbContext : DbContext
 	{
         public DbSet<Game> Games { get; set; }
-        public DbSet<NodeState> NodeStates { get; set; }
+        public DbSet<Participant> Participant { get; set; }
+        public DbSet<NodeState> NodeState { get; set; }
 
         private string host;
         private string database;
@@ -16,9 +17,9 @@ namespace ConsensusChessShared.Database
         private string password;
         private int port;
 
-        public ConsensusChessDbContext() { } // design time constructor
+        public ConsensusChessDbContext() : base() { } // design time constructor
 
-        public ConsensusChessDbContext(string host, string database, string username, string password, int port)
+        public ConsensusChessDbContext(string host, string database, string username, string password, int port) : base()
         {
             this.host = host;
             this.database = database;

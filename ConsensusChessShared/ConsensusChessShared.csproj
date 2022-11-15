@@ -21,6 +21,7 @@
     <None Remove="Newtonsoft.Json" />
     <None Remove="Microsoft.EntityFrameworkCore.Proxies" />
     <None Remove="EFCore.NamingConventions" />
+    <None Remove="Gera.Chess" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DTO\" />
@@ -42,5 +43,6 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="7.0.0" />
     <PackageReference Include="EFCore.NamingConventions" Version="7.0.0" />
+    <PackageReference Include="Gera.Chess" Version="1.0.2" />
   </ItemGroup>
 </Project>

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using ConsensusChessShared.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ConsensusChessShared.Migrations
 {
     [DbContext(typeof(ConsensusChessDbContext))]
-    partial class ConsensusChessDbContextModelSnapshot : ModelSnapshot
+    [Migration("20221115145804_DistinguishPostingNodesFromParticipantNetworks")]
+    partial class DistinguishPostingNodesFromParticipantNetworks
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -312,16 +315,16 @@ namespace ConsensusChessShared.Migrations
                         .HasColumnName("shortcode");
 
                     b.HasKey("Id")
-                        .HasName("pk_node_state");
+                        .HasName("pk_node_states");
 
                     b.HasIndex("NetworkId")
-                        .HasDatabaseName("ix_node_state_network_id");
+                        .HasDatabaseName("ix_node_states_network_id");
 
                     b.HasIndex("Shortcode")
                         .IsUnique()
-                        .HasDatabaseName("ix_node_state_shortcode");
+                        .HasDatabaseName("ix_node_states_shortcode");
 
-                    b.ToTable("node_state", (string)null);
+                    b.ToTable("node_states", (string)null);
                 });
 
             modelBuilder.Entity("ConsensusChessShared.DTO.Participant", b =>
@@ -346,9 +349,9 @@ namespace ConsensusChessShared.Migrations
                         .HasColumnName("network_user_account");
 
                     b.HasKey("Id")
-                        .HasName("pk_participant");
+                        .HasName("pk_participants");
 
-                    b.ToTable("participant", (string)null);
+                    b.ToTable("participants", (string)null);
                 });
 
             modelBuilder.Entity("ConsensusChessShared.DTO.Post", b =>
@@ -486,7 +489,7 @@ namespace ConsensusChessShared.Migrations
                     b.HasOne("ConsensusChessShared.DTO.Participant", null)
                         .WithMany("Commitments")
                         .HasForeignKey("ParticipantId")
-                        .HasConstraintName("fk_commitment_participant_participant_id");
+                        .HasConstraintName("fk_commitment_participants_participant_id");
                 });
 
             modelBuilder.Entity("ConsensusChessShared.DTO.Media", b =>
@@ -535,7 +538,7 @@ namespace ConsensusChessShared.Migrations
                         .HasForeignKey("NetworkId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_node_state_network_network_id");
+                        .HasConstraintName("fk_node_states_network_network_id");
 
                     b.Navigation("Network");
                 });
@@ -550,7 +553,7 @@ namespace ConsensusChessShared.Migrations
                     b.HasOne("ConsensusChessShared.DTO.NodeState", null)
                         .WithMany("StatePosts")
                         .HasForeignKey("NodeStateId")
-                        .HasConstraintName("fk_post_node_state_node_state_id");
+                        .HasConstraintName("fk_post_node_states_node_state_id");
                 });
 
             modelBuilder.Entity("ConsensusChessShared.DTO.Vote", b =>
@@ -565,7 +568,7 @@ namespace ConsensusChessShared.Migrations
                         .HasForeignKey("ParticipantId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_vote_participant_participant_id");
+                        .HasConstraintName("fk_vote_participants_participant_id");
 
                     b.HasOne("ConsensusChessShared.DTO.Post", "ValidationPost")
                         .WithMany()

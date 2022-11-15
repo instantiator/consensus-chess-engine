@@ -22,7 +22,9 @@ namespace ConsensusChessShared.DTO
 		public string NodeShortcode { get; set; }
 		public string Message { get; set; }
 		public virtual List<Media> MediaPng { get; set; }
-		public long? ReplyTo { get; set; }
+
+        public long? NetworkPostId { get; set; }
+        public long? NetworkReplyToId { get; set; }
 
         public DateTime? Attempted { get; set; }
         public bool Succeeded { get; set; }

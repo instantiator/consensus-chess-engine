@@ -15,8 +15,11 @@ namespace ConsensusChessEngine.Service
         protected override TimeSpan PollPeriod => TimeSpan.FromMinutes(1);
         protected override NodeType NodeType => NodeType.Engine;
 
+        private DbOperator dbOperator;
+
         public ConsensusChessEngineService(ILogger log, IDictionary env) : base(log, env)
         {
+            dbOperator = new DbOperator(env);
         }
 
         protected override async Task PollAsync(CancellationToken cancellationToken)
@@ -33,9 +36,9 @@ namespace ConsensusChessEngine.Service
         private async Task StartNewGameAsync(SocialCommand origin, IEnumerable<string> words)
         {
             // TODO: more complex games, better structure for issuing commands
-            var shortcodes = words.Skip(1); // everything after "new" is a shortcode (for now)
+            var nodeShortcodes = words.Skip(1); // everything after "new" is a shortcode (for now)
 
-            if (shortcodes.Count() == 0)
+            if (nodeShortcodes.Count() == 0)
             {
                 var summary = "No sides provided - cannot create game.";
                 log.LogWarning(summary);
@@ -48,27 +51,35 @@ namespace ConsensusChessEngine.Service
 
             using (var db = GetDb())
             {
-                var networksOk = shortcodes.All(network => db.NodeStates.Any(ns => ns.Shortcode == network));
+                var nodesOk = nodeShortcodes.All(nodeShortcode => db.NodeState.Any(ns => ns.Shortcode == nodeShortcode));
 
-                if (networksOk)
+                // TODO: participantNetworks aren't actually required for move-lock games - remove and test without
+                var participantNetworks = db.NodeState.Where(ns => nodeShortcodes.Contains(ns.Shortcode)).Select(ns => ns.Network);
+
+                if (nodesOk)
                 {
-                    // TODO: not all game types will use the same nodes for both sides
-                    var game = gm.CreateSimpleMoveLockGame(shortcodes);
+                    var shortcode = dbOperator.GenerateUniqueGameShortcode();
+                    var game = gm.CreateSimpleMoveLockGame(shortcode, "simple move-lock game",
+                        participantNetworkServers: participantNetworks.Select(n => n.NetworkServer),
+                        postingNodeShortcodes: nodeShortcodes);
                     db.Games.Add(game);
                     await db.SaveChangesAsync();
 
-                    var summary = $"New {game.SideRules} game for: {string.Join(", ", shortcodes)}";
+                    // TODO: don't forget to update (or add!) an integration test
+
+                    // TODO: update summary
+                    var summary = $"New {game.SideRules} game for: {string.Join(", ", nodeShortcodes)}";
                     log.LogInformation(summary);
 
                     // exceptions during posting will roll back the db transaction - that's good I guess!
                     await social.PostAsync(game);
-                    await social.ReplyAsync(origin, summary);
+                    await social.ReplyAsync(origin, summary, PostType.CommandResponse);
                 }
                 else
                 {
-                    var unrecognised = shortcodes.Where(network => !db.NodeStates.Any(ns => ns.Shortcode == network));
+                    var unrecognised = nodeShortcodes.Where(network => !db.NodeState.Any(ns => ns.Shortcode == network));
                     log.LogWarning($"New game node shortcodes unrecognised: {string.Join(", ",unrecognised)}");
-                    await social.ReplyAsync(origin, $"Unrecognised shortcodes: {string.Join(", ",unrecognised)}");
+                    await social.ReplyAsync(origin, $"Unrecognised shortcodes: {string.Join(", ",unrecognised)}", PostType.CommandResponse);
                 }
                 ReportOnGames();
             }

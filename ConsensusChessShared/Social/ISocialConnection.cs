@@ -20,7 +20,7 @@ namespace ConsensusChessShared.Social
 		Task<Post> PostAsync(Game game, bool? dryRun = null);
         Task<Post> PostAsync(Game game, Board board, bool? dryRun = null);
         Task<Post> PostAsync(string text, PostType type, bool? dryRun = null);
-		Task<Post> ReplyAsync(SocialCommand origin, string message, bool? dryRun = null);
+		Task<Post> ReplyAsync(SocialCommand origin, string message, PostType? postType = null, bool? dryRun = null);
         Task<Post> PostToNetworkAsync(Post post, bool dryRun);
     }
 }

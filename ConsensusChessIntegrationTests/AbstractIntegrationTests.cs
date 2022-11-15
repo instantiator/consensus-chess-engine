@@ -126,7 +126,7 @@ namespace ConsensusChessIntegrationTests
             // crucially, don't delete node_status from the db
             var tables = new[]
             {
-                "board","commitment","games","media","move","participant","post","vote","vote_validation"
+                "board","commitment","games","media","move","participant","post","vote"
             };
 
             using (var db = GetDb())

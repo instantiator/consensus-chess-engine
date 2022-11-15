@@ -20,7 +20,8 @@ namespace ConsensusChessSharedTests
 				"♙♙♙♙♙♙♙♙",
 				"♖♘♗♕♔♗♘♖");
 
-            var output = BoardFormatter.PiecesFENtoVisualEmoji(Board.INITIAL_PIECES_FEN);
+			var board = new Board();
+            var output = BoardFormatter.VisualiseEmoji(board);
 			Assert.AreEqual(output, expected);
 		}
 	}

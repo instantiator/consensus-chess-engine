@@ -1,12 +1,14 @@
 ﻿using System;
+using ConsensusChessShared.DTO;
+
 namespace ConsensusChessShared.Service
 {
 	public class BoardFormatter
 	{
 
-		public static string PiecesFENtoVisualEmoji(string piecesFEN)
+		public static string VisualiseEmoji(Board board)
 		{
-            return piecesFEN
+            return board.PiecesFEN
                 .Replace("1", "◽️")
                 .Replace("2", "◽️◽️")
                 .Replace("3", "◽️◽️◽️")
