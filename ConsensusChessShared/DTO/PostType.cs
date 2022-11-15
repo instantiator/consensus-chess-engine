@@ -4,7 +4,7 @@ namespace ConsensusChessShared.DTO
 	public enum PostType
 	{
 		SocialStatus,
-		EngineUpdate,
+		GameAnnouncement,
 		BoardUpdate,
 		MoveValidation,
 		Unspecified,

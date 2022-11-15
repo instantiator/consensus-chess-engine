@@ -107,6 +107,8 @@ namespace ConsensusChessShared.Service
 
             using (var db = GetDb())
             {
+                db.NodeState.Attach(state);
+
                 // copy things that might change over?
                 state.LastNotificationId = newState.LastNotificationId;
                 state.StatePosts = newState.StatePosts;

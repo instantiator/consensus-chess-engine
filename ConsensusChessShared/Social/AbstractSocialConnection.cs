@@ -27,8 +27,8 @@ namespace ConsensusChessShared.Social
 		}
 
 		public abstract Task InitAsync();
-		public abstract string DisplayName { get; }
-		public abstract string AccountName { get; }
+		public abstract string? DisplayName { get; }
+		public abstract string? AccountName { get; }
 		public abstract IEnumerable<string> CalculateCommandSkips();
         protected abstract Task GetMissedCommands();
         protected abstract Task MarkCommandProcessedAsync(long id);
@@ -90,12 +90,12 @@ namespace ConsensusChessShared.Social
             }
             finally
             {
-                command.IsProcessed = true;
 
                 // always mark the status as seen - we won't try again, even if execution fails
                 if (command.IsForThisNode && command.SourceId != null && !command.IsProcessed)
                 {
                     await MarkCommandProcessedAsync(command.SourceId.Value);
+                    command.IsProcessed = true;
                 }
 
                 // always update the last notification id
@@ -117,7 +117,7 @@ namespace ConsensusChessShared.Social
                     string.Join(", ", game.WhiteParticipantNetworkServers),
                     string.Join(", ", game.BlackParticipantNetworkServers),
                     game.MoveDuration),
-                PostType.EngineUpdate,
+                PostType.GameAnnouncement,
                 dryRun);
 
         public async Task<Post> PostAsync(Game game, Board board, bool? dryRun = null)
@@ -146,6 +146,9 @@ namespace ConsensusChessShared.Social
 
 		public async Task<Post> ReplyAsync(SocialCommand origin, string message, PostType? postType = null, bool? dryRun = null)
 		{
+            // prepend username to reply
+            message = $"@{origin.NetworkUserId} {message}";
+
             log.LogInformation($"Replying: {message}");
 
             var post = new Post()

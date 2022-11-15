@@ -41,17 +41,29 @@ namespace ConsensusChessShared.Social
             user = await client.GetCurrentUser();
         }
 
-        public override string DisplayName => user!.DisplayName;
-        public override string AccountName => user!.AccountName;
+        public override string? DisplayName => user?.DisplayName;
+        public override string? AccountName => user?.AccountName;
+
+        public Dictionary<PostType, Visibility> VisibilityMapping = new Dictionary<PostType, Visibility>()
+        {
+            { PostType.CommandResponse, Visibility.Direct },
+            { PostType.MoveValidation, Visibility.Direct },
+            { PostType.GameAnnouncement, Visibility.Unlisted }, // TODO: public when live
+            { PostType.BoardUpdate, Visibility.Unlisted },      // TODO: public when live
+            { PostType.SocialStatus, Visibility.Private },
+            { PostType.Unspecified, Visibility.Unlisted },
+        };
 
         public override async Task<Post> PostToNetworkAsync(Post post, bool dryRun)
         {
+            Visibility visibility = VisibilityMapping[post.Type];
+
             try
             {
                 if (!dryRun)
                 {
                     log.LogDebug($"Posting to network...");
-                    var status = await client.PostStatus(post.Message, replyStatusId: post.NetworkReplyToId);
+                    var status = await client.PostStatus(post.Message, visibility: visibility, replyStatusId: post.NetworkReplyToId);
                 }
                 else
                 {
@@ -124,6 +136,7 @@ namespace ConsensusChessShared.Social
 
         protected override async Task MarkCommandProcessedAsync(long id)
         {
+            log.LogDebug($"Favouriting status: {id}");
             await client.Favourite(id);
         }
 
@@ -141,19 +154,27 @@ namespace ConsensusChessShared.Social
         }
 
         /// <summary>
-        /// All the words that should be skipped when processing a command
-        /// ie. the account name (short and long forms)
+        /// All the words that should be skipped when processing a command.
+        /// ie. the account name (short and long forms).
+        /// NB. this is a bit defensive. I know - I just wanted it to work.
         /// </summary>
         public override IEnumerable<string> CalculateCommandSkips() => new[]
         {
             $"@{AccountName}",
             $"@{AccountName}@{network.NetworkServer}",
+            $"{AccountName}",
+            $"{AccountName}@{network.NetworkServer}",
         };
 
         public SocialCommand ConvertToSocialCommand(Notification notification, bool isRetrospective)
         {
-            var isForMe = notification.Status?.Mentions.Any(m => m.AccountName == AccountName) ?? false;
-            var isFrom = notification.Status?.Account.AccountName;
+            // TODO: isForMe not perfect...
+
+            log.LogDebug($"CommandSkips: {string.Join(", ",CalculateCommandSkips())}");
+            log.LogDebug($"Mentions: {string.Join(", ", notification.Status?.Mentions.Select(m => m.AccountName) ?? new string[] { })}");
+
+            var isForMe = notification.Status?.Mentions.Any(m => CalculateCommandSkips().Contains(m.AccountName)) ?? false;
+            var isFrom = notification.Status!.Account.AccountName;
             var isFavourited = notification.Status?.Favourited ?? false; // favourited == processed
             var isAuthorised = network.AuthorisedAccountsList.Contains(isFrom);
 

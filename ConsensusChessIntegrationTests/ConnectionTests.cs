@@ -29,7 +29,7 @@ public class ConnectionTests : AbstractIntegrationTests
     [TestMethod]
     public async Task CanSendMessage()
     {
-        var sent = await SendMessageAsync("This is a test message, please ignore.");
+        var sent = await SendMessageAsync("This is a test message, please ignore.", Visibility.Direct);
         Assert.IsNotNull(sent);
     }
 }

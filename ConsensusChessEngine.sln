@@ -30,8 +30,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "environments", "environment
 		environments\int-integration-tester.env = environments\int-integration-tester.env
 		environments\int-engine.env = environments\int-engine.env
 		environments\int-database.env = environments\int-database.env
-		environments\int-node-000-test.env = environments\int-node-000-test.env
 		environments\prod-node-001-gamedev.env = environments\prod-node-001-gamedev.env
+		environments\int-node-0-test.env = environments\int-node-0-test.env
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsensusChessSharedTests", "ConsensusChessSharedTests\ConsensusChessSharedTests.csproj", "{0794AE53-29E5-48BC-9B18-5ED192C3C98A}"

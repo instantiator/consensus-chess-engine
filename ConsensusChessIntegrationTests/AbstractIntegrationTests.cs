@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.IO;
 using ConsensusChessShared.Database;
 using ConsensusChessShared.DTO;
@@ -17,7 +18,7 @@ namespace ConsensusChessIntegrationTests
 
         protected List<Status> SentMessages { get; } = new List<Status>();
 
-        protected List<Notification> ReceivedNotifications { get; } = new List<Notification>();
+        protected ConcurrentBag<Notification> ReceivedNotifications { get; } = new ConcurrentBag<Notification>();
 
         protected Dictionary<string, string> accounts;
 
@@ -76,24 +77,22 @@ namespace ConsensusChessIntegrationTests
             return status;
         }
 
-        protected async Task<Notification?> AwaitNotification(TimeSpan timeoutAfter, Func<Notification,bool> matcher)
+        protected async Task<IEnumerable<Notification>> AwaitNotifications(TimeSpan timeoutAfter, Func<Notification,bool> matcher, int expect = 1)
         {
             var timeout = DateTime.Now.Add(timeoutAfter);
-            Notification? notification;
+            List<Notification> notifications = new List<Notification>();
             do
             {
-                notification = ReceivedNotifications.FirstOrDefault(n => matcher(n));
-                if (notification != null)
-                {
-                    ReceivedNotifications.Remove(notification);
-                }
-                else
-                {
-                    await Task.Delay(TimeSpan.FromSeconds(1));
-                }
+                var matched = ReceivedNotifications.Where(n => matcher(n)).ToList();
+                notifications.AddRange(matched);
+
+                if (matched.Count() > 0) { Console.WriteLine($"Matched {matched.Count()} notifications. Expected: {expect}"); }
+
+                if (ReceivedNotifications.Count() < expect)
+                    await Task.Delay(TimeSpan.FromSeconds(10));
             }
-            while (notification == null && DateTime.Now < timeout);
-            return notification;
+            while (notifications.Count() < expect && DateTime.Now < timeout);
+            return notifications;
         }
 
         [TestInitialize]
@@ -102,7 +101,6 @@ namespace ConsensusChessIntegrationTests
             stream = social.GetUserStreaming();
             stream.OnNotification += (obj,e) =>
             {
-                Console.WriteLine(JsonConvert.SerializeObject(e.Notification));
                 ReceivedNotifications.Add(e.Notification);
 
             };
@@ -119,7 +117,7 @@ namespace ConsensusChessIntegrationTests
             // delete sent messages
             foreach (var status in SentMessages)
             {
-                await social.DeleteStatus(status.Id);
+                // await social.DeleteStatus(status.Id);
             }
             SentMessages.Clear();
 

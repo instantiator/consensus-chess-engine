@@ -21,7 +21,7 @@ services:
         condition: service_healthy
       engine:
         condition: service_healthy
-      int-node-000-test:
+      int-node-0-test:
         condition: service_healthy
     env_file:
       - environments/int-database.env
@@ -31,7 +31,7 @@ services:
       dockerfile: ConsensusChessIntegrationTests/Dockerfile
 
   # test node (botsin.space)
-  int-node-000-test:
+  int-node-0-test:
     depends_on:
       database:
         condition: service_healthy
@@ -44,7 +44,7 @@ services:
       retries: 12
     env_file:
       - environments/int-database.env
-      - environments/int-node-000-test.env
+      - environments/int-node-0-test.env
     build:
       context: .
       dockerfile: ConsensusChessNode/Dockerfile
