@@ -90,11 +90,12 @@ namespace ConsensusChessShared.Social
             }
             finally
             {
+                command.IsProcessed = true;
+
                 // always mark the status as seen - we won't try again, even if execution fails
                 if (command.IsForThisNode && command.SourceId != null && !command.IsProcessed)
                 {
                     await MarkCommandProcessed(command.SourceId.Value);
-                    command.IsProcessed = true;
                 }
 
                 // always update the last notification id
