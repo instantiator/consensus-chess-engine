@@ -29,3 +29,5 @@ The `integration-tests.sh` script will launch all integration environment servic
 ### Investigating
 
 If something fails, often the logs of individual services will give a clue as to why. These are retained by docker.
+
+The unit tests themselves write to `integration-tests.log` in the `logs-int` volume (mounted at `/logs/` in the integration tests container). It's worth exploring that too - or modifying the tests to add a little more trace to it.
