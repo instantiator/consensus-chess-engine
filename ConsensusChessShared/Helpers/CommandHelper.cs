@@ -14,6 +14,13 @@ namespace ConsensusChessShared.Helpers
                 .Where(x => !string.IsNullOrWhiteSpace(x) && !skip.Contains(x.ToLower()));
         }
 
+        public static string CleanupStatus(string status)
+        {
+            var content = RemoveUnwantedTags(status);
+            
+            return content;
+        }
+
         // See: https://stackoverflow.com/a/12836974
         public static string RemoveUnwantedTags(string data, IEnumerable<string>? keepTags = null)
         {

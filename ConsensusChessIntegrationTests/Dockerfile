@@ -13,4 +13,4 @@ RUN dotnet restore ConsensusChessIntegrationTests/ConsensusChessIntegrationTests
 COPY . .
 
 RUN dotnet build ConsensusChessIntegrationTests/ConsensusChessIntegrationTests.csproj
-ENTRYPOINT ["dotnet", "test", "ConsensusChessIntegrationTests/ConsensusChessIntegrationTests.csproj"]
+ENTRYPOINT ["dotnet", "test", "ConsensusChessIntegrationTests/ConsensusChessIntegrationTests.csproj", "-l:\"console;verbosity=normal\""]

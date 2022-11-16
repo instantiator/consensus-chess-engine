@@ -26,6 +26,8 @@ services:
     env_file:
       - environments/int-database.env
       - environments/int-integration-tester.env
+    volumes:
+      - logs-int:/logs/
     build:
       context: .
       dockerfile: ConsensusChessIntegrationTests/Dockerfile
@@ -52,3 +54,4 @@ services:
 
 volumes:
   db-data-int:
+  logs-int:
