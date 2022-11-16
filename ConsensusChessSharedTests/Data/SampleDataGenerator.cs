@@ -39,7 +39,7 @@ namespace ConsensusChessSharedTests.Data
             return new SocialCommand()
             {
                 IsAuthorised = isAuthorised,
-                Network = FakeNetwork,
+                ReceivingNetwork = FakeNetwork,
                 IsRetrospective = isRetrospective,
                 NetworkUserId = sender ?? "@instantiator@mastodon.social",
                 SourceId = 1981,

@@ -29,4 +29,3 @@ The `integration-tests.sh` script will launch all integration environment servic
 ### Investigating
 
 If something fails, often the logs of individual services will give a clue as to why. These are retained by docker.
-

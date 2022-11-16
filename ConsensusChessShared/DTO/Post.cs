@@ -34,8 +34,9 @@ namespace ConsensusChessShared.DTO
         [NotMapped]
         public Exception? Exception { get; set; }
 
-        public void Succeed()
+        public void Succeed(long? networkPostId)
         {
+            NetworkPostId = networkPostId;
             Attempted = DateTime.Now.ToUniversalTime();
             Succeeded = true;
         }

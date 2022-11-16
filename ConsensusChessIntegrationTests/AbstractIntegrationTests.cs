@@ -80,7 +80,7 @@ namespace ConsensusChessIntegrationTests
                 : Visibility.Direct;
             message = string.IsNullOrWhiteSpace(directRecipient) ? message : $"@{directRecipient} {message}";
 
-            WriteLogLine($"Sending message: {message}\nVisibility: {visibility}");
+            WriteLogLine($"Sending message: {message}\nVisibility: {visibility}, InReplyTo: {inReplyTo?.ToString() ?? "(none)"}");
 
             var status = await social.PostStatus(message, visibility: visibility, replyStatusId: inReplyTo);
             SentMessages.Add(status);

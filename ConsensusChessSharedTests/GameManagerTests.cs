@@ -110,7 +110,8 @@ namespace ConsensusChessSharedTests
             var cmd = new SocialCommand()
             {
                 SourceId = 999,
-                Network = network
+                ReceivingNetwork = network,
+                SourceAccount = "somebody@mastodon.somewhere"
             };
 
             var participant = Participant.From(cmd);
@@ -132,7 +133,8 @@ namespace ConsensusChessSharedTests
             var cmd = new SocialCommand()
             {
                 SourceId = 999,
-                Network = network
+                ReceivingNetwork = network,
+                SourceAccount = "somebody@mastodon.somewhere"
             };
 
             var participant = Participant.From(cmd);
@@ -158,7 +160,8 @@ namespace ConsensusChessSharedTests
             var cmd = new SocialCommand()
             {
                 SourceId = 999,
-                Network = network
+                ReceivingNetwork = network,
+                SourceAccount = "somebody@mastodon.somewhere"
             };
             var participant = Participant.From(cmd);
             participant.Commitments.Add(new Commitment()

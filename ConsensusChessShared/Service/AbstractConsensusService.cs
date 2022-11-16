@@ -44,7 +44,6 @@ namespace ConsensusChessShared.Service
                 db.Database.Migrate();
             }
 
-
             gm = new GameManager(log);
             network = Network.FromEnvironment(env);
 
@@ -150,7 +149,7 @@ namespace ConsensusChessShared.Service
                 await RecordStatePostAsync(posted);
 
                 // listen for commands
-                await social.StartListeningForCommandsAsync(cmd.ParseAsync, true);
+                await social.StartListeningForCommandsAsync(cmd!.ParseAsync, true);
 
                 // poll for events
                 pollingCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);

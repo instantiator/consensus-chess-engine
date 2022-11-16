@@ -26,9 +26,8 @@ namespace ConsensusChessShared.DTO
             return new Participant()
             {
                 NetworkUserAccount = command.SourceAccount,
-                NetworkServer = command.Network.NetworkServer
+                NetworkServer = command.SourceAccount.Split('@').Last()
             };
         }
 	}
 }
-

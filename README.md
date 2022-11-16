@@ -4,6 +4,8 @@ A new way to play distributed, consensus games across federated social networks.
 
 _NB. This is a work in progress - the engine is not yet ready to host games._
 
+![Consensus diagram showing arrangement of services](docs/images/consensus-diagram.png "Consensus diagram showing arrangement of services")
+
 ## Documentation
 
 * [Architecture](docs/architecture.md)
@@ -12,6 +14,7 @@ _NB. This is a work in progress - the engine is not yet ready to host games._
 * [Config](docs/config.md)
 * [Database](docs/database.md)
 * [Dependencies](docs/dependencies.md)
+* [Testing](docs/testing.md)
 
 ### Blog posts
 

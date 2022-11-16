@@ -20,8 +20,7 @@ namespace ConsensusChessShared.DTO
 		public virtual Participant Participant { get; set; }
 
 		public VoteValidationState ValidationState { get; set; }
-		public virtual Post ValidationPost { get; set; }
-
+		public virtual Post? ValidationPost { get; set; }
 	}
 }
 

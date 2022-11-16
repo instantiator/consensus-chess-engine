@@ -43,17 +43,17 @@ namespace ConsensusChessShared.Service
         }
 
         /// <summary>
-        /// Retrieves the game that this post is in response to - or fails.
+        /// Retrieves the game with the board post that this vote is in response to - or fails.
         /// </summary>
         /// <param name="cmd">the social command to check</param>
         /// <returns>the game that this social command refers to (if any)</returns>
         /// <exception cref="GameNotFoundException"></exception>
-        public Game GetGameForBoardPost(SocialCommand cmd)
+        public Game GetGameForVote(SocialCommand cmd)
         {
             using (var db = GetDb())
             {
                 // check if the reply is directly to a current board
-                var game = db.Games
+                var game = db.Games.ToList()
                     .SingleOrDefault(g => g.CurrentBoard.BoardPosts
                         .Any(bp => bp.NetworkPostId == cmd.InReplyToId));
 

@@ -6,6 +6,8 @@ The application is composed of a number of microservices:
 * Engine
 * Nodes
 
+![Consensus diagram showing arrangement of services](images/consensus-diagram.png "Consensus diagram showing arrangement of services")
+
 ## Database
 
 This is a simple postgres instance, obtained by docker image.

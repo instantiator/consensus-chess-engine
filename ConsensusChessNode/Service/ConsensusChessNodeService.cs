@@ -11,6 +11,7 @@ namespace ConsensusChessNode.Service
 {
     public class ConsensusChessNodeService : AbstractConsensusService
     {
+        // TODO: be a good citizen - set a polling period that isn't too disruptive
         protected override TimeSpan PollPeriod => TimeSpan.FromSeconds(15);
         protected override NodeType NodeType => NodeType.Node;
 
@@ -52,24 +53,29 @@ namespace ConsensusChessNode.Service
 
         private async Task ProcessVoteAsync(SocialCommand origin, IEnumerable<string> words)
         {
-            log.LogDebug($"Processing move command from {origin.SourceAccount}: {string.Join(" ", words)}");
+            log.LogDebug($"Processing vote from {origin.SourceAccount}, in reply to {origin.InReplyToId?.ToString() ?? "(none)"}: {string.Join(" ", words)}");
 
             Game? game = null;
             Vote? vote = null;
             Participant? participant = null;
 
             var voteSAN = string.Join(" ", words.Skip(1));
+            log.LogDebug($"Vote SAN: {voteSAN}");
 
             participant = await dbOperator.FindOrCreateParticipantAsync(origin);
+            log.LogDebug($"Participant: {JsonConvert.SerializeObject(participant)}");
+
             vote = new Vote()
             {
                 MoveText = voteSAN,
-                Participant = participant
+                Participant = participant,
+                NetworkMovePostId = origin.SourceId!.Value,
             };
 
             try
             {
-                game = dbOperator.GetGameForBoardPost(origin); // throws GameNotFoundException
+                log.LogDebug("Establishing game for the post.");
+                game = dbOperator.GetGameForVote(origin); // throws GameNotFoundException
                 var newBoard = gm.ValidateSAN(game.CurrentBoard, voteSAN); // throws VoteRejectionException
                 var mayVote = gm.ParticipantMayVote(game, participant);
                 if (!mayVote) { throw new VoteRejectionException(VoteValidationState.NotPermitted, origin, "Not permitted to vote on this move."); }
@@ -99,13 +105,28 @@ namespace ConsensusChessNode.Service
                     game.CurrentMove.Votes.Add(vote);
                     await db.SaveChangesAsync();
                 }
-                await social.ReplyAsync(origin, "Move accepted - thank you", PostType.MoveValidation);
+
+                // post validation response, and attach to vote
+                var validationPost = await social.ReplyAsync(origin, "Move accepted - thank you", PostType.MoveValidation);
+
+                using (var db = GetDb())
+                {
+                    db.Attach(game); // will this work?
+                    db.Attach(vote);
+                    vote.ValidationPost = validationPost;
+                    db.Update(vote);
+                    await db.SaveChangesAsync();
+                }
             }
             catch (GameNotFoundException e)
             {
                 vote.ValidationState = VoteValidationState.NoGame;
                 var summary = $"No game linked to move post from {e.Command.SourceAccount}: {voteSAN}";
                 log.LogWarning(summary);
+
+                // TODO: remove - this is messy logging to try and catch the issue
+                using (var db = GetDb())
+                    log.LogWarning(JsonConvert.SerializeObject(db.Games.ToList()));
 
                 await social.ReplyAsync(origin, summary, PostType.MoveValidation);
             }
