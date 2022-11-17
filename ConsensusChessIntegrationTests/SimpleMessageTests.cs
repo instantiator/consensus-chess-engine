@@ -179,11 +179,9 @@ namespace ConsensusChessIntegrationTests
                 (Status status, string content) => content.Contains("New board.") && status.CreatedAt > started);
             var boardStatus = nodeStatuses.Single();
 
-            // post a move
+            // post a move, wait for favourite and move on (no need to check the reply)
             var moveStatus = await SendMessageAsync("move e4", Mastonet.Visibility.Direct, node.AccountName, boardStatus.Id);
-
-            // confirm the reply comes through
-            // var verifiedStatus = await AssertGetsReplyNotificationAsync(moveStatus, "@instantiator Move accepted - thank you");
+            await AssertFavouritedAsync(moveStatus);
 
             using (var db = GetDb())
             {
@@ -199,9 +197,9 @@ namespace ConsensusChessIntegrationTests
 
             // post a 2nd move
             var moveStatus2 = await SendMessageAsync("move e3", Mastonet.Visibility.Direct, node.AccountName, boardStatus.Id);
-
+            await AssertFavouritedAsync(moveStatus2);
             // confirm the reply comes through
-            // var verifiedStatus2 = await AssertGetsReplyNotificationAsync(moveStatus2, "@instantiator Move accepted - thank you");
+            var verifiedStatus2 = await AssertGetsReplyNotificationAsync(moveStatus2, "@instantiator Move accepted - thank you");
 
             // check db, and vote statuses
             using (var db = GetDb())
