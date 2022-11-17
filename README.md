@@ -18,7 +18,7 @@ _NB. This is a work in progress - the engine is not yet ready to host games._
 
 ### Blog posts
 
-* [International Consensus Games](https://instantiator.dev/post/consensus-games/) (personal blog)
+* [International Consensus Games](https://instantiator.dev/post/consensus-games/) (explainer)
 
 ### Roadmap
 
@@ -35,7 +35,7 @@ _NB. This is a work in progress - the engine is not yet ready to host games._
   * for each engine and node
   * for the integration testing service
   * For each database instance
-3. Launch and run integration tests with: `./integration-tests.sh`
+3. Launch and run integration tests with: `./integration-tests.sh` (also runs unit tests during build)
 
   ![](docs/images/int-tests-pass.png)
 
