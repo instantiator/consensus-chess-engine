@@ -19,7 +19,7 @@ namespace ConsensusChessEngine.Service
 
         public ConsensusChessEngineService(ILogger log, IDictionary env) : base(log, env)
         {
-            dbOperator = new DbOperator(env);
+            dbOperator = new DbOperator(log, env);
         }
 
         protected override async Task PollAsync(CancellationToken cancellationToken)
@@ -49,7 +49,7 @@ namespace ConsensusChessEngine.Service
                     summary);
             }
 
-            using (var db = GetDb())
+            using (var db = dbo.GetDb())
             {
                 var nodesOk = nodeShortcodes.All(nodeShortcode => db.NodeState.Any(ns => ns.Shortcode == nodeShortcode));
 
@@ -58,7 +58,7 @@ namespace ConsensusChessEngine.Service
 
                 if (nodesOk)
                 {
-                    var shortcode = dbOperator.GenerateUniqueGameShortcode();
+                    var shortcode = dbo.GenerateUniqueGameShortcode(db);
                     var game = gm.CreateSimpleMoveLockGame(shortcode, "simple move-lock game",
                         participantNetworkServers: participantNetworks.Select(n => n.NetworkServer),
                         postingNodeShortcodes: nodeShortcodes);
@@ -89,7 +89,7 @@ namespace ConsensusChessEngine.Service
         {
             log.LogInformation($"Shutting down.");
             polling = false;
-            pollingCancellation.Cancel();
+            pollingCancellation?.Cancel();
         }
 
         protected override async Task FinishAsync()

@@ -70,8 +70,8 @@ namespace ConsensusChessSharedTests
         public void ValidateSAN_validates_GoodVoteSAN()
         {
             var game = gm.CreateSimpleMoveLockGame("test-game", "Test game", new[] { "mastodon.something.social" }, new[] { "node-0-test" });
-            var move_SAN = "e4";
-            var board = gm.ValidateSAN(game.CurrentBoard, move_SAN);
+            var vote = new Vote() { MoveText = "e4" };
+            var board = gm.ValidateSAN(game.CurrentBoard, vote);
             Assert.IsNotNull(board);
             Assert.AreEqual("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1", board.FEN);
         }
@@ -80,8 +80,8 @@ namespace ConsensusChessSharedTests
         public void ValidateSAN_invalidates_IllegalVoteSAN()
         {
             var game = gm.CreateSimpleMoveLockGame("test-game", "Test game", new[] { "mastodon.something.social" }, new[] { "node-0-test" });
-            var move_SAN = "e7";
-            var e = Assert.ThrowsException<VoteRejectionException>(() => gm.ValidateSAN(game.CurrentBoard, move_SAN));
+            var vote = new Vote() { MoveText = "e7" };
+            var e = Assert.ThrowsException<VoteRejectionException>(() => gm.ValidateSAN(game.CurrentBoard, vote));
             Assert.AreEqual(typeof(ChessSanNotFoundException), e.InnerException!.GetType());
         }
 
@@ -89,12 +89,10 @@ namespace ConsensusChessSharedTests
         public void ValidateSAN_invalidates_GarbageVote()
         {
             var game = gm.CreateSimpleMoveLockGame("test-game", "Test game", new[] { "mastodon.something.social" }, new[] { "node-0-test" });
-            var move_SAN = "horsey to king 4";
-            var e = Assert.ThrowsException<VoteRejectionException>(() => gm.ValidateSAN(game.CurrentBoard, move_SAN));
+            var vote = new Vote() { MoveText = "horsey to king 4" };
+            var e = Assert.ThrowsException<VoteRejectionException>(() => gm.ValidateSAN(game.CurrentBoard, vote));
             Assert.AreEqual(typeof(ChessArgumentException), e.InnerException!.GetType());
         }
-
-        // TODO: clarify + resolve node shortcodes vs. side networks (eg. in Game, Participant)
 
         [TestMethod]
         public void ParticipantMayVote_withMoveLockGame_permits_NewParticipantFromAnyNetwork()

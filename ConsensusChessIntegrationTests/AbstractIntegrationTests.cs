@@ -10,17 +10,21 @@ using Mastonet;
 using Mastonet.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.Extensions.Logging;
+using Moq;
 using Newtonsoft.Json;
 
 namespace ConsensusChessIntegrationTests
 {
 	public abstract class AbstractIntegrationTests
 	{
+        protected Mock<ILogger> mockLogger;
+
         protected string logPath = "/logs/integration-tests.log";
 
         public TestContext TestContext { get; set; }
 
-        public const int TIMEOUT_mins = 10;
+        public const int TIMEOUT_mins = 15;
 
         protected static readonly HttpClient http = new HttpClient();
 
@@ -41,6 +45,8 @@ namespace ConsensusChessIntegrationTests
 
         protected AbstractIntegrationTests()
         {
+            mockLogger = new Mock<ILogger>();
+
             social = GetMastodonClient();
             var environment = Environment.GetEnvironmentVariables()
                 .Cast<DictionaryEntry>().ToDictionary(x => (string)x.Key, x => (string)x.Value!);
@@ -131,9 +137,29 @@ namespace ConsensusChessIntegrationTests
         }
 
         [TestInitialize]
-        public void TestInit()
+        public async Task TestInit()
         {
             WriteLogHeader($"{TestContext.TestName}");
+
+            // crucially, don't delete node_status from the db
+            var tables = new[]
+            {
+                "board","commitment","games","media","move","participant","post","vote"
+            };
+
+            using (var db = GetDb())
+            {
+                foreach (var table in tables)
+                {
+                    var sql = $"TRUNCATE {table} CASCADE;";
+                    WriteLogLine(sql);
+                    // this is postgres SQL, see: https://www.postgresql.org/docs/current/sql-truncate.html
+                    await db.Database.ExecuteSqlRawAsync(sql);
+                }
+            }
+
+            // finished - leave a space
+
 
             stream = social.GetUserStreaming();
             stream.OnNotification += (obj,e) =>
@@ -160,25 +186,8 @@ namespace ConsensusChessIntegrationTests
             }
             SentMessages.Clear();
 
-            // crucially, don't delete node_status from the db
-            var tables = new[]
-            {
-                "board","commitment","games","media","move","participant","post","vote"
-            };
-
-            using (var db = GetDb())
-            {
-                foreach (var table in tables)
-                {
-                    var sql = $"TRUNCATE {table} CASCADE;";
-                    WriteLogLine(sql);
-                    // this is postgres SQL, see: https://www.postgresql.org/docs/current/sql-truncate.html
-                    await db.Database.ExecuteSqlRawAsync(sql);
-                }
-            }
-
-            // finished - leave a space
             WriteLogLine();
+            return;
         }
 
         [Obsolete("No longer used, as we'd prefer the db to retain data about the node registrations")]

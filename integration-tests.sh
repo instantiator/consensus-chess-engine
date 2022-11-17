@@ -1,5 +1,40 @@
 #!/bin/bash
 
+usage() {
+  cat << EOF
+Starts all services for the specified environment.
+
+Options:
+    -f <filter> --filter <filter>     A filter expression to pick out which test to run
+    -h          --help                Prints this help message and exits
+EOF
+}
+
+# defaults
+FILTER=\"\"
+
+# parameters
+while [ -n "$1" ]; do
+  case $1 in
+  -f | --filter)
+    shift
+    FILTER=$1
+    ;;
+  -h | --help)
+    usage
+    exit 0
+    ;;
+  *)
+    echo -e "Unknown option $1...\n"
+    usage
+    exit 1
+    ;;
+  esac
+  shift
+done
+
+export TEST_FILTER=${FILTER}
+
 # remove any residual containers and the attached database volume before run
 docker compose -p consensus-chess-int \
   -f compose.yaml -f compose.int.yaml \

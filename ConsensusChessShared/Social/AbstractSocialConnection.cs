@@ -50,7 +50,7 @@ namespace ConsensusChessShared.Social
             if (missedCommands != null)
             {
                 log.LogDebug($"Retrospectively processing {missedCommands.Count()} notifications...");
-                foreach (var command in missedCommands.Where(c => c != null))
+                foreach (var command in missedCommands)
                 {
                     await ProcessCommand(command);
                 }

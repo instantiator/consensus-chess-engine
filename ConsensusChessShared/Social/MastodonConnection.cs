@@ -101,7 +101,7 @@ namespace ConsensusChessShared.Social
             if (!firstStart)
             {
                 var missedNotifications = await GetAllNotificationSinceAsync(state.LastNotificationId);
-                missedCommands = missedNotifications.Select(n => ConvertToSocialCommand(n, true));
+                missedCommands = missedNotifications.Select(n => ConvertToSocialCommand(n, true)).OfType<SocialCommand>();
             }
             else
             {
@@ -167,9 +167,10 @@ namespace ConsensusChessShared.Social
             $"{AccountName}@{network.NetworkServer}",
         };
 
-        public SocialCommand ConvertToSocialCommand(Notification notification, bool isRetrospective)
+        public SocialCommand? ConvertToSocialCommand(Notification notification, bool isRetrospective)
         {
-            // TODO: return null if the notification is not really a status
+            // return null if the notification is not really a status
+            if (notification.Type != "mention") { return null; }
 
             log.LogDebug($"Converting notification ({notification.Type}) to social command");
             log.LogDebug($"CommandSkips: {string.Join(", ",CalculateCommandSkips())}");
@@ -177,7 +178,7 @@ namespace ConsensusChessShared.Social
 
             // TODO: isForMe not perfect - better to be more specific about command skips
             var isForMe = notification.Status?.Mentions.Any(m => CalculateCommandSkips().Contains(m.AccountName)) ?? false;
-            var isFrom = notification.Status?.Account.AccountName;
+            var isFrom = notification.Account.AccountName;
             log.LogDebug($"isFrom: {isFrom}");
 
             var isFavourited = notification.Status?.Favourited ?? false; // favourited == processed
@@ -188,9 +189,9 @@ namespace ConsensusChessShared.Social
                 ReceivingNetwork = network,
                 NetworkUserId = isFrom,
                 SourceAccount = isFrom,
-                RawText = notification.Status!.Content,
-                SourceId = notification.Status!.Id,
-                InReplyToId = notification.Status!.InReplyToId,
+                RawText = notification.Status?.Content,
+                SourceId = notification.Status?.Id,
+                InReplyToId = notification.Status?.InReplyToId,
                 IsAuthorised = isAuthorised,
                 IsRetrospective = isRetrospective,
                 IsForThisNode = isForMe,

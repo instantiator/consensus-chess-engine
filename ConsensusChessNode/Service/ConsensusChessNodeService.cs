@@ -12,19 +12,17 @@ namespace ConsensusChessNode.Service
     public class ConsensusChessNodeService : AbstractConsensusService
     {
         // TODO: be a good citizen - set a polling period that isn't too disruptive
-        protected override TimeSpan PollPeriod => TimeSpan.FromSeconds(15);
+        protected override TimeSpan PollPeriod => TimeSpan.FromSeconds(30);
         protected override NodeType NodeType => NodeType.Node;
-
-        private DbOperator dbOperator;
 
         public ConsensusChessNodeService(ILogger log, IDictionary env) : base(log, env)
         {
-            dbOperator = new DbOperator(env);
+            dbo = new DbOperator(log, env);
         }
 
         protected override async Task PollAsync(CancellationToken cancellationToken)
         {
-            using (var db = GetDb())
+            using (var db = dbo.GetDb())
             {
                 var unpostedBoardChecks = gm.FindUnpostedBoards(db.Games, state.Shortcode);
                 foreach (var check in unpostedBoardChecks)
@@ -55,97 +53,102 @@ namespace ConsensusChessNode.Service
         {
             log.LogDebug($"Processing vote from {origin.SourceAccount}, in reply to {origin.InReplyToId?.ToString() ?? "(none)"}: {string.Join(" ", words)}");
 
-            Game? game = null;
-            Vote? vote = null;
-            Participant? participant = null;
-
             var voteSAN = string.Join(" ", words.Skip(1));
             log.LogDebug($"Vote SAN: {voteSAN}");
 
-            participant = await dbOperator.FindOrCreateParticipantAsync(origin);
-            log.LogDebug($"Participant: {JsonConvert.SerializeObject(participant)}");
+            Participant? participant = null;
+            Vote? vote = null;
+            Game? game = null;
 
-            vote = new Vote()
+            using (var db = dbo.GetDb())
             {
-                MoveText = voteSAN,
-                Participant = participant,
-                NetworkMovePostId = origin.SourceId!.Value,
-            };
-
-            try
-            {
-                log.LogDebug("Establishing game for the post.");
-                game = dbOperator.GetGameForVote(origin); // throws GameNotFoundException
-                var newBoard = gm.ValidateSAN(game.CurrentBoard, voteSAN); // throws VoteRejectionException
-                var mayVote = gm.ParticipantMayVote(game, participant);
-                if (!mayVote) { throw new VoteRejectionException(VoteValidationState.NotPermitted, origin, "Not permitted to vote on this move."); }
-
-                // no exceptions thrown - this is a successful vote
-                using (var db = GetDb())
+                try
                 {
-                    // set vote valid
+                    // participant and vote
+                    log.LogDebug($"Find or create participant...");
+                    participant = await dbo.FindOrCreateParticipantAsync(db, origin);
+                    vote = new Vote()
+                    {
+                        MoveText = voteSAN,
+                        Participant = participant,
+                        NetworkMovePostId = origin.SourceId!.Value,
+                    };
+                    log.LogDebug($"Participant: {JsonConvert.SerializeObject(participant)}");
+                    log.LogDebug($"Vote: {JsonConvert.SerializeObject(vote)}");
+
+                    // check the game
+                    log.LogDebug("Establishing game for the post.");
+                    game = dbo.GetGameForVote(db, origin); // throws GameNotFoundException
+
+                    // establish wether this participant is permitted to vote on this move
+                    var mayVote = gm.ParticipantMayVote(game, participant);
+                    if (!mayVote)
+                    {
+                        throw new VoteRejectionException(vote, VoteValidationState.NotPermitted, origin);
+                    }
+
+                    // check validity of vote SAN
+                    var newBoard = gm.ValidateSAN(game.CurrentBoard, vote); // throws VoteRejectionException
                     vote.ValidationState = VoteValidationState.Valid;
+
+                    // supercede any pre-existing vote
+                    var preexistingVote = gm.GetCurrentValidVote(game, participant);
+                    if (preexistingVote != null)
+                    {
+                        log.LogDebug("Marking preexisting vote superceded.");
+                        preexistingVote.ValidationState = VoteValidationState.Superceded;
+                        log.LogDebug(JsonConvert.SerializeObject(preexistingVote));
+                    }
 
                     // update participant with current side for this game
                     var commitment = participant.Commitments
                         .SingleOrDefault(c => c.GameShortcode == game.Shortcode && c.GameSide == game.CurrentSide);
-
                     if (commitment == null)
                     {
-                        commitment = new Commitment()
-                        {
-                            GameShortcode = game.Shortcode,
-                            GameSide = game.CurrentSide
-                        };
+                        log.LogDebug("Recording new commitment for participant...");
+                        commitment = new Commitment();
                         vote.Participant.Commitments.Add(commitment);
                     }
+                    else
+                    {
+                        log.LogDebug("Updating commitment for participant...");
+                    }
+                    commitment.GameShortcode = game.Shortcode;
+                    commitment.GameSide = game.CurrentSide;
+                    log.LogDebug(JsonConvert.SerializeObject(commitment));
 
-                    // attach vote to game
-                    db.Attach(game); // will this work?
+                    // record new vote on game
                     game.CurrentMove.Votes.Add(vote);
                     await db.SaveChangesAsync();
-                }
 
-                // post validation response, and attach to vote
-                var validationPost = await social.ReplyAsync(origin, "Move accepted - thank you", PostType.MoveValidation);
-
-                using (var db = GetDb())
-                {
-                    db.Attach(game); // will this work?
-                    db.Attach(vote);
+                    // post validation response, and attach to vote
+                    var validationPost = await social.ReplyAsync(origin, "Move accepted - thank you", PostType.MoveValidation);
                     vote.ValidationPost = validationPost;
-                    db.Update(vote);
                     await db.SaveChangesAsync();
                 }
-            }
-            catch (GameNotFoundException e)
-            {
-                vote.ValidationState = VoteValidationState.NoGame;
-                var summary = $"No game linked to move post from {e.Command.SourceAccount}: {voteSAN}";
-                log.LogWarning(summary);
-
-                // TODO: remove - this is messy logging to try and catch the issue
-                using (var db = GetDb())
-                    log.LogWarning(JsonConvert.SerializeObject(db.Games.ToList()));
-
-                await social.ReplyAsync(origin, summary, PostType.MoveValidation);
-            }
-            catch (VoteRejectionException e)
-            {
-                var summary = $"{e.Reason} from {e.Command?.SourceAccount ?? "unknown"}: {voteSAN}, {e.Message}";
-                log.LogWarning(summary);
-
-                var post = await social.ReplyAsync(origin, summary, PostType.MoveValidation);
-                vote.ValidationState = e.Reason;
-                vote.ValidationPost = post;
-
-                using (var db = GetDb())
+                catch (GameNotFoundException e)
                 {
+                    var summary = $"No game linked to move post from {e.Command.SourceAccount}: {voteSAN}";
+                    log.LogWarning(summary);
+
+                    // TODO: remove - this is messy logging to try and catch the issue
+                    log.LogWarning(JsonConvert.SerializeObject(db.Games.ToList()));
+                    await social.ReplyAsync(origin, summary, PostType.MoveValidation);
+                }
+                catch (VoteRejectionException e)
+                {
+                    var summary = $"{e.Reason} from {e.Command?.SourceAccount ?? "unknown"}: {voteSAN}, {e.Message}";
+                    log.LogWarning(summary);
+
+                    var post = await social.ReplyAsync(origin, summary, PostType.MoveValidation);
+                    vote!.ValidationState = e.Reason;
+                    vote!.ValidationPost = post;
+
                     db.Games.Attach(game!);
                     game!.CurrentMove.Votes.Add(vote);
                     await db.SaveChangesAsync();
                 }
-            }
+            } // db
         }
 
         private async Task ShutdownAsync(SocialCommand origin, IEnumerable<string> words)

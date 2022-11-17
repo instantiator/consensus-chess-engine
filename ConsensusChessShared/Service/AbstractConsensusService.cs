@@ -30,12 +30,17 @@ namespace ConsensusChessShared.Service
 
         protected abstract NodeType NodeType { get; }
 
+        protected DbOperator dbo;
+
+        protected CancellationTokenSource? pollingCancellation;
+
         protected AbstractConsensusService(ILogger log, IDictionary env)
         {
             this.log = log;
             this.env = env;
+            this.dbo = new DbOperator(log, env);
 
-            using (var db = GetDb())
+            using (var db = dbo.GetDb())
             {
                 var connection = db.Database.CanConnect();
                 log.LogDebug($"Database connection: {connection}");
@@ -53,7 +58,7 @@ namespace ConsensusChessShared.Service
 
         protected NodeState RegisterNode(Network net)
         {
-            using (var db = GetDb())
+            using (var db = dbo.GetDb())
             {
                 var environment = env.Cast<DictionaryEntry>().ToDictionary(x => (string)x.Key, x => (string)x.Value!);
                 var name = environment["NODE_NAME"];
@@ -70,8 +75,6 @@ namespace ConsensusChessShared.Service
                 return currentState;
             }
         }
-
-        protected ConsensusChessDbContext GetDb() => ConsensusChessDbContext.FromEnvironment(env);
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
@@ -104,7 +107,7 @@ namespace ConsensusChessShared.Service
         {
             if (state.Id != newState.Id) { throw new InvalidOperationException($"state.Id = {state.Id}, newState.Id = {newState.Id}"); }
 
-            using (var db = GetDb())
+            using (var db = dbo.GetDb())
             {
                 db.NodeState.Attach(state);
 
@@ -119,22 +122,21 @@ namespace ConsensusChessShared.Service
 
         private async Task RecordStatePostAsync(Post report)
         {
-            using (var db = GetDb())
+            using (var db = dbo.GetDb())
             {
                 state.StatePosts.Add(report);
+                db.NodeState.Attach(state);
                 await db.SaveChangesAsync();
             }
         }
 
         protected void ReportOnGames()
         {
-            using (var db = GetDb())
+            using (var db = dbo.GetDb())
             {
                 log.LogDebug($"Active games: {db.Games.ToList().Count(g => g.Active)}");
             }
         }
-
-        protected CancellationTokenSource pollingCancellation;
 
         public async Task ExecuteAsync(CancellationToken cancellationToken)
         {

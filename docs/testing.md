@@ -26,6 +26,18 @@ The `integration-tests.sh` script will launch all integration environment servic
 |-|-|
 | ![](images/int-tests-fail.png) | ![](images/int-tests-pass.png) |
 
+### Running selected tests
+
+To filter the tests to run, provide a filter expression in the `--filter` option (abbreviates to `-f`), eg.
+
+```shell
+./integration-tests.sh -f VoteOnGameTwice_VoteSuperceded
+```
+
+If you just provide a simple filter, it is interpreted to mean "test method name contains". More complex filters are possible. See:
+
+* [Run selected unit tests](https://learn.microsoft.com/en-us/dotnet/core/testing/selective-unit-tests?pivots=mstest) (.NET documentation)
+
 ### Investigating
 
 If something fails, often the logs of individual services will give a clue as to why. These are retained by docker.

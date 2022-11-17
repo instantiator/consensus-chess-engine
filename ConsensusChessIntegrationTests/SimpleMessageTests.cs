@@ -136,16 +136,86 @@ namespace ConsensusChessIntegrationTests
                 Assert.AreEqual(1, votes.Count());
 
                 var vote = votes.Single();
-                Assert.AreEqual(vote.Participant.NetworkUserAccount, "instantiator@mastodon.social");
+                Assert.AreEqual("instantiator@mastodon.social", vote.Participant.NetworkUserAccount);
+                Assert.AreEqual("mastodon.social", vote.Participant.NetworkServer);
                 Assert.AreEqual(VoteValidationState.Valid, vote.ValidationState);
+
                 Assert.IsNotNull(vote.ValidationPost);
                 Assert.IsTrue(vote.ValidationPost!.Succeeded);
                 Assert.IsNotNull(vote.ValidationPost.NetworkPostId);
-                Assert.IsTrue(vote.NetworkMovePostId > 0);
-                Assert.AreEqual("e4", vote.MoveText);
                 Assert.AreEqual("node-0-test", vote.ValidationPost.NodeShortcode);
                 Assert.IsTrue(vote.ValidationPost.NetworkReplyToId > 0);
                 Assert.IsTrue(vote.ValidationPost.Message.Contains("Move accepted - thank you"));
+
+                Assert.IsTrue(vote.NetworkMovePostId > 0);
+                Assert.AreEqual("e4", vote.MoveText);
+            }
+        }
+
+        [TestMethod]
+        public async Task VoteOnGameTwice_VoteSuperceded()
+        {
+            var started = DateTime.Now;
+
+            // get node account
+            var node = await GetAccountAsync(accounts["node"]);
+
+            // init the db with a test game
+            using (var db = GetDb())
+            {
+                // confirm no games
+                Assert.AreEqual(0, db.Games.Count());
+
+                // create a game
+                var servers = new[] { node.AccountName };
+                var nodes = new[] { "node-0-test" };
+                var game = Game.NewGame("test-game", "A game for integration testing", servers, servers, nodes, nodes, SideRules.MoveLock);
+                db.Games.Add(game);
+                await db.SaveChangesAsync();
+            }
+
+            // wait for the node to post the new board
+            var nodeStatuses = await AssertAndGetStatusesAsync(node, 1,
+                (Status status, string content) => content.Contains("New board.") && status.CreatedAt > started);
+            var boardStatus = nodeStatuses.Single();
+
+            // post a move
+            var moveStatus = await SendMessageAsync("move e4", Mastonet.Visibility.Direct, node.AccountName, boardStatus.Id);
+
+            // confirm the reply comes through
+            // var verifiedStatus = await AssertGetsReplyNotificationAsync(moveStatus, "@instantiator Move accepted - thank you");
+
+            using (var db = GetDb())
+            {
+                var game = db.Games.ToList().Single();
+                var participant = db.Participant.Single(p => p.NetworkUserAccount == "instantiator@mastodon.social");
+                var gm = new GameManager(mockLogger.Object);
+                var preexistingVote = gm.GetCurrentValidVote(game, participant);
+
+                Assert.IsNotNull(preexistingVote);
+                Assert.AreEqual("e4", preexistingVote.MoveText);
+                Assert.AreEqual(VoteValidationState.Valid, preexistingVote.ValidationState);
+            }
+
+            // post a 2nd move
+            var moveStatus2 = await SendMessageAsync("move e3", Mastonet.Visibility.Direct, node.AccountName, boardStatus.Id);
+
+            // confirm the reply comes through
+            // var verifiedStatus2 = await AssertGetsReplyNotificationAsync(moveStatus2, "@instantiator Move accepted - thank you");
+
+            // check db, and vote statuses
+            using (var db = GetDb())
+            {
+                // confirm no games
+                Assert.AreEqual(1, db.Games.Count());
+
+                var game = db.Games.ToList().Single();
+
+                var votes = game.CurrentMove.Votes;
+                Assert.AreEqual(2, votes.Count());
+
+                Assert.AreEqual(1, votes.Count(v => v.ValidationState == VoteValidationState.Superceded));
+                Assert.AreEqual(1, votes.Count(v => v.ValidationState == VoteValidationState.Valid));
             }
         }
     }

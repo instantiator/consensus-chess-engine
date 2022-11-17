@@ -61,20 +61,20 @@ namespace ConsensusChessShared.Service
         /// <param name="submission">the move (ideally in SAN format)</param>
         /// <returns>The new board position, if the move was valid</returns>
         /// <exception cref="MoveRejectionException"></exception>
-        public Board ValidateSAN(Board board, string tryMoveSAN)
+        public Board ValidateSAN(Board board, Vote vote)
         {
             try
             {
                 //var move = new Chess.Move(tryMoveSAN);
                 var chessboard = ChessBoard.LoadFromFen(board.FEN);
-                var ok = chessboard.Move(tryMoveSAN);
-                if (!ok) { throw new VoteRejectionException(VoteValidationState.InvalidSAN, message: $"Move cannot be made."); }
+                var ok = chessboard.Move(vote.MoveText);
+                if (!ok) { throw new VoteRejectionException(vote, VoteValidationState.InvalidSAN); }
                 return Board.FromFEN(chessboard.ToFen());
             }
             catch (ChessException e)
             {
                 // TODO: better rejection content
-                throw new VoteRejectionException(VoteValidationState.InvalidSAN, message: $"{e.GetType().Name}: {e.Message}", innerException: e);
+                throw new VoteRejectionException(vote, VoteValidationState.InvalidSAN, detail: $"{e.GetType().Name}: {e.Message}", innerException: e);
             }
         }
 
@@ -95,6 +95,13 @@ namespace ConsensusChessShared.Service
                 default:
                     throw new NotImplementedException(game.SideRules.ToString());
             }
+        }
+
+        public Vote? GetCurrentValidVote(Game game, Participant participant)
+        {
+            return game.CurrentMove.Votes.SingleOrDefault(v =>
+                v.Participant.Id == participant.Id &&
+                v.ValidationState == VoteValidationState.Valid);
         }
     }
 }

@@ -7,7 +7,8 @@ namespace ConsensusChessShared.DTO
 		NoGame,
 		InvalidSAN,
 		NotPermitted,
-		RuleViolation
+		RuleViolation,
+		Superceded
 	}
 }
 
