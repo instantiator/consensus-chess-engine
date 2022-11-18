@@ -16,23 +16,28 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ConsensusChessFeatureTests;
 
+[TestClass]
 public abstract class AbstractFeatureTest
 {
     protected string logPath;
 
     public TestContext TestContext { get; set; }
 
+    public SqliteDbOperator Dbo { get; private set; }
+
     public Mock<ILogger> NodeLogMock { get; private set; }
     public Network NodeNetwork { get; private set; }
     public ServiceIdentity NodeId { get; private set; }
-    public SqliteDbOperator NodeDbo { get; private set; }
     public Mock<ISocialConnection> NodeSocialMock { get; private set; }
 
     public Mock<ILogger> EngineLogMock { get; private set; }
     public Network EngineNetwork { get; private set; }
     public ServiceIdentity EngineId { get; private set; }
-    public SqliteDbOperator EngineDbo { get; private set; }
     public Mock<ISocialConnection> EngineSocialMock { get; private set; }
+
+    protected Dictionary<string, Func<SocialCommand, Task>> receivers;
+
+    protected long postId = 0;
 
     protected AbstractFeatureTest()
     {
@@ -51,71 +56,14 @@ public abstract class AbstractFeatureTest
         NodeLogMock = new Mock<ILogger>();
         NodeNetwork = Network.FromEnv(FeatureDataGenerator.NodeEnv);
         NodeId = ServiceIdentity.FromEnv(FeatureDataGenerator.NodeEnv);
-        NodeDbo = new SqliteDbOperator(NodeLogMock.Object, true);
         NodeSocialMock = new Mock<ISocialConnection>();
 
         EngineLogMock = new Mock<ILogger>();
         EngineNetwork = Network.FromEnv(FeatureDataGenerator.EngineEnv);
         EngineId = ServiceIdentity.FromEnv(FeatureDataGenerator.EngineEnv);
-        EngineDbo = new SqliteDbOperator(EngineLogMock.Object, true);
         EngineSocialMock = new Mock<ISocialConnection>();
 
-        InitNodeSocial(NodeSocialMock);
-        InitEngineSocial(EngineSocialMock);
-    }
-
-    protected ConsensusChessNodeService CreateNode()
-        => new ConsensusChessNodeService(
-            NodeLogMock.Object,
-            NodeId,
-            NodeDbo,
-            NodeNetwork,
-            NodeSocialMock.Object);
-
-    protected ConsensusChessEngineService CreateEngine()
-        => new ConsensusChessEngineService(
-            EngineLogMock.Object,
-            EngineId,
-            EngineDbo,
-            EngineNetwork,
-            EngineSocialMock.Object);
-
-    protected void InitNodeSocial(Mock<ISocialConnection> mock)
-    {
-        mock.Setup(sc => sc.CalculateCommandSkips())
-            .Returns(new string[]
-            {
-                $"node",
-                $"node@{FeatureDataGenerator.NodeEnv["NETWORK_SERVER"]}",
-                $"@node",
-                $"@node@{FeatureDataGenerator.NodeEnv["NETWORK_SERVER"]}",
-            });
-        mock.Setup(sc => sc.AccountName).Returns("node");
-        mock.Setup(sc => sc.DisplayName).Returns("Feature Test Node");
-
-        mock.Setup(sc => sc.PostAsync(It.IsAny<Game>(), It.IsAny<bool?>())).Returns(Task.FromResult<Post>(new Post()));
-        mock.Setup(sc => sc.PostAsync(It.IsAny<SocialStatus>(), It.IsAny<bool?>())).Returns(Task.FromResult<Post>(new Post()));
-        mock.Setup(sc => sc.PostAsync(It.IsAny<Game>(), It.IsAny<Board>(), It.IsAny<bool?>())).Returns(Task.FromResult<Post>(new Post()));
-        mock.Setup(sc => sc.PostAsync(It.IsAny<string>(), It.IsAny<PostType>(), It.IsAny<bool?>())).Returns(Task.FromResult<Post>(new Post()));
-    }
-
-    protected void InitEngineSocial(Mock<ISocialConnection> mock)
-    {
-        mock.Setup(sc => sc.CalculateCommandSkips())
-            .Returns(new string[]
-            {
-                $"engine",
-                $"engine@{FeatureDataGenerator.EngineEnv["NETWORK_SERVER"]}",
-                $"@engine",
-                $"@engine@{FeatureDataGenerator.EngineEnv["NETWORK_SERVER"]}",
-            });
-        mock.Setup(sc => sc.AccountName).Returns("engine");
-        mock.Setup(sc => sc.DisplayName).Returns("Feature Test Engine");
-
-        mock.Setup(sc => sc.PostAsync(It.IsAny<Game>(), It.IsAny<bool?>())).Returns(Task.FromResult<Post>(new Post()));
-        mock.Setup(sc => sc.PostAsync(It.IsAny<SocialStatus>(), It.IsAny<bool?>())).Returns(Task.FromResult<Post>(new Post()));
-        mock.Setup(sc => sc.PostAsync(It.IsAny<Game>(), It.IsAny<Board>(), It.IsAny<bool?>())).Returns(Task.FromResult<Post>(new Post()));
-        mock.Setup(sc => sc.PostAsync(It.IsAny<string>(), It.IsAny<PostType>(), It.IsAny<bool?>())).Returns(Task.FromResult<Post>(new Post()));
+        receivers = new Dictionary<string, Func<SocialCommand, Task>>();
     }
 
     [TestInitialize]
@@ -123,28 +71,100 @@ public abstract class AbstractFeatureTest
     {
         WriteLogHeader($"{TestContext.TestName}");
 
+        Dbo = new SqliteDbOperator(NodeLogMock.Object, TestContext!.TestName, DateTime.Now);
+
         // it's a shared database, so only clear it down once
-        using (var db = NodeDbo.GetDb())
+        using (var db = Dbo.GetDb())
         {
             WriteLogLine($"Db: {db!.DbPath}");
 
             // ensure migrations are applied - just in case
             WriteLogLine("Ensuring the db is created...");
-            db.Database.Migrate();
-
-            var dbTables = db.Model.GetEntityTypes()
-                    .SelectMany(t => t.GetTableMappings())
-                    .Select(m => m.Table.Name)
-                    .Distinct()
-                    .ToList();
-
-            foreach (var table in dbTables)
-            {
-                var sql = $"DELETE FROM {table};";
-                WriteLogLine(sql);
-                await db.Database.ExecuteSqlRawAsync(sql);
-            }
+            Dbo.InitDb(db);
+            WriteLogLine("Ensuring the db is blank...");
+            await Dbo.WipeDataAsync(db);
         }
+
+        // initialise the social mocks
+        WriteLogLine("Initialising social mocks...");
+        InitSocialMock(NodeSocialMock, "node", NodeNetwork, NodeId.Shortcode);
+        InitSocialMock(EngineSocialMock, "engine", EngineNetwork, EngineId.Shortcode);
+    }
+
+    private ConsensusChessNodeService CreateNode()
+        => new ConsensusChessNodeService(
+            NodeLogMock.Object,
+            NodeId,
+            Dbo,
+            NodeNetwork,
+            NodeSocialMock.Object);
+
+    private ConsensusChessEngineService CreateEngine()
+        => new ConsensusChessEngineService(
+            EngineLogMock.Object,
+            EngineId,
+            Dbo,
+            EngineNetwork,
+            EngineSocialMock.Object);
+
+    protected async Task<ConsensusChessNodeService> StartNodeAsync()
+    {
+        var node = CreateNode();
+        var cancel = new CancellationTokenSource();
+        var token = cancel.Token;
+        node.StartAsync(token);
+        await Task.Delay(TimeSpan.FromSeconds(1));
+        node.ExecuteAsync(token);
+        await Task.Delay(TimeSpan.FromSeconds(1));
+        return node;
+    }
+
+    protected async Task<ConsensusChessEngineService> StartEngineAsync()
+    {
+        var engine = CreateEngine();
+        var cancel = new CancellationTokenSource();
+        var token = cancel.Token;
+        engine.StartAsync(token);
+        await Task.Delay(TimeSpan.FromSeconds(1));
+        engine.ExecuteAsync(token);
+        await Task.Delay(TimeSpan.FromSeconds(1));
+        return engine;
+    }
+
+    protected void InitSocialMock(Mock<ISocialConnection> mock, string account, Network network, string shortcode)
+    {
+        mock.Setup(sc => sc.CalculateCommandSkips())
+            .Returns(new string[]
+            {
+                $"{account}",
+                $"{account}@{network.NetworkServer}",
+                $"@{account}",
+                $"@{account}@{network.NetworkServer}",
+            });
+
+        mock.Setup(sc => sc.AccountName).Returns($"{account}");
+        mock.Setup(sc => sc.DisplayName).Returns($"Mock for: {account}");
+
+        mock.Setup(sc => sc.PostAsync(It.IsAny<Game>(), It.IsAny<bool?>()))
+            .Returns(Task.FromResult<Post>(FeatureDataGenerator.GamePost(shortcode, NodeNetwork)))
+            .Verifiable();
+
+        mock.Setup(sc => sc.PostAsync(It.IsAny<SocialStatus>(), It.IsAny<bool?>()))
+            .Returns(Task.FromResult<Post>(FeatureDataGenerator.SocialStatusPost(shortcode, NodeNetwork)))
+            .Verifiable();
+
+        mock.Setup(sc => sc.PostAsync(It.IsAny<Game>(), It.IsAny<Board>(), It.IsAny<bool?>()))
+            .Returns(Task.FromResult<Post>(FeatureDataGenerator.BoardPost(shortcode, NodeNetwork)))
+            .Verifiable();
+
+        mock.Setup(sc => sc.PostAsync(It.IsAny<string>(), It.IsAny<PostType>(), It.IsAny<bool?>()))
+            .Returns(Task.FromResult<Post>(FeatureDataGenerator.StringPost(shortcode, NodeNetwork)))
+            .Verifiable();
+
+        mock.Setup(sc => sc.StartListeningForCommandsAsync(It.IsAny<Func<SocialCommand, Task>>(), It.IsAny<bool>()))
+            .Callback<Func<SocialCommand, Task>, bool>((r,b) => receivers.Add(shortcode, r))
+            .Returns(Task.CompletedTask)
+            .Verifiable();
     }
 
     [TestCleanup]

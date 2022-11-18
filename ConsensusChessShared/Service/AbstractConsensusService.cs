@@ -44,11 +44,7 @@ namespace ConsensusChessShared.Service
 
             using (var db = dbo.GetDb())
             {
-                var connection = db.Database.CanConnect();
-                log.LogDebug($"Database connection: {connection}");
-
-                log.LogDebug($"Running migrations...");
-                db.Database.Migrate();
+                dbo.InitDb(db);
             }
 
             gm = new GameManager(log);
@@ -190,7 +186,7 @@ namespace ConsensusChessShared.Service
 
         protected abstract Task PollAsync(CancellationToken cancellationToken);
 
-        public async Task StopAsync(CancellationToken cancellationToken)
+        public async Task StopAsync()
         {
             EraseHealthIndicators();
             log.LogInformation("StopAsync at: {time}", DateTimeOffset.Now);

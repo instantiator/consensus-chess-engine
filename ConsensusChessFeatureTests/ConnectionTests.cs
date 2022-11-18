@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Xml.Linq;
 using ConsensusChessFeatureTests.Data;
 using ConsensusChessFeatureTests.Database;
+using ConsensusChessShared.Service;
 using Microsoft.EntityFrameworkCore;
 
 namespace ConsensusChessFeatureTests
@@ -11,7 +13,9 @@ namespace ConsensusChessFeatureTests
 		[TestMethod]
 		public void CheckDatabaseConnection()
 		{
-            using (var db = NodeDbo.GetDb())
+            WriteLogLine($"Database: {Dbo.GetDb().DbPath}");
+
+            using (var db = Dbo.GetDb())
             {
                 var knownTables = new[]
                 {
@@ -27,8 +31,35 @@ namespace ConsensusChessFeatureTests
                 foreach (var table in knownTables)
                 {
                     Assert.IsTrue(dbTables.Contains(table), $"Table {table} missing");
+                    WriteLogLine($"Table ok: {table}");
                 }
             }
+        }
+
+        [TestMethod]
+        public async Task CanCreateNode()
+        {
+            if (File.Exists(AbstractConsensusService.HEALTHCHECK_READY_PATH))
+                File.Delete(AbstractConsensusService.HEALTHCHECK_READY_PATH);
+
+            var node = await StartNodeAsync();
+            Assert.IsNotNull(node);
+            Assert.IsTrue(File.Exists(AbstractConsensusService.HEALTHCHECK_READY_PATH));
+
+            await node.StopAsync();
+        }
+
+        [TestMethod]
+        public async Task CanCreateEngine()
+        {
+            if (File.Exists(AbstractConsensusService.HEALTHCHECK_READY_PATH))
+                File.Delete(AbstractConsensusService.HEALTHCHECK_READY_PATH);
+
+            var engine = await StartEngineAsync();
+            Assert.IsNotNull(engine);
+            Assert.IsTrue(File.Exists(AbstractConsensusService.HEALTHCHECK_READY_PATH));
+
+            await engine.StopAsync();
         }
     }
 }

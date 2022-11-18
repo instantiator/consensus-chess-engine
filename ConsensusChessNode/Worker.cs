@@ -42,7 +42,7 @@ public class Worker : BackgroundService
 
     public override async Task StopAsync(CancellationToken cancellationToken)
     {
-        await service.StopAsync(cancellationToken);
+        await service.StopAsync();
         await base.StopAsync(cancellationToken);
     }
 }

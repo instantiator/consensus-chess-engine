@@ -39,6 +39,26 @@ namespace ConsensusChessFeatureTests.Data
                     { "NETWORK_AUTHORISED_ACCOUNTS", "admin@chesstodon.social" },
                     { "NETWORK_DRY_RUNS", "false" }
             };
+
+        public static Post GamePost(string shortcode, Network network) => GeneratePost(shortcode, network, "game post");
+        public static Post SocialStatusPost(string shortcode, Network network) => GeneratePost(shortcode, network, "social status");
+        public static Post BoardPost(string shortcode, Network network) => GeneratePost(shortcode, network, "board");
+        public static Post StringPost(string shortcode, Network network) => GeneratePost(shortcode, network, "string");
+
+        public static Post GeneratePost(string shortcode, Network network, string description)
+        {
+            return new Post()
+            {
+                AppName = network.AppName,
+                Attempted = DateTime.Now,
+                Created = DateTime.Now,
+                Message = description,
+                NetworkServer = network.NetworkServer,
+                NodeShortcode = shortcode,
+                Succeeded = true
+            };
+
+        }
     }
 }
 

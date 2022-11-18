@@ -12,11 +12,11 @@ namespace ConsensusChessFeatureTests.Database
         // design time constructor
         public ConsensusChessSqliteContext() : base() { }
 
-        public ConsensusChessSqliteContext(string? filename = null) : base()
+        public ConsensusChessSqliteContext(string? prefix = "feature-tests", DateTime? started = null) : base()
         {
             var folder = Environment.SpecialFolder.LocalApplicationData;
             var path = Environment.GetFolderPath(folder);
-            DbPath = Path.Join(path, filename ?? "consensus.db");
+            DbPath = Path.Join(path, $"{prefix}.{started?.Ticks.ToString() ?? "-"}.consensus.db");
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)

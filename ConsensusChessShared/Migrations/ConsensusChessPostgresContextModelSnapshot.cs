@@ -8,7 +8,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace ConsensusChessShared.Migrations.ConsensusChessPostgres
+namespace ConsensusChessShared.Migrations
 {
     [DbContext(typeof(ConsensusChessPostgresContext))]
     partial class ConsensusChessPostgresContextModelSnapshot : ModelSnapshot

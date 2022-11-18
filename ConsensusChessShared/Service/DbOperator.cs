@@ -26,6 +26,17 @@ namespace ConsensusChessShared.Service
 
         public virtual ConsensusChessDbContext GetDb() => ConsensusChessPostgresContext.FromEnv(env!);
 
+        public void InitDb(ConsensusChessDbContext db)
+        {
+            var connection = db.Database.CanConnect();
+            log.LogDebug($"Database connection: {connection}");
+
+            log.LogDebug($"Running migrations...");
+            db.Database.Migrate();
+        }
+
+
+
         /// <summary>
         /// Determines the participant that created the post - or creates said participant.
         /// </summary>
@@ -79,23 +90,21 @@ namespace ConsensusChessShared.Service
             return shortcode;
         }
 
-        [Obsolete("No longer used, as we'd prefer the db to retain data about the node registrations")]
-        public async Task DeleteAllDataAsync()
+        public async Task WipeDataAsync(ConsensusChessDbContext db)
         {
-            using (var db = GetDb())
-            {
-                var tables = db.Model.GetEntityTypes()
-                    .SelectMany(t => t.GetTableMappings())
-                    .Select(m => m.Table.Name)
-                    .Distinct()
-                    .ToList();
+            var dbTables = db.Model.GetEntityTypes()
+                .SelectMany(t => t.GetTableMappings())
+                .Select(m => m.Table.Name)
+                .Distinct()
+                .ToList();
 
-                foreach (var table in tables)
-                {
-                    // this is postgres SQL, see: https://www.postgresql.org/docs/current/sql-truncate.html
-                    await db.Database.ExecuteSqlRawAsync($"TRUNCATE {table} CASCADE;");
-                }
+            foreach (var table in dbTables)
+            {
+                var sql = $"DELETE FROM {table};";
+                log.LogDebug(sql);
+                await db.Database.ExecuteSqlRawAsync(sql);
             }
+
         }
 
     }

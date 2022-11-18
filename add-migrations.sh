@@ -34,12 +34,11 @@ while [ -n "$1" ]; do
   shift
 done
 
-if [ -z "$var" ];
+if [ -z "$MIGRATION" ]; then
   echo "Please set the migration name with -m/--migration-name"
   usage
   exit 1
-  ;;
-esac
+fi
 
-dotnet ef migrations add $MIGRATION --project ConsensusChessShared/ConsensusChessShared.csproj
+dotnet ef migrations add $MIGRATION --project ConsensusChessShared/ConsensusChessShared.csproj --context ConsensusChessPostgresContext
 dotnet ef migrations add $MIGRATION --project ConsensusChessFeatureTests/ConsensusChessFeatureTests.csproj

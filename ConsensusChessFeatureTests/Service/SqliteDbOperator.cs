@@ -8,16 +8,19 @@ namespace ConsensusChessFeatureTests.Service
 {
 	public class SqliteDbOperator : DbOperator
 	{
-		private bool transient;
+		private string? test;
+		private DateTime? started;
 
-		public SqliteDbOperator(ILogger log, bool transient) : base(log, null)
+		public SqliteDbOperator(ILogger log, string? test = null, DateTime? started = null) : base(log, null)
 		{
-			this.transient = transient;
+			this.test = test;
+			this.started = started;
 		}
 
         public override ConsensusChessSqliteContext GetDb()
-			=> new ConsensusChessSqliteContext(transient ? GenerateFreshDbFilename() : null);
+			=> new ConsensusChessSqliteContext(test, started);
 
+		[Obsolete("Name database by test")]
 		private string GenerateFreshDbFilename()
 		{
 			var filename = $"{Guid.NewGuid()}.db";
