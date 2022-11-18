@@ -14,6 +14,18 @@ Both `ConsensusChessEngine/Dockerfile` and `ConsensusChessNode/Dockerfile` also 
 
 If the unit tests fail, the build will fail. This will effectively prevent deployment of a solution with any failing tests.
 
+## Feature tests
+
+The feature tests run against their own instances of `ConsensusChessNodeService` and `ConsensusChessEngineService`.
+
+They use a local sqlite database in place of the integration/production Postgres db, and mock out the social connections.
+
+This allows testing of each service's interactions without the dependency on an external social network or database.
+
+Both `ConsensusChessEngine/Dockerfile` and `ConsensusChessNode/Dockerfile` also run the feature tests during build.
+
+If the feature tests fail, the build will fail. This will effectively prevent deployment of a solution with any failing tests.
+
 ## Integration tests
 
 Integration tests are defined in the `ConsensusChessIntegrationTests` project. These tests require access to an operational integration instance, with a database, engine, and at least 1 node.

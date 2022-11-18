@@ -35,7 +35,7 @@ _NB. This is a work in progress - the engine is not yet ready to host games._
   * for each engine and node
   * for the integration testing service
   * For each database instance
-3. Launch and run integration tests with: `./integration-tests.sh` (also runs unit tests during build)
+3. Launch and run integration tests with: `./integration-tests.sh` (also runs unit and feature tests during build)
 
   ![](docs/images/int-tests-pass.png)
 
