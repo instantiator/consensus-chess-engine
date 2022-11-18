@@ -7,14 +7,17 @@ COPY ["ConsensusChessEngine/ConsensusChessEngine.csproj", "ConsensusChessEngine/
 COPY ["ConsensusChessNode/ConsensusChessNode.csproj", "ConsensusChessNode/"]
 COPY ["ConsensusChessShared/ConsensusChessShared.csproj", "ConsensusChessShared/"]
 COPY ["ConsensusChessSharedTests/ConsensusChessSharedTests.csproj", "ConsensusChessSharedTests/"]
+COPY ["ConsensusChessFeatureTests/ConsensusChessFeatureTests.csproj", "ConsensusChessFeatureTests/"]
 
 RUN dotnet restore ConsensusChessNode/ConsensusChessNode.csproj
 RUN dotnet restore ConsensusChessSharedTests/ConsensusChessSharedTests.csproj
+RUN dotnet restore ConsensusChessFeatureTests/ConsensusChessFeatureTests.csproj
 
 COPY . .
 
 WORKDIR "/src"
 RUN dotnet test ConsensusChessSharedTests/ConsensusChessSharedTests.csproj
+RUN dotnet test ConsensusChessFeatureTests/ConsensusChessFeatureTests.csproj
 
 WORKDIR "/src/ConsensusChessNode"
 RUN dotnet build "ConsensusChessNode.csproj" -c Release -o /app/build
