@@ -86,7 +86,7 @@ If you don't provide any parameters, these scripts will halt and display their p
 
 ### Environment parameter
 
-For all except the `integration-tests.sh` script, you must specify the environment with the `-e` or `--environment` option.
+For the common operation scripts, you must specify the environment with the `-e` or `--environment` option.
 
 Choices of environment: `int`, `prod`
 
