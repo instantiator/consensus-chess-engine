@@ -20,19 +20,19 @@ namespace ConsensusChessSharedTests
         public void Init()
         {
             mockLogger = new Mock<ILogger>();
-            network = Network.FromEnvironment(SampleDataGenerator.SimpleNetworkEnv);
+            network = Network.FromEnv(SampleDataGenerator.SimpleNetworkEnv);
             state = SampleDataGenerator.NodeState;
         }
 
         [TestMethod]
-        public void SocialFactory_creates_MastodonConnection()
+        public async Task SocialFactory_creates_MastodonConnection()
 		{
-            var connection = SocialFactory.From(mockLogger.Object, network, state, true);
+            var connection = SocialFactory.From(mockLogger.Object, network);
             var mastodonConnection = connection as MastodonConnection;
             Assert.IsNotNull(mastodonConnection);
-
-            // would ordinarily run InitAsync
-            // can't check CalculateSkips - it uses the account
+            // would ordinarily run InitAsync, requires state, which depends on network
+            // await mastodonConnection.InitAsync(state);
+            // var skips = mastodonConnection.CalculateCommandSkips();
 		}
 	}
 }

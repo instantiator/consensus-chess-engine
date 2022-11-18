@@ -11,10 +11,10 @@ public class Game : IDTO
     {
         Created = DateTime.Now.ToUniversalTime();
         Moves = new List<Move>();
-        BlackParticipantNetworkServers = new List<string>();
-        WhiteParticipantNetworkServers = new List<string>();
-        BlackPostingNodeShortcodes = new List<string>();
-        WhitePostingNodeShortcodes = new List<string>();
+        BlackParticipantNetworkServers = new List<StoredString>();
+        WhiteParticipantNetworkServers = new List<StoredString>();
+        BlackPostingNodeShortcodes = new List<StoredString>();
+        WhitePostingNodeShortcodes = new List<StoredString>();
     }
 
     [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -29,16 +29,21 @@ public class Game : IDTO
     public virtual List<Move> Moves { get; set; }
 
     public SideRules SideRules { get; set; }
-    public virtual List<string> BlackParticipantNetworkServers { get; set; }
-    public virtual List<string> WhiteParticipantNetworkServers { get; set; }
-    public virtual List<string> BlackPostingNodeShortcodes { get; set; }
-    public virtual List<string> WhitePostingNodeShortcodes { get; set; }
+    public virtual List<StoredString> BlackParticipantNetworkServers { get; set; }
+    public virtual List<StoredString> WhiteParticipantNetworkServers { get; set; }
+    public virtual List<StoredString> BlackPostingNodeShortcodes { get; set; }
+    public virtual List<StoredString> WhitePostingNodeShortcodes { get; set; }
 
-    public bool Active => DateTime.Now > ScheduledStart && Finished == null;
-    public Move CurrentMove => Moves.OrderBy(m => m.Deadline).Last();
-    public Board CurrentBoard => CurrentMove.From;
-    public Side CurrentSide => CurrentBoard.ActiveSide;
-    public IEnumerable<string> CurrentParticipantNetworkServers => CurrentSide == Side.White ? WhiteParticipantNetworkServers : BlackParticipantNetworkServers;
+    [NotMapped] public bool Active => DateTime.Now > ScheduledStart && Finished == null;
+    [NotMapped] public Move CurrentMove => Moves.OrderBy(m => m.Deadline).Last();
+    [NotMapped] public Board CurrentBoard => CurrentMove.From;
+    [NotMapped] public Side CurrentSide => CurrentBoard.ActiveSide;
+
+    [NotMapped]
+    public List<StoredString> CurrentParticipantNetworkServers =>
+        CurrentSide == Side.White
+            ? WhiteParticipantNetworkServers
+            : BlackParticipantNetworkServers;
 
     public static Game NewGame(string shortcode, string description,
         IEnumerable<string>? whiteSideNetworkServers, IEnumerable<string>? blackSideNetworkServers,
@@ -57,10 +62,10 @@ public class Game : IDTO
             },
             SideRules = sideRules,
         };
-        game.BlackPostingNodeShortcodes.AddRange(blackPostingNodeShortcodes);
-        game.WhitePostingNodeShortcodes.AddRange(whitePostingNodeShortcodes);
-        game.BlackParticipantNetworkServers.AddRange(blackSideNetworkServers ?? new List<string>());
-        game.WhiteParticipantNetworkServers.AddRange(whiteSideNetworkServers ?? new List<string>());
+        game.BlackPostingNodeShortcodes.AddRange(blackPostingNodeShortcodes.Select(s => (StoredString)s));
+        game.WhitePostingNodeShortcodes.AddRange(whitePostingNodeShortcodes.Select(s => (StoredString)s));
+        game.BlackParticipantNetworkServers.AddRange(blackSideNetworkServers?.Select(s => (StoredString)s) ?? new List<StoredString>());
+        game.WhiteParticipantNetworkServers.AddRange(whiteSideNetworkServers?.Select(s => (StoredString)s) ?? new List<StoredString>());
         return game;
     }
 }

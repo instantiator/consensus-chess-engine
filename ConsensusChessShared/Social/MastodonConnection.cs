@@ -18,7 +18,7 @@ namespace ConsensusChessShared.Social
         // TODO: revisit the paging limit - may or may not be necessary
         private const int MAX_PAGES = 100;
 
-        public MastodonConnection(ILogger log, Network network, NodeState state, bool dryRuns) : base(log, network, state, dryRuns)
+        public MastodonConnection(ILogger log, Network network) : base(log, network)
 		{
             AppRegistration reg = new AppRegistration()
             {
@@ -36,7 +36,7 @@ namespace ConsensusChessShared.Social
             client = new MastodonClient(reg, token, http);
         }
 
-        public override async Task InitAsync()
+        protected override async Task InitImplementationAsync()
         {
             user = await client.GetCurrentUser();
         }

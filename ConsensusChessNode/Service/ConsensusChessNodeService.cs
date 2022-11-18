@@ -12,12 +12,15 @@ namespace ConsensusChessNode.Service
     public class ConsensusChessNodeService : AbstractConsensusService
     {
         // TODO: be a good citizen - set a polling period that isn't too disruptive
-        protected override TimeSpan PollPeriod => TimeSpan.FromSeconds(30);
+        private static readonly TimeSpan DefaultPollPeriod = TimeSpan.FromSeconds(30);
+        private TimeSpan? overridePollPeriod;
+        protected override TimeSpan PollPeriod => overridePollPeriod ?? DefaultPollPeriod;
         protected override NodeType NodeType => NodeType.Node;
 
-        public ConsensusChessNodeService(ILogger log, IDictionary env) : base(log, env)
+        public ConsensusChessNodeService(ILogger log, ServiceIdentity id, DbOperator dbo, Network network, ISocialConnection social, TimeSpan? overridePollPeriod = null)
+            : base(log, id, dbo, network, social)
         {
-            dbo = new DbOperator(log, env);
+            this.overridePollPeriod = overridePollPeriod;
         }
 
         protected override async Task PollAsync(CancellationToken cancellationToken)

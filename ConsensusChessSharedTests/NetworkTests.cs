@@ -10,7 +10,7 @@ namespace ConsensusChessSharedTests
 		[TestMethod]
 		public void Network_creates_FromEnvironment()
 		{
-			var network = Network.FromEnvironment(SampleDataGenerator.SimpleNetworkEnv);
+			var network = Network.FromEnv(SampleDataGenerator.SimpleNetworkEnv);
 
 			Assert.AreEqual(NetworkType.Mastodon, network.Type);
 			Assert.AreEqual("some.kind.of.mastodon", network.NetworkServer);
@@ -24,16 +24,6 @@ namespace ConsensusChessSharedTests
             Assert.AreEqual("icgames@botsin.space", network.AuthorisedAccountsList.ElementAt(1));
             Assert.IsTrue(network.DryRuns);
         }
-
-        /*
-        {"NETWORK_TYPE","Mastodon"},
-        {"NETWORK_SERVER","some.kind.of.mastodon"},
-        {"NETWORK_APP_NAME","app-name"},
-        {"NETWORK_APP_KEY","app-key"},
-        {"NETWORK_APP_SECRET","app-secret"},
-        {"NETWORK_ACCESS_TOKEN","access-token"},
-        {"NETWORK_AUTHORISED_ACCOUNTS","@instantiator@mastodon.social,@icgames@botsin.space"},
-        */
     }
 }
 

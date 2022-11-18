@@ -20,7 +20,7 @@ namespace ConsensusChessIntegrationTests
 	{
         protected Mock<ILogger> mockLogger;
 
-        protected string logPath = "/logs/integration-tests.log";
+        protected string logPath;
 
         public TestContext TestContext { get; set; }
 
@@ -35,16 +35,27 @@ namespace ConsensusChessIntegrationTests
         protected Dictionary<string, string> accounts;
 
         protected ConsensusChessDbContext GetDb()
-            => ConsensusChessDbContext.FromEnvironment(Environment.GetEnvironmentVariables());
+            => ConsensusChessPostgresContext.FromEnv(Environment.GetEnvironmentVariables());
 
         protected Network GetNetwork()
-            => Network.FromEnvironment(Environment.GetEnvironmentVariables());
+            => Network.FromEnv(Environment.GetEnvironmentVariables());
 
         protected MastodonClient social;
         protected TimelineStreaming? stream;
 
         protected AbstractIntegrationTests()
         {
+            if (Directory.Exists("/logs"))
+            {
+                logPath = "/logs/integration-tests.log";
+            }
+            else
+            {
+                var folder = Environment.SpecialFolder.LocalApplicationData;
+                var path = Environment.GetFolderPath(folder);
+                logPath = Path.Join(path, "integration-tests.log");
+            }
+
             mockLogger = new Mock<ILogger>();
 
             social = GetMastodonClient();
@@ -149,6 +160,10 @@ namespace ConsensusChessIntegrationTests
 
             using (var db = GetDb())
             {
+                // ensure migrations are applied - just in case
+                await db.Database.MigrateAsync();
+
+                // now clear down tables
                 foreach (var table in tables)
                 {
                     var sql = $"TRUNCATE {table} CASCADE;";
@@ -157,9 +172,6 @@ namespace ConsensusChessIntegrationTests
                     await db.Database.ExecuteSqlRawAsync(sql);
                 }
             }
-
-            // finished - leave a space
-
 
             stream = social.GetUserStreaming();
             stream.OnNotification += (obj,e) =>
@@ -188,25 +200,6 @@ namespace ConsensusChessIntegrationTests
 
             WriteLogLine();
             return;
-        }
-
-        [Obsolete("No longer used, as we'd prefer the db to retain data about the node registrations")]
-        protected async Task DeleteAllDataAsync()
-        {
-            using (var db = GetDb())
-            {
-                var tables = db.Model.GetEntityTypes()
-                    .SelectMany(t => t.GetTableMappings())
-                    .Select(m => m.Table.Name)
-                    .Distinct()
-                    .ToList();
-
-                foreach (var table in tables)
-                {
-                    // this is postgres SQL, see: https://www.postgresql.org/docs/current/sql-truncate.html
-                    await db.Database.ExecuteSqlRawAsync($"TRUNCATE {table} CASCADE;");
-                }
-            }
         }
 
         protected async Task AssertFavouritedAsync(Status status)

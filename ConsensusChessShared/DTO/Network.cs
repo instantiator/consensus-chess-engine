@@ -28,9 +28,11 @@ namespace ConsensusChessShared.DTO
         public string Descriptor => $"{Type}:{NetworkServer}:{AppName}";
         public IEnumerable<string> AuthorisedAccountsList => AuthorisedAccounts.Split(',').Select(a => a.TrimStart('@'));
 
-        public static Network FromEnvironment(IDictionary env)
+        public static Network FromEnv(IDictionary env)
         {
-            var environment = env.Cast<DictionaryEntry>().ToDictionary(x => (string)x.Key, x => (string)x.Value!);
+            var environment = env is Dictionary<string, string>
+                ? env as Dictionary<string,string>
+                : env.Cast<DictionaryEntry>().ToDictionary(x => (string)x.Key, x => (string)x.Value!);
 
             var networkType = Enum.Parse<NetworkType>(environment["NETWORK_TYPE"]);
             var appName = environment["NETWORK_APP_NAME"];

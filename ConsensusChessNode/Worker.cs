@@ -1,4 +1,7 @@
 ﻿using ConsensusChessNode.Service;
+using ConsensusChessShared.DTO;
+using ConsensusChessShared.Service;
+using ConsensusChessShared.Social;
 using Mastonet;
 using Mastonet.Entities;
 using static System.Net.WebRequestMethods;
@@ -15,7 +18,14 @@ public class Worker : BackgroundService
     {
         this.lifetime = hostApplicationLifetime;
         this.log = logger;
-        this.service = new ConsensusChessNodeService(log, Environment.GetEnvironmentVariables());
+
+        var env = Environment.GetEnvironmentVariables();
+        var id = ServiceIdentity.FromEnv(env);
+        var dbo = new DbOperator(log, env);
+        var network = Network.FromEnv(env);
+        var social = SocialFactory.From(log, network);
+
+        service = new ConsensusChessNodeService(log, id, dbo, network, social);
     }
 
     public override async Task StartAsync(CancellationToken cancellationToken)

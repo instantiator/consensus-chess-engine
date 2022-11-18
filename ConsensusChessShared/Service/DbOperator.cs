@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections;
+using System.IO;
 using ConsensusChessShared.Database;
 using ConsensusChessShared.DTO;
 using ConsensusChessShared.Exceptions;
 using ConsensusChessShared.Social;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace ConsensusChessShared.Service
@@ -13,16 +15,16 @@ namespace ConsensusChessShared.Service
         public const string SHORTCODE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         public const int SHORTCODE_LENGTH = 6;
 
-        private ILogger log;
-        private IDictionary env;
+        protected ILogger log;
+        protected IDictionary? env;
 
-		public DbOperator(ILogger log, IDictionary env)
+		public DbOperator(ILogger log, IDictionary? env)
 		{
             this.log = log;
             this.env = env;
 		}
 
-        public ConsensusChessDbContext GetDb() => ConsensusChessDbContext.FromEnvironment(env);
+        public virtual ConsensusChessDbContext GetDb() => ConsensusChessPostgresContext.FromEnv(env!);
 
         /// <summary>
         /// Determines the participant that created the post - or creates said participant.
@@ -75,6 +77,25 @@ namespace ConsensusChessShared.Service
                     .Select(s => s[random.Next(s.Length)]).ToArray());
             } while (shortcodes.Contains(shortcode));
             return shortcode;
+        }
+
+        [Obsolete("No longer used, as we'd prefer the db to retain data about the node registrations")]
+        public async Task DeleteAllDataAsync()
+        {
+            using (var db = GetDb())
+            {
+                var tables = db.Model.GetEntityTypes()
+                    .SelectMany(t => t.GetTableMappings())
+                    .Select(m => m.Table.Name)
+                    .Distinct()
+                    .ToList();
+
+                foreach (var table in tables)
+                {
+                    // this is postgres SQL, see: https://www.postgresql.org/docs/current/sql-truncate.html
+                    await db.Database.ExecuteSqlRawAsync($"TRUNCATE {table} CASCADE;");
+                }
+            }
         }
 
     }

@@ -40,8 +40,8 @@ namespace ConsensusChessShared.Service
 
             // examine game - get for currently playing side (shortcodes)
             var isThisNetwork = game.CurrentMove.SideToPlay == Side.White ?
-                game.WhitePostingNodeShortcodes.Contains(postingNodeShortcode) :
-                game.BlackPostingNodeShortcodes.Contains(postingNodeShortcode);
+                game.WhitePostingNodeShortcodes.Contains(new StoredString(postingNodeShortcode)) :
+                game.BlackPostingNodeShortcodes.Contains(new StoredString(postingNodeShortcode));
 
             if (!isThisNetwork) { return null; }
 
@@ -86,7 +86,7 @@ namespace ConsensusChessShared.Service
                     return true; // anybody can play
 
                 case SideRules.ServerLock:
-                    return game.CurrentParticipantNetworkServers.Contains(participant.NetworkServer);
+                    return game.CurrentParticipantNetworkServers.Contains(new StoredString(participant.NetworkServer));
 
                 case SideRules.MoveLock:
                     var commitment = participant.Commitments.SingleOrDefault(c => c.GameShortcode == game.Shortcode);

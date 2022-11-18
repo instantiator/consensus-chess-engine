@@ -1,6 +1,7 @@
 ﻿using ConsensusChessEngine.Service;
 using ConsensusChessShared.Database;
 using ConsensusChessShared.DTO;
+using ConsensusChessShared.Service;
 using ConsensusChessShared.Social;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -18,7 +19,14 @@ public class Worker : BackgroundService
     {
         this.lifetime = hostApplicationLifetime;
         this.log = logger;
-        this.service = new ConsensusChessEngineService(log, Environment.GetEnvironmentVariables());
+
+        var env = Environment.GetEnvironmentVariables();
+        var id = ServiceIdentity.FromEnv(env);
+        var dbo = new DbOperator(log, env);
+        var network = Network.FromEnv(env);
+        var social = SocialFactory.From(log, network);
+
+        service = new ConsensusChessEngineService(log, id, dbo, network, social);
     }
 
     public override async Task StartAsync(CancellationToken cancellationToken)

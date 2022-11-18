@@ -31,7 +31,9 @@ namespace ConsensusChessSharedTests.Data
             new NodeState()
             {
                 Name = "simple test node",
-                Shortcode = "node-0-test"
+                Shortcode = "node-0-test",
+                LastNotificationId = 0,
+                Network = FakeNetwork
             };
 
         public static SocialCommand SimpleCommand(string message, bool isAuthorised = false, bool isRetrospective = false, string? sender = null)

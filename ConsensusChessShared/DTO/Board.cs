@@ -24,7 +24,7 @@ namespace ConsensusChessShared.DTO
         public DateTime Created { get; set; }
 
         public string FEN { get; set; }
-        public virtual List<Post> BoardPosts { get; set; }
+		public virtual List<Post> BoardPosts { get; set; }
 
 		public string PiecesFEN => FEN.Split(" ")[0];
         public Side ActiveSide => FEN.Split(" ")[1] == "w" ? Side.White : Side.Black;

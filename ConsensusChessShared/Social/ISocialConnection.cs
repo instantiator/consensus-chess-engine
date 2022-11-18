@@ -5,9 +5,9 @@ namespace ConsensusChessShared.Social
 {
 	public interface ISocialConnection
 	{
-		Task InitAsync();
-		string DisplayName { get; }
-		string AccountName { get; }
+		Task InitAsync(NodeState state);
+		string? DisplayName { get; }
+		string? AccountName { get; }
 
         event Func<NodeState, Task> OnStateChange;
 

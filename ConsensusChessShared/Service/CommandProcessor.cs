@@ -63,7 +63,7 @@ namespace ConsensusChessShared.Service
 		public async Task ParseAsync(SocialCommand command)
 		{
             log.LogTrace($"Command raw text: {command.RawText}");
-            var commandWords = CommandHelper.ParseSocialCommand(command.RawText, skips);
+            var commandWords = CommandHelper.ParseSocialCommand(command.RawText!, skips);
             var commandWord = commandWords.FirstOrDefault()?.ToLower();
 
             try

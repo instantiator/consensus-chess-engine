@@ -21,7 +21,7 @@ namespace ConsensusChessShared.Service
         protected ILogger log;
         protected bool running;
         protected bool polling;
-        protected IDictionary env;
+        protected ServiceIdentity identity;
 
         protected CommandProcessor? cmd;
         protected GameManager gm;
@@ -34,11 +34,13 @@ namespace ConsensusChessShared.Service
 
         protected CancellationTokenSource? pollingCancellation;
 
-        protected AbstractConsensusService(ILogger log, IDictionary env)
+        protected AbstractConsensusService(ILogger log, ServiceIdentity identity, DbOperator dbo, Network network, ISocialConnection social)
         {
             this.log = log;
-            this.env = env;
-            this.dbo = new DbOperator(log, env);
+            this.identity = identity;
+            this.dbo = dbo;
+            this.network = network;
+            this.social = social;
 
             using (var db = dbo.GetDb())
             {
@@ -50,25 +52,19 @@ namespace ConsensusChessShared.Service
             }
 
             gm = new GameManager(log);
-            network = Network.FromEnvironment(env);
-
             state = RegisterNode(network);
-            social = SocialFactory.From(log, network, state, network.DryRuns);
         }
 
         protected NodeState RegisterNode(Network net)
         {
             using (var db = dbo.GetDb())
             {
-                var environment = env.Cast<DictionaryEntry>().ToDictionary(x => (string)x.Key, x => (string)x.Value!);
-                var name = environment["NODE_NAME"];
-                var shortcode = environment["NODE_SHORTCODE"];
 
                 log.LogDebug($"Registering node with db...");
-                var currentState = db.NodeState.Where(s => s.Shortcode == shortcode).SingleOrDefault();
+                var currentState = db.NodeState.Where(s => s.Shortcode == identity.Shortcode).SingleOrDefault();
                 if (currentState == null)
                 {
-                    currentState = new NodeState(name, shortcode, net);
+                    currentState = new NodeState(identity.Name, identity.Shortcode, net);
                     db.NodeState.Add(currentState);
                     db.SaveChanges();
                 }
@@ -81,7 +77,7 @@ namespace ConsensusChessShared.Service
             log.LogInformation("StartAsync at: {time}", DateTimeOffset.Now);
             EraseHealthIndicators();
 
-            await social.InitAsync();
+            await social.InitAsync(state);
             log.LogDebug($"Display name: {social.DisplayName}");
             log.LogDebug($"Account name: {social.AccountName}");
             log.LogDebug($"Authorised accounts: {string.Join(", ", network.AuthorisedAccountsList)}");

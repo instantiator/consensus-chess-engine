@@ -12,21 +12,27 @@ namespace ConsensusChessShared.Social
 
 		protected ILogger log;
 		protected Network network;
-		protected NodeState state;
+		protected NodeState? state;
 		protected bool dryRuns;
 
         protected event Func<SocialCommand, Task>? asyncCommandReceivers;
         protected IEnumerable<SocialCommand>? missedCommands;
 
-        public AbstractSocialConnection(ILogger log, Network network, NodeState state, bool dryRuns)
+        public AbstractSocialConnection(ILogger log, Network network)
 		{
 			this.log = log;
 			this.network = network;
-			this.state = state;
-			this.dryRuns = dryRuns;
+			this.dryRuns = network.DryRuns;
 		}
 
-		public abstract Task InitAsync();
+		public async Task InitAsync(NodeState state)
+        {
+            this.state = state;
+            await InitImplementationAsync();
+        }
+
+        protected abstract Task InitImplementationAsync();
+
 		public abstract string? DisplayName { get; }
 		public abstract string? AccountName { get; }
 		public abstract IEnumerable<string> CalculateCommandSkips();
@@ -99,7 +105,7 @@ namespace ConsensusChessShared.Social
                 }
 
                 // always update the last notification id
-                if (command.SourceId.HasValue && command.SourceId.Value > state.LastNotificationId)
+                if (command.SourceId.HasValue && command.SourceId.Value > state!.LastNotificationId)
                 {
                     state.LastNotificationId = command.SourceId.Value;
                     await ReportStateChangeAsync();
@@ -135,7 +141,7 @@ namespace ConsensusChessShared.Social
 			var post = new Post()
 			{
 				Message = text,
-				NodeShortcode = state.Shortcode,
+				NodeShortcode = state!.Shortcode,
                 NetworkServer = network.NetworkServer,
                 AppName = network.AppName,
                 Type = type
@@ -154,7 +160,7 @@ namespace ConsensusChessShared.Social
             var post = new Post()
             {
                 Message = message,
-                NodeShortcode = state.Shortcode,
+                NodeShortcode = state!.Shortcode,
                 NetworkServer = network.NetworkServer,
                 AppName = network.AppName,
                 Type = postType ?? PostType.Unspecified,
@@ -166,7 +172,7 @@ namespace ConsensusChessShared.Social
 
 		protected async Task ReportStateChangeAsync()
 		{
-			log.LogDebug($"ReportStateChange - new notification id: {state.LastNotificationId}");
+			log.LogDebug($"ReportStateChange - new notification id: {state!.LastNotificationId}");
 			if (OnStateChange != null)
 				await OnStateChange.Invoke(state);
 		}
