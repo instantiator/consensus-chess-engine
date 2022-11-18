@@ -37,9 +37,19 @@ _NB. This is a work in progress - the engine is not yet ready to host games._
   * For each database instance
 3. Launch your choice of environment...
 
-3. Launch and run integration tests with: `./integration-tests.sh` (also runs unit and feature tests during build)
+eg. Launch and run all nodes in the `int` environment:
 
-  ![](docs/images/int-tests-pass.png)
+```shell
+./run.sh -e int
+```
+
+eg. Launch and run the integration tests:
+
+```shell
+./integration-tests.sh
+```
+
+![](docs/images/int-tests-pass.png)
 
 ## Scripts
 
