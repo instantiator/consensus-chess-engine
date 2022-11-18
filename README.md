@@ -37,35 +37,54 @@ _NB. This is a work in progress - the engine is not yet ready to host games._
   * For each database instance
 3. Launch your choice of environment...
 
-eg. Launch and run all nodes in the `int` environment:
+eg. Launch and run the feature tests:
+
+```shell
+./feature-tests.sh
+```
+
+or, eg. Launch and run all containers for the `int` environment:
 
 ```shell
 ./run.sh -e int
 ```
 
-eg. Launch and run the integration tests:
-
-```shell
-./integration-tests.sh
-```
-
 ![](docs/images/int-tests-pass.png)
 
+## Environments
+
+| Environment | Name | Description |
+|-|-|-|
+| `int` | Integration | Runs a non-production postgres database instance. Nodes attach to non-production social media accounts. |
+| `prod` | Production | Nodes attach to social media production accounts, and a production postgres database instance. |
+
 ## Scripts
+
+### Testing scripts
+
+The following scripts will launch and run tests for you in containers:
+
+| Script | Description |
+|-|-|
+| `feature-tests.sh` | Launches the feature tests in a single container, with supporting sqlite db and mocked social network connections. Runs the unit tests during build. |
+| `integration-tests.sh` | Launches the db, engine, a node, and the integration test runner for the `int` environment. Runs the unit and feature tests during build. |
+
+See the [testing documentation](docs/testing.md) for more information about these tests.
+
+### Common operation scripts
 
 The following scripts exist for common operations:
 
 | Script | Description |
 |-|-|
-| `integration-tests.sh` | Launches the db, engine, a node, and the integration test runner for the `int` environment. Runs teh unit and feature tests during build. |
 | `run.sh` | Launches the db, engine and all nodes defined for environment specified. Runs the unit and feature tests during build. |
 | `start-db.sh` | Starts the database (only) for the environment specified. |
 | `stop.sh` | Stop all running containers in the environment specified. |
 | `erase.sh` | Use carefully! This clears down your docker compose project - erasing all containers and volumes for the environment specified. |
 
-If you don't provide any parameters, all scripts except `integration-tests.sh` will halt and display their parameter options.
+If you don't provide any parameters, these scripts will halt and display their parameter options.
 
-### Environment
+### Environment parameter
 
 For all except the `integration-tests.sh` script, you must specify the environment with the `-e` or `--environment` option.
 

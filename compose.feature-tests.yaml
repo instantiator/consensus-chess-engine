@@ -1,0 +1,17 @@
+version: "3.8"
+services:
+
+  # container to run integration tests
+  feature-tests:
+    environment:
+      - TEST_FILTER
+    volumes:
+      - logs-feature:/logs/
+    build:
+      context: .
+      dockerfile: ConsensusChessFeatureTests/Dockerfile
+    command: "--filter ${TEST_FILTER}"
+
+volumes:
+  logs-feature:
+
