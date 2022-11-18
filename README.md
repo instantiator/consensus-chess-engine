@@ -35,6 +35,8 @@ _NB. This is a work in progress - the engine is not yet ready to host games._
   * for each engine and node
   * for the integration testing service
   * For each database instance
+3. Launch your choice of environment...
+
 3. Launch and run integration tests with: `./integration-tests.sh` (also runs unit and feature tests during build)
 
   ![](docs/images/int-tests-pass.png)
@@ -45,8 +47,8 @@ The following scripts exist for common operations:
 
 | Script | Description |
 |-|-|
-| `integration-tests.sh` | Launches the db, engine, a node, and the integration test runner for the `int` environment. |
-| `run.sh` | Launches the db, engine and all nodes defined for environment specified. |
+| `integration-tests.sh` | Launches the db, engine, a node, and the integration test runner for the `int` environment. Runs teh unit and feature tests during build. |
+| `run.sh` | Launches the db, engine and all nodes defined for environment specified. Runs the unit and feature tests during build. |
 | `start-db.sh` | Starts the database (only) for the environment specified. |
 | `stop.sh` | Stop all running containers in the environment specified. |
 | `erase.sh` | Use carefully! This clears down your docker compose project - erasing all containers and volumes for the environment specified. |
