@@ -37,13 +37,13 @@ export TEST_FILTER=${FILTER}
 
 # remove any residual containers and the attached database volume before run
 docker compose -p consensus-chess-int \
-  -f compose.yaml -f compose.int.yaml \
+  -f compose.yaml -f compose.int.yaml -f compose.int-tests.yaml \
   --env-file environments/int-database.env \
   down -v
 
 # start all containers required for the test, exit when it finishes
 docker compose -p consensus-chess-int \
-  -f compose.yaml -f compose.int.yaml \
+  -f compose.yaml -f compose.int.yaml -f compose.int-tests.yaml \
   --env-file environments/int-database.env \
   up --build integration-tests \
   --exit-code-from integration-tests \

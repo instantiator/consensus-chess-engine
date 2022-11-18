@@ -14,27 +14,6 @@ services:
       - environments/int-database.env
       - environments/int-engine.env
 
-  # integration tests
-  integration-tests:
-    depends_on:
-      database:
-        condition: service_healthy
-      engine:
-        condition: service_healthy
-      int-node-0-test:
-        condition: service_healthy
-    env_file:
-      - environments/int-database.env
-      - environments/int-integration-tester.env
-    environment:
-      - TEST_FILTER
-    volumes:
-      - logs-int:/logs/
-    build:
-      context: .
-      dockerfile: ConsensusChessIntegrationTests/Dockerfile
-    command: "--filter ${TEST_FILTER}"
-
   # test node (botsin.space)
   int-node-0-test:
     depends_on:
@@ -57,4 +36,3 @@ services:
 
 volumes:
   db-data-int:
-  logs-int:
