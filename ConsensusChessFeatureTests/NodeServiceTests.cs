@@ -1,7 +1,9 @@
 ﻿using System;
+using ConsensusChessFeatureTests.Data;
 using ConsensusChessShared.DTO;
 using ConsensusChessShared.Social;
 using Moq;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace ConsensusChessFeatureTests
 {
@@ -9,14 +11,9 @@ namespace ConsensusChessFeatureTests
 	public class NodeServiceTests : AbstractFeatureTest
 	{
 		[TestMethod]
-		public async Task GarbageInGarbageOut()
+		public async Task GarbageIn_GarbageOut()
 		{
 			var node = await StartNodeAsync();
-
-            NodeSocialMock.Verify(ns => ns.StartListeningForCommandsAsync(
-				It.IsAny<Func<SocialCommand, Task>>(),
-				It.IsAny<bool>()),
-				Times.Once);
 
             var command = new SocialCommand()
 			{
@@ -29,8 +26,8 @@ namespace ConsensusChessFeatureTests
 				RawText = "hello",
 				ReceivingNetwork = NodeNetwork,
 				SourceAccount = "instantiator",
-				SourceId = postId++
-			};
+                SourceId = FeatureDataGenerator.RollingPostId++
+            };
 
 			await receivers[NodeId.Shortcode].Invoke(command);
 
@@ -42,6 +39,36 @@ namespace ConsensusChessFeatureTests
 				Times.Once);
 		}
 
-	}
+		[TestMethod]
+		public async Task NewGame_causes_BoardPost()
+		{
+            var node = await StartNodeAsync();
+
+			var game = Game.NewGame("game-shortcode", "description",
+					new[] { NodeNetwork.NetworkServer },
+					new[] { NodeNetwork.NetworkServer },
+					new[] { NodeId.Shortcode },
+					new[] { NodeId.Shortcode },
+					SideRules.MoveLock);
+
+            using (var db = Dbo.GetDb())
+			{
+				db.Games.Add(game);
+				await db.SaveChangesAsync();
+			}
+
+			SpinWait.SpinUntil(() =>
+			{
+				using (var db = Dbo.GetDb())
+					return db.Games.Single().CurrentBoard.BoardPosts.Count() == 1;
+			});
+			using (var db = Dbo.GetDb())
+			{
+				Assert.AreEqual(1, db.Games.Single().CurrentBoard.BoardPosts.Count());
+                Assert.IsTrue(db.Games.Single().CurrentBoard.BoardPosts.Single().Succeeded);
+            }
+        }
+
+    }
 }
 

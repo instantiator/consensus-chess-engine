@@ -10,6 +10,8 @@ namespace ConsensusChessFeatureTests.Data
 {
 	public class FeatureDataGenerator
 	{
+        public static long RollingPostId { get; set; } = 1;
+
         public static Dictionary<string, string> NodeEnv =>
             new Dictionary<string, string>()
             {
@@ -40,24 +42,27 @@ namespace ConsensusChessFeatureTests.Data
                     { "NETWORK_DRY_RUNS", "false" }
             };
 
-        public static Post GamePost(string shortcode, Network network) => GeneratePost(shortcode, network, "game post");
-        public static Post SocialStatusPost(string shortcode, Network network) => GeneratePost(shortcode, network, "social status");
-        public static Post BoardPost(string shortcode, Network network) => GeneratePost(shortcode, network, "board");
-        public static Post StringPost(string shortcode, Network network) => GeneratePost(shortcode, network, "string");
+        public static Post GenerateReply(string shortcode, Network network, string message, PostType type, long replyToid)
+        {
+            var post = GeneratePost(shortcode, network, message, type);
+            post.NetworkReplyToId = replyToid;
+            return post;
+        }
 
-        public static Post GeneratePost(string shortcode, Network network, string description)
+        public static Post GeneratePost(string shortcode, Network network, string message, PostType? type)
         {
             return new Post()
             {
                 AppName = network.AppName,
                 Attempted = DateTime.Now,
                 Created = DateTime.Now,
-                Message = description,
+                Message = message,
                 NetworkServer = network.NetworkServer,
                 NodeShortcode = shortcode,
-                Succeeded = true
+                Succeeded = true,
+                Type = type ?? PostType.Unspecified,
+                NetworkPostId = RollingPostId++,
             };
-
         }
     }
 }

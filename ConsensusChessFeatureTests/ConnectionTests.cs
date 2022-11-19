@@ -3,7 +3,9 @@ using System.Xml.Linq;
 using ConsensusChessFeatureTests.Data;
 using ConsensusChessFeatureTests.Database;
 using ConsensusChessShared.Service;
+using ConsensusChessShared.Social;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 
 namespace ConsensusChessFeatureTests
 {
@@ -45,6 +47,11 @@ namespace ConsensusChessFeatureTests
             var node = await StartNodeAsync();
             Assert.IsNotNull(node);
             Assert.IsTrue(File.Exists(AbstractConsensusService.HEALTHCHECK_READY_PATH));
+
+            NodeSocialMock.Verify(ns => ns.StartListeningForCommandsAsync(
+                It.IsAny<Func<SocialCommand, Task>>(),
+                It.IsAny<bool>()),
+                Times.Once);
 
             await node.StopAsync();
         }

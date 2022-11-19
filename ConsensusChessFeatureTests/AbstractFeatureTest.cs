@@ -37,7 +37,7 @@ public abstract class AbstractFeatureTest
 
     protected Dictionary<string, Func<SocialCommand, Task>> receivers;
 
-    protected long postId = 0;
+    protected TimeSpan FastPollOverride = TimeSpan.FromSeconds(1);
 
     protected AbstractFeatureTest()
     {
@@ -52,6 +52,12 @@ public abstract class AbstractFeatureTest
             logPath = Path.Join(path, "feature-tests.log");
         }
         if (File.Exists(logPath)) { File.Delete(logPath); }
+    }
+
+    [TestInitialize]
+    public async Task TestInit()
+    {
+        WriteLogHeader($"{TestContext.TestName}");
 
         NodeLogMock = new Mock<ILogger>();
         NodeNetwork = Network.FromEnv(FeatureDataGenerator.NodeEnv);
@@ -64,12 +70,6 @@ public abstract class AbstractFeatureTest
         EngineSocialMock = new Mock<ISocialConnection>();
 
         receivers = new Dictionary<string, Func<SocialCommand, Task>>();
-    }
-
-    [TestInitialize]
-    public async Task TestInit()
-    {
-        WriteLogHeader($"{TestContext.TestName}");
 
         Dbo = new SqliteDbOperator(NodeLogMock.Object, TestContext!.TestName, DateTime.Now);
 
@@ -97,7 +97,8 @@ public abstract class AbstractFeatureTest
             NodeId,
             Dbo,
             NodeNetwork,
-            NodeSocialMock.Object);
+            NodeSocialMock.Object,
+            FastPollOverride);
 
     private ConsensusChessEngineService CreateEngine()
         => new ConsensusChessEngineService(
@@ -105,7 +106,8 @@ public abstract class AbstractFeatureTest
             EngineId,
             Dbo,
             EngineNetwork,
-            EngineSocialMock.Object);
+            EngineSocialMock.Object,
+            FastPollOverride);
 
     protected async Task<ConsensusChessNodeService> StartNodeAsync()
     {
@@ -113,9 +115,9 @@ public abstract class AbstractFeatureTest
         var cancel = new CancellationTokenSource();
         var token = cancel.Token;
         node.StartAsync(token);
-        await Task.Delay(TimeSpan.FromSeconds(1));
+        SpinWait.SpinUntil(() => File.Exists(AbstractConsensusService.HEALTHCHECK_READY_PATH));
         node.ExecuteAsync(token);
-        await Task.Delay(TimeSpan.FromSeconds(1));
+        SpinWait.SpinUntil(() => receivers.ContainsKey(NodeId.Shortcode));
         return node;
     }
 
@@ -125,9 +127,9 @@ public abstract class AbstractFeatureTest
         var cancel = new CancellationTokenSource();
         var token = cancel.Token;
         engine.StartAsync(token);
-        await Task.Delay(TimeSpan.FromSeconds(1));
+        SpinWait.SpinUntil(() => File.Exists(AbstractConsensusService.HEALTHCHECK_READY_PATH));
         engine.ExecuteAsync(token);
-        await Task.Delay(TimeSpan.FromSeconds(1));
+        SpinWait.SpinUntil(() => receivers.ContainsKey(EngineId.Shortcode));
         return engine;
     }
 
@@ -145,24 +147,44 @@ public abstract class AbstractFeatureTest
         mock.Setup(sc => sc.AccountName).Returns($"{account}");
         mock.Setup(sc => sc.DisplayName).Returns($"Mock for: {account}");
 
+
+        Func<Game, bool, Task<Post>> postGameFunc =
+            (game, dry)
+                => Task.FromResult(FeatureDataGenerator.GeneratePost(shortcode, NodeNetwork, $"Game: {game.Shortcode}", PostType.SocialStatus));
         mock.Setup(sc => sc.PostAsync(It.IsAny<Game>(), It.IsAny<bool?>()))
-            .Returns(Task.FromResult<Post>(FeatureDataGenerator.GamePost(shortcode, NodeNetwork)))
+            .Returns(postGameFunc)
             .Verifiable();
 
+        Func<SocialStatus, bool, Task<Post>> postStatusFunc =
+            (socialStatus, dry)
+                => Task.FromResult(FeatureDataGenerator.GeneratePost(shortcode, NodeNetwork, $"Status: {socialStatus}", PostType.SocialStatus));
         mock.Setup(sc => sc.PostAsync(It.IsAny<SocialStatus>(), It.IsAny<bool?>()))
-            .Returns(Task.FromResult<Post>(FeatureDataGenerator.SocialStatusPost(shortcode, NodeNetwork)))
+            .Returns(postStatusFunc)
             .Verifiable();
 
+        Func<Game, Board, bool, Task<Post>> postBoardFunc =
+            (game, board, dry)
+                => Task.FromResult(FeatureDataGenerator.GeneratePost(shortcode, NodeNetwork, $"Board for: {game.Shortcode}", PostType.BoardUpdate));
         mock.Setup(sc => sc.PostAsync(It.IsAny<Game>(), It.IsAny<Board>(), It.IsAny<bool?>()))
-            .Returns(Task.FromResult<Post>(FeatureDataGenerator.BoardPost(shortcode, NodeNetwork)))
+            .Returns(postBoardFunc)
             .Verifiable();
 
+        Func<string, PostType, bool, Task<Post>> postTextFunc =
+            (msg, type, dry)
+                => Task.FromResult(FeatureDataGenerator.GeneratePost(shortcode, NodeNetwork, msg, type));
         mock.Setup(sc => sc.PostAsync(It.IsAny<string>(), It.IsAny<PostType>(), It.IsAny<bool?>()))
-            .Returns(Task.FromResult<Post>(FeatureDataGenerator.StringPost(shortcode, NodeNetwork)))
+            .Returns(postTextFunc)
+            .Verifiable();
+
+        Func<SocialCommand, string, PostType?, bool, Task<Post>> postReplyFunc =
+            (command, message, type, dry)
+                => Task.FromResult(FeatureDataGenerator.GeneratePost(shortcode, NodeNetwork, message, type));
+        mock.Setup(sc => sc.ReplyAsync(It.IsAny<SocialCommand>(), It.IsAny<string>(), It.IsAny<PostType?>(), It.IsAny<bool?>()))
+            .Returns(postReplyFunc)
             .Verifiable();
 
         mock.Setup(sc => sc.StartListeningForCommandsAsync(It.IsAny<Func<SocialCommand, Task>>(), It.IsAny<bool>()))
-            .Callback<Func<SocialCommand, Task>, bool>((r,b) => receivers.Add(shortcode, r))
+            .Callback<Func<SocialCommand, Task>, bool>((r, b) => receivers.Add(shortcode, r))
             .Returns(Task.CompletedTask)
             .Verifiable();
     }
