@@ -66,6 +66,7 @@ namespace ConsensusChessFeatureTests
 			{
 				Assert.AreEqual(1, db.Games.Single().CurrentBoard.BoardPosts.Count());
                 Assert.IsTrue(db.Games.Single().CurrentBoard.BoardPosts.Single().Succeeded);
+				Assert.IsTrue(db.Games.Single().CurrentBoard.BoardPosts.Single().Type == PostType.BoardUpdate);
             }
         }
 
