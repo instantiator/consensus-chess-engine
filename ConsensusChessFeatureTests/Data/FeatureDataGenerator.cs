@@ -68,6 +68,24 @@ namespace ConsensusChessFeatureTests.Data
                 NetworkPostId = RollingPostId++,
             };
         }
+
+        public static SocialCommand GenerateCommand(string message, Network network, bool authorised = true, string from = "instantiator")
+        {
+            return new SocialCommand()
+            {
+                DeliveryMedium = "mock",
+                DeliveryType = "notification",
+                IsAuthorised = authorised,
+                IsRetrospective = false,
+                IsForThisNode = true,
+                RawText = message,
+                ReceivingNetwork = network,
+                NetworkUserId = from,
+                SourceAccount = from,
+                SourceId = FeatureDataGenerator.RollingPostId++
+            };
+
+        }
     }
 }
 

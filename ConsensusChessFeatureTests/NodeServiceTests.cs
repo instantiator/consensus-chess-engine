@@ -15,21 +15,9 @@ namespace ConsensusChessFeatureTests
 		{
 			var node = await StartNodeAsync();
 
-            var command = new SocialCommand()
-			{
-				DeliveryMedium = "mock",
-				DeliveryType = "notification",
-				IsAuthorised = true,
-				IsRetrospective = false,
-				NetworkUserId = "instantiator",
-				IsForThisNode = true,
-				RawText = "hello",
-				ReceivingNetwork = NodeNetwork,
-				SourceAccount = "instantiator",
-                SourceId = FeatureDataGenerator.RollingPostId++
-            };
+            var command = FeatureDataGenerator.GenerateCommand("hello", NodeNetwork);
 
-			await receivers[NodeId.Shortcode].Invoke(command);
+            await receivers[NodeId.Shortcode].Invoke(command);
 
             NodeSocialMock.Verify(ns => ns.PostAsync(
                 It.Is<Post>(p =>

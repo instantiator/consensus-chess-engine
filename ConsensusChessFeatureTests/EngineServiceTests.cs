@@ -14,19 +14,7 @@ namespace ConsensusChessFeatureTests
         {
             var engine = await StartEngineAsync();
 
-            var command = new SocialCommand()
-            {
-                DeliveryMedium = "mock",
-                DeliveryType = "notification",
-                IsAuthorised = true,
-                IsRetrospective = false,
-                NetworkUserId = "instantiator",
-                IsForThisNode = true,
-                RawText = "hello",
-                ReceivingNetwork = NodeNetwork,
-                SourceAccount = "instantiator",
-                SourceId = FeatureDataGenerator.RollingPostId++
-            };
+            var command = FeatureDataGenerator.GenerateCommand("hello", EngineNetwork);
 
             await receivers[EngineId.Shortcode].Invoke(command);
 
@@ -50,19 +38,7 @@ namespace ConsensusChessFeatureTests
                 Assert.AreEqual(0, db.Games.Count());
             }
 
-            var command = new SocialCommand()
-            {
-                DeliveryMedium = "mock",
-                DeliveryType = "notification",
-                IsAuthorised = true,
-                IsRetrospective = false,
-                NetworkUserId = "instantiator",
-                IsForThisNode = true,
-                RawText = $"new {NodeId.Shortcode}",
-                ReceivingNetwork = NodeNetwork,
-                SourceAccount = "instantiator",
-                SourceId = FeatureDataGenerator.RollingPostId++
-            };
+            var command = FeatureDataGenerator.GenerateCommand($"new {NodeId.Shortcode}", EngineNetwork);
 
             await receivers[EngineId.Shortcode].Invoke(command);
 
