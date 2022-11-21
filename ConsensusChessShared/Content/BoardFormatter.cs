@@ -1,12 +1,12 @@
 ﻿using System;
 using ConsensusChessShared.DTO;
 
-namespace ConsensusChessShared.Service
+namespace ConsensusChessShared.Content
 {
 	public class BoardFormatter
 	{
 
-		public static string VisualiseEmoji(Board board)
+		public static string FenToPieces(Board board)
 		{
             return board.PiecesFEN
                 .Replace("/", "/\n")

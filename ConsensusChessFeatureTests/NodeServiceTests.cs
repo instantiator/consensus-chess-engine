@@ -31,15 +31,16 @@ namespace ConsensusChessFeatureTests
 
 			await receivers[NodeId.Shortcode].Invoke(command);
 
-            NodeSocialMock.Verify(ns => ns.ReplyAsync(
-				command,
-				"UnrecognisedCommand",
-				PostType.CommandResponse,
+            NodeSocialMock.Verify(ns => ns.PostAsync(
+                It.Is<Post>(p =>
+					p.Succeeded == true &&
+					p.Message == "UnrecognisedCommand" &&
+					p.NetworkReplyToId == command.SourceId),
 				null),
-				Times.Once);
-		}
+                Times.Once);
+        }
 
-		[TestMethod]
+        [TestMethod]
 		public async Task NewGame_causes_BoardPost()
 		{
             var node = await StartNodeAsync();

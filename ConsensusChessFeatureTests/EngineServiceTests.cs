@@ -30,10 +30,11 @@ namespace ConsensusChessFeatureTests
 
             await receivers[EngineId.Shortcode].Invoke(command);
 
-            EngineSocialMock.Verify(ns => ns.ReplyAsync(
-                command,
-                "UnrecognisedCommand",
-                PostType.CommandResponse,
+            EngineSocialMock.Verify(ns => ns.PostAsync(
+                It.Is<Post>(p =>
+                    p.Succeeded == true &&
+                    p.Message == "UnrecognisedCommand" &&
+                    p.NetworkReplyToId == command.SourceId),
                 null),
                 Times.Once);
         }
@@ -65,12 +66,13 @@ namespace ConsensusChessFeatureTests
 
             await receivers[EngineId.Shortcode].Invoke(command);
 
-            EngineSocialMock.Verify(ns => ns.ReplyAsync(
-                command,
-                $"New MoveLock game for: {NodeId.Shortcode}",
-                PostType.CommandResponse,
-                null),
-                Times.Once);
+            EngineSocialMock.Verify(ns => ns.PostAsync(
+            It.Is<Post>(p =>
+                p.Succeeded == true &&
+                p.Message == $"New MoveLock game for: {NodeId.Shortcode}" &&
+                p.NetworkReplyToId == command.SourceId),
+            null),
+            Times.Once);
 
             using (var db = Dbo.GetDb())
             {

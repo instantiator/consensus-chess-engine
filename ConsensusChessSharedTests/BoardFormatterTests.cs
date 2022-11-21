@@ -1,4 +1,5 @@
 ﻿using System;
+using ConsensusChessShared.Content;
 using ConsensusChessShared.DTO;
 using ConsensusChessShared.Service;
 
@@ -21,7 +22,7 @@ namespace ConsensusChessSharedTests
 				"♖♘♗♕♔♗♘♖");
 
 			var board = new Board(); // default starting position
-            var output = BoardFormatter.VisualiseEmoji(board);
+            var output = BoardFormatter.FenToPieces(board);
 			Assert.AreEqual(output, expected);
 		}
 	}

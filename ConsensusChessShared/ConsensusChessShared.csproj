@@ -22,6 +22,8 @@
     <None Remove="Microsoft.EntityFrameworkCore.Proxies" />
     <None Remove="EFCore.NamingConventions" />
     <None Remove="Gera.Chess" />
+    <None Remove="Content\" />
+    <None Remove="Handlebars.Net" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DTO\" />
@@ -31,6 +33,7 @@
     <Folder Include="Helpers\" />
     <Folder Include="Exceptions\" />
     <Folder Include="Migrations\" />
+    <Folder Include="Content\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.0" />
@@ -44,5 +47,6 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="7.0.0" />
     <PackageReference Include="EFCore.NamingConventions" Version="7.0.0" />
     <PackageReference Include="Gera.Chess" Version="1.0.2" />
+    <PackageReference Include="Handlebars.Net" Version="2.1.2" />
   </ItemGroup>
 </Project>

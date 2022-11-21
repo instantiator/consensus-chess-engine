@@ -1,4 +1,5 @@
 ﻿using System;
+using ConsensusChessShared.Content;
 using ConsensusChessShared.DTO;
 using ConsensusChessShared.Service;
 using Mastonet.Entities;
@@ -10,9 +11,11 @@ namespace ConsensusChessShared.Social
 	{
 		public event Func<NodeState, Task> OnStateChange;
 
+        public bool Ready { get; private set; }
+
 		protected ILogger log;
 		protected Network network;
-		protected NodeState? state;
+		protected NodeState state;
 		protected bool dryRuns;
 
         protected event Func<SocialCommand, Task>? asyncCommandReceivers;
@@ -23,12 +26,14 @@ namespace ConsensusChessShared.Social
 			this.log = log;
 			this.network = network;
 			this.dryRuns = network.DryRuns;
+            this.Ready = false;
 		}
 
 		public async Task InitAsync(NodeState state)
         {
             this.state = state;
             await InitImplementationAsync();
+            Ready = true;
         }
 
         protected abstract Task InitImplementationAsync();
@@ -41,7 +46,6 @@ namespace ConsensusChessShared.Social
         protected abstract Task StartListeningForNotificationsAsync();
         protected abstract Task<IEnumerable<Notification>> GetAllNotificationSinceAsync(long sinceId);
         public abstract Task StopListeningForCommandsAsync(Func<SocialCommand, Task> asyncReceiver);
-        public abstract Task<Post> PostToNetworkAsync(Post post, bool dryRun);
 
         public async Task StartListeningForCommandsAsync(Func<SocialCommand, Task> asyncCommandReceiver, bool getMissedCommands)
 		{
@@ -113,64 +117,19 @@ namespace ConsensusChessShared.Social
             }
         }
 
-		public async Task<Post> PostAsync(SocialStatus status, bool? dryRun = null)
-			=> await PostAsync($"{state.Name} ({state.Shortcode}): {status}", PostType.SocialStatus, dryRun);
-
-		public async Task<Post> PostAsync(Game game, bool? dryRun = null)
-			=> await PostAsync(
-				string.Format("New {0} game...\nWhite: {1}\nBlack: {2}\nMove duration: {3}",
-					game.SideRules,
-                    string.Join(", ", game.WhiteParticipantNetworkServers),
-                    string.Join(", ", game.BlackParticipantNetworkServers),
-                    game.MoveDuration),
-                PostType.GameAnnouncement,
-                dryRun);
-
-        public async Task<Post> PostAsync(Game game, Board board, bool? dryRun = null)
-            => await PostAsync(
-                string.Format("New board. You have {1} to vote.\n{0}",
-                    BoardFormatter.VisualiseEmoji(board),
-					game.MoveDuration.ToString()),
-                PostType.BoardUpdate,
-				dryRun);
-
         public async Task<Post> PostAsync(string text, PostType type = PostType.Unspecified, bool? dryRun = null)
 		{
 			log.LogInformation($"Posting: {text}");
+            var post = new PostBuilder(type)
+                .WithText(text)
+                .Build();
 
-			var post = new Post()
-			{
-				Message = text,
-				NodeShortcode = state!.Shortcode,
-                NetworkServer = network.NetworkServer,
-                AppName = network.AppName,
-                Type = type
-            };
-
-            return await PostToNetworkAsync(post, dryRun ?? dryRuns);
+            return await PostAsync(post, dryRun);
 		}
 
-		public async Task<Post> ReplyAsync(SocialCommand origin, string message, PostType? postType = null, bool? dryRun = null)
-		{
-            // prepend username to reply
-            message = $"@{origin.NetworkUserId} {message}";
+        public abstract Task<Post> PostAsync(Post post, bool? dryRun);
 
-            log.LogInformation($"Replying: {message}");
-
-            var post = new Post()
-            {
-                Message = message,
-                NodeShortcode = state!.Shortcode,
-                NetworkServer = network.NetworkServer,
-                AppName = network.AppName,
-                Type = postType ?? PostType.Unspecified,
-				NetworkReplyToId = origin.SourceId,
-            };
-
-            return await PostToNetworkAsync(post, dryRun ?? dryRuns);
-        }
-
-		protected async Task ReportStateChangeAsync()
+        protected async Task ReportStateChangeAsync()
 		{
 			log.LogDebug($"ReportStateChange - new notification id: {state!.LastNotificationId}");
 			if (OnStateChange != null)

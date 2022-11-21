@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using ConsensusChessShared.Content;
 using ConsensusChessShared.DTO;
 using ConsensusChessShared.Exceptions;
 using ConsensusChessShared.Service;
@@ -36,7 +37,12 @@ namespace ConsensusChessNode.Service
                     if (board != null)
                     {
                         log.LogInformation($"Found a new board to post in game: {game.Id}");
-                        var posted = await social.PostAsync(game, board);
+
+                        var post = new PostBuilder(PostType.BoardUpdate)
+                            .WithGame(game)
+                            .WithBoard(board)
+                            .Build();
+                        var posted = await social.PostAsync(post);
                         board.BoardPosts.Add(posted);
 
                         log.LogDebug("Saving board and new board posts...");
@@ -125,7 +131,13 @@ namespace ConsensusChessNode.Service
                     await db.SaveChangesAsync();
 
                     // post validation response, and attach to vote
-                    var validationPost = await social.ReplyAsync(origin, "Move accepted - thank you", PostType.MoveValidation);
+                    var summary = "Move accepted - thank you";
+                    var reply = new PostBuilder(PostType.MoveValidation)
+                        .WithText(summary)
+                        .InReplyTo(origin)
+                        .Build();
+
+                    var validationPost = await social.PostAsync(reply);
                     vote.ValidationPost = validationPost;
                     await db.SaveChangesAsync();
                 }
@@ -136,14 +148,26 @@ namespace ConsensusChessNode.Service
 
                     // TODO: remove - this is messy logging to try and catch the issue
                     log.LogWarning(JsonConvert.SerializeObject(db.Games.ToList()));
-                    await social.ReplyAsync(origin, summary, PostType.MoveValidation);
+
+                    var reply = new PostBuilder(PostType.MoveValidation)
+                        .WithText(summary)
+                        .InReplyTo(origin)
+                        .Build();
+
+                    await social.PostAsync(reply);
                 }
                 catch (VoteRejectionException e)
                 {
                     var summary = $"{e.Reason} from {e.Command?.SourceAccount ?? "unknown"}: {voteSAN}, {e.Message}";
                     log.LogWarning(summary);
 
-                    var post = await social.ReplyAsync(origin, summary, PostType.MoveValidation);
+                    var reply = new PostBuilder(PostType.MoveValidation)
+                        .WithText(summary)
+                        .InReplyTo(origin)
+                        .Build();
+
+                    var post = await social.PostAsync(reply);
+
                     vote!.ValidationState = e.Reason;
                     vote!.ValidationPost = post;
 

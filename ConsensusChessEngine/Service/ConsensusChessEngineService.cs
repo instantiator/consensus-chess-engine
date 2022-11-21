@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using ConsensusChessShared.Content;
 using ConsensusChessShared.DTO;
 using ConsensusChessShared.Exceptions;
 using ConsensusChessShared.Helpers;
@@ -73,15 +74,30 @@ namespace ConsensusChessEngine.Service
                     var summary = $"New {game.SideRules} game for: {string.Join(", ", nodeShortcodes)}";
                     log.LogInformation(summary);
 
-                    // exceptions during posting will roll back the db transaction - that's good I guess!
-                    await social.PostAsync(game);
-                    await social.ReplyAsync(origin, summary, PostType.CommandResponse);
+                    var post = new PostBuilder(PostType.GameAnnouncement)
+                        .WithGame(game)
+                        .Build();
+
+                    await social.PostAsync(post);
+
+                    var reply = new PostBuilder(PostType.CommandResponse)
+                        .WithText(summary)
+                        .InReplyTo(origin.SourceId)
+                        .Build();
+
+                    await social.PostAsync(reply);
                 }
                 else
                 {
                     var unrecognised = nodeShortcodes.Where(network => !db.NodeState.Any(ns => ns.Shortcode == network));
                     log.LogWarning($"New game node shortcodes unrecognised: {string.Join(", ",unrecognised)}");
-                    await social.ReplyAsync(origin, $"Unrecognised shortcodes: {string.Join(", ",unrecognised)}", PostType.CommandResponse);
+
+                    var summary = $"Unrecognised shortcodes: {string.Join(", ", unrecognised)}";
+                    var reply = new PostBuilder(PostType.CommandResponse)
+                        .WithText(summary)
+                        .InReplyTo(origin.SourceId)
+                        .Build();
+                    await social.PostAsync(reply);
                 }
                 ReportOnGames();
             }

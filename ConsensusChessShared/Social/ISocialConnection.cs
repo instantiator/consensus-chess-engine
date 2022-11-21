@@ -5,6 +5,7 @@ namespace ConsensusChessShared.Social
 {
 	public interface ISocialConnection
 	{
+		bool Ready { get; }
 		Task InitAsync(NodeState state);
 		string? DisplayName { get; }
 		string? AccountName { get; }
@@ -16,12 +17,8 @@ namespace ConsensusChessShared.Social
 		Task StartListeningForCommandsAsync(Func<SocialCommand, Task> receiver, bool retrieveMissedCommands);
 		Task StopListeningForCommandsAsync(Func<SocialCommand, Task> receiver);
 
-        Task<Post> PostAsync(SocialStatus status, bool? dryRun = null);
-		Task<Post> PostAsync(Game game, bool? dryRun = null);
-        Task<Post> PostAsync(Game game, Board board, bool? dryRun = null);
-        Task<Post> PostAsync(string text, PostType type, bool? dryRun = null);
-		Task<Post> ReplyAsync(SocialCommand origin, string message, PostType? postType = null, bool? dryRun = null);
-        Task<Post> PostToNetworkAsync(Post post, bool dryRun);
+		Task<Post> PostAsync(string text, PostType type = PostType.Unspecified, bool? dryRun = null);
+        Task<Post> PostAsync(Post post, bool? dryRun = null);
     }
 }
 

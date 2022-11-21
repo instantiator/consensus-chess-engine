@@ -147,40 +147,20 @@ public abstract class AbstractFeatureTest
         mock.Setup(sc => sc.AccountName).Returns($"{account}");
         mock.Setup(sc => sc.DisplayName).Returns($"Mock for: {account}");
 
+        Func<Post, bool?, Task<Post>> postFunc =
+            (post, dry)
+                => Task.FromResult(FeatureDataGenerator.SimulatePost(post, shortcode, NodeNetwork));
 
-        Func<Game, bool, Task<Post>> postGameFunc =
-            (game, dry)
-                => Task.FromResult(FeatureDataGenerator.GeneratePost(shortcode, NodeNetwork, $"Game: {game.Shortcode}", PostType.SocialStatus));
-        mock.Setup(sc => sc.PostAsync(It.IsAny<Game>(), It.IsAny<bool?>()))
-            .Returns(postGameFunc)
-            .Verifiable();
-
-        Func<SocialStatus, bool, Task<Post>> postStatusFunc =
-            (socialStatus, dry)
-                => Task.FromResult(FeatureDataGenerator.GeneratePost(shortcode, NodeNetwork, $"Status: {socialStatus}", PostType.SocialStatus));
-        mock.Setup(sc => sc.PostAsync(It.IsAny<SocialStatus>(), It.IsAny<bool?>()))
-            .Returns(postStatusFunc)
-            .Verifiable();
-
-        Func<Game, Board, bool, Task<Post>> postBoardFunc =
-            (game, board, dry)
-                => Task.FromResult(FeatureDataGenerator.GeneratePost(shortcode, NodeNetwork, $"Board for: {game.Shortcode}", PostType.BoardUpdate));
-        mock.Setup(sc => sc.PostAsync(It.IsAny<Game>(), It.IsAny<Board>(), It.IsAny<bool?>()))
-            .Returns(postBoardFunc)
+        mock.Setup(sc => sc.PostAsync(It.IsAny<Post>(), It.IsAny<bool?>()))
+            .Returns(postFunc)
             .Verifiable();
 
         Func<string, PostType, bool, Task<Post>> postTextFunc =
             (msg, type, dry)
                 => Task.FromResult(FeatureDataGenerator.GeneratePost(shortcode, NodeNetwork, msg, type));
+
         mock.Setup(sc => sc.PostAsync(It.IsAny<string>(), It.IsAny<PostType>(), It.IsAny<bool?>()))
             .Returns(postTextFunc)
-            .Verifiable();
-
-        Func<SocialCommand, string, PostType?, bool, Task<Post>> postReplyFunc =
-            (command, message, type, dry)
-                => Task.FromResult(FeatureDataGenerator.GeneratePost(shortcode, NodeNetwork, message, type));
-        mock.Setup(sc => sc.ReplyAsync(It.IsAny<SocialCommand>(), It.IsAny<string>(), It.IsAny<PostType?>(), It.IsAny<bool?>()))
-            .Returns(postReplyFunc)
             .Verifiable();
 
         mock.Setup(sc => sc.StartListeningForCommandsAsync(It.IsAny<Func<SocialCommand, Task>>(), It.IsAny<bool>()))

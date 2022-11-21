@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Diagnostics;
+using ConsensusChessShared.Content;
 using ConsensusChessShared.Database;
 using ConsensusChessShared.DTO;
 using ConsensusChessShared.Exceptions;
@@ -92,7 +93,12 @@ namespace ConsensusChessShared.Service
 
         private async Task Cmd_OnFailAsync(SocialCommand origin, string message, CommandRejectionReason? reason)
         {
-            await social.ReplyAsync(origin, message, PostType.CommandResponse);
+            var post = new PostBuilder(PostType.CommandResponse)
+                .WithText(message)
+                .InReplyTo(origin.SourceId)
+                .Build();
+
+            await social.PostAsync(post);
         }
 
         private async Task RecordStateChangeAsync(NodeState newState)
@@ -139,7 +145,11 @@ namespace ConsensusChessShared.Service
                 running = true;
 
                 // post readiness
-                var posted = await social.PostAsync(SocialStatus.Started);
+                var post = new PostBuilder(PostType.SocialStatus)
+                    .WithNodeState(state)
+                    .WithSocialStatus(SocialStatus.Started)
+                    .Build();
+                var posted = await social.PostAsync(post);
                 await RecordStatePostAsync(posted);
 
                 // listen for commands
@@ -191,8 +201,12 @@ namespace ConsensusChessShared.Service
             EraseHealthIndicators();
             log.LogInformation("StopAsync at: {time}", DateTimeOffset.Now);
             await social.StopListeningForCommandsAsync(cmd!.ParseAsync);
-            var post = await social.PostAsync(SocialStatus.Stopped);
-            await RecordStatePostAsync(post);
+            var post = new PostBuilder(PostType.SocialStatus)
+                .WithNodeState(state)
+                .WithSocialStatus(SocialStatus.Stopped)
+                .Build();
+            var posted = await social.PostAsync(post);
+            await RecordStatePostAsync(posted);
 
             if (running)
             {

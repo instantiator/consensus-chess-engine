@@ -42,10 +42,14 @@ namespace ConsensusChessFeatureTests.Data
                     { "NETWORK_DRY_RUNS", "false" }
             };
 
-        public static Post GenerateReply(string shortcode, Network network, string message, PostType type, long replyToid)
+        public static Post SimulatePost(Post post, string shortcode, Network network)
         {
-            var post = GeneratePost(shortcode, network, message, type);
-            post.NetworkReplyToId = replyToid;
+            post.Attempted = DateTime.Now.ToUniversalTime();
+            post.AppName = network.AppName;
+            post.NetworkServer = network.NetworkServer;
+            post.NodeShortcode = shortcode;
+            post.Succeeded = true;
+            post.NetworkPostId = RollingPostId++;
             return post;
         }
 

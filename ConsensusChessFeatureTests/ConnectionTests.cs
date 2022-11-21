@@ -2,10 +2,12 @@
 using System.Xml.Linq;
 using ConsensusChessFeatureTests.Data;
 using ConsensusChessFeatureTests.Database;
+using ConsensusChessShared.DTO;
 using ConsensusChessShared.Service;
 using ConsensusChessShared.Social;
 using Microsoft.EntityFrameworkCore;
 using Moq;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace ConsensusChessFeatureTests
 {
@@ -53,6 +55,13 @@ namespace ConsensusChessFeatureTests
                 It.IsAny<bool>()),
                 Times.Once);
 
+            NodeSocialMock.Verify(ns => ns.PostAsync(
+                It.Is<Post>(p =>
+                    p.Succeeded == true &&
+                    p.Message == "a fake node (node-0-fake): Started"),
+                null),
+                Times.Once);
+
             await node.StopAsync();
         }
 
@@ -65,6 +74,18 @@ namespace ConsensusChessFeatureTests
             var engine = await StartEngineAsync();
             Assert.IsNotNull(engine);
             Assert.IsTrue(File.Exists(AbstractConsensusService.HEALTHCHECK_READY_PATH));
+
+            EngineSocialMock.Verify(ns => ns.StartListeningForCommandsAsync(
+                It.IsAny<Func<SocialCommand, Task>>(),
+                It.IsAny<bool>()),
+                Times.Once);
+
+            EngineSocialMock.Verify(ns => ns.PostAsync(
+                It.Is<Post>(p =>
+                    p.Succeeded == true &&
+                    p.Message == "a fake engine (engine-fake): Started"),
+                null),
+                Times.Once);
 
             await engine.StopAsync();
         }

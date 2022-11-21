@@ -54,16 +54,23 @@ namespace ConsensusChessShared.Social
             { PostType.Unspecified, Visibility.Unlisted },
         };
 
-        public override async Task<Post> PostToNetworkAsync(Post post, bool dryRun)
+        public override async Task<Post> PostAsync(Post post, bool? dryRun = null)
         {
             Visibility visibility = VisibilityMapping[post.Type];
-
+            post.AppName = network.AppName;
+            post.NetworkServer = network.NetworkServer;
+            post.NodeShortcode = state.Shortcode;
+            var dry = dryRun ?? dryRuns;
             try
             {
-                if (!dryRun)
+                if (!dry)
                 {
                     log.LogDebug($"Posting to network...");
-                    var status = await client.PostStatus(post.Message, visibility: visibility, replyStatusId: post.NetworkReplyToId);
+                    var status = await client.PostStatus(
+                        status: post.Message,
+                        visibility: visibility,
+                        replyStatusId: post.NetworkReplyToId);
+
                     post.Succeed(status.Id);
                 }
                 else
