@@ -1,4 +1,5 @@
 ﻿using System;
+using ConsensusChessShared.DTO;
 using ConsensusChessShared.Social;
 
 namespace ConsensusChessShared.Exceptions
@@ -6,10 +7,12 @@ namespace ConsensusChessShared.Exceptions
     public class GameNotFoundException : Exception
     {
         public SocialCommand Command { get; set; }
+        public GameNotFoundReason Reason { get; set; }
 
-        public GameNotFoundException(SocialCommand cmd, string? message) : base(message)
+        public GameNotFoundException(SocialCommand cmd, GameNotFoundReason reason) : base(reason.ToString())
         {
             this.Command = cmd;
+            this.Reason = reason;
         }
     }
 }

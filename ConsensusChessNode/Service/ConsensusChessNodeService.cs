@@ -87,7 +87,7 @@ namespace ConsensusChessNode.Service
 
                     // check the game
                     log.LogDebug("Establishing game for the post.");
-                    game = dbo.GetGameForVote(db, origin); // throws GameNotFoundException
+                    game = dbo.GetGameForResponse(db, origin); // throws GameNotFoundException or VoteRejectionException
 
                     // establish wether this participant is permitted to vote on this move
                     var mayVote = gm.ParticipantMayVote(game, participant);

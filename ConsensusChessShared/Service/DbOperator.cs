@@ -56,22 +56,26 @@ namespace ConsensusChessShared.Service
         }
 
         /// <summary>
-        /// Retrieves the game with the board post that this vote is in response to - or fails.
+        /// Retrieves the game with the board post that this vote is in response to - or throws an exception.
         /// </summary>
         /// <param name="cmd">the social command to check</param>
-        /// <returns>the game that this social command refers to (if any)</returns>
-        /// <exception cref="GameNotFoundException"></exception>
-        public Game GetGameForVote(ConsensusChessDbContext db, SocialCommand cmd)
+        /// <returns>the game that this social command refers to</returns>
+        /// <exception cref="GameNotFoundException">if the post is not in reply to a current board in any game</exception>
+        public Game GetGameForResponse(ConsensusChessDbContext db, SocialCommand cmd)
         {
-            // check if the reply is directly to a current board
-            var game = db.Games.ToList()
-                .SingleOrDefault(g => g.CurrentBoard.BoardPosts
-                    .Any(bp => bp.NetworkPostId == cmd.InReplyToId));
+            // check if this is in reply to any boardpost from any game
+            var game = db.Games.ToList().SingleOrDefault(g =>
+                g.Moves.Any(m =>
+                    m.From.BoardPosts.Any(bp =>
+                        bp.NetworkPostId == cmd.InReplyToId)));
 
             if (game == null)
-            {
-                throw new GameNotFoundException(cmd, "Game not found");
-            }
+                throw new GameNotFoundException(cmd, GameNotFoundReason.NoLinkedGame);
+
+            var currentBoard = game.CurrentBoard.BoardPosts.SingleOrDefault(bp => bp.NetworkPostId == cmd.InReplyToId);
+
+            if (currentBoard == null)
+                throw new GameNotFoundException(cmd, GameNotFoundReason.BoardReferenceExpired);
 
             return game;
         }

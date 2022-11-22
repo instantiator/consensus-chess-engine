@@ -22,6 +22,7 @@ namespace ConsensusChessShared.DTO
 		public virtual List<Vote> Votes { get; set; }
 		public DateTime Deadline { get; set; }
 
+		public bool Expired => DateTime.Now.ToUniversalTime() > Deadline;
 		public Side SideToPlay => From.ActiveSide;
 
 		public static Move CreateStartingMove(TimeSpan duration)
