@@ -66,9 +66,15 @@ namespace ConsensusChessShared.Content
 
 		public PostBuilder WithRejectionReason(CommandRejectionReason reason)
 		{
-			WithMapping("RejectionReason", reason.ToString());
+			WithMapping("CommandRejectionReason", reason.ToString());
 			return this;
 		}
+
+        public PostBuilder WithGameNotFoundReason(GameNotFoundReason reason)
+        {
+            WithMapping("GameNotFoundReason", reason.ToString());
+            return this;
+        }
 
         public PostBuilder WithDetail(string? detail)
         {

@@ -22,7 +22,7 @@ namespace ConsensusChessFeatureTests
             NodeSocialMock.Verify(ns => ns.PostAsync(
                 It.Is<Post>(p =>
 					p.Succeeded == true &&
-					p.Message == "UnrecognisedCommand" &&
+					p.Message == "This instruction can't be processed: UnrecognisedCommand" &&
 					p.NetworkReplyToId == command.SourceId),
 				null),
                 Times.Once);

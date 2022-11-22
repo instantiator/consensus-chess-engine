@@ -148,8 +148,7 @@ namespace ConsensusChessNode.Service
                     log.LogWarning(JsonConvert.SerializeObject(db.Games.ToList()));
 
                     var reply = new PostBuilder(PostType.GameNotFound)
-                        .WithAccount(e.Command.SourceAccount)
-                        .WithSAN(voteSAN)
+                        .WithGameNotFoundReason(e.Reason)
                         .InReplyTo(origin)
                         .Build();
 

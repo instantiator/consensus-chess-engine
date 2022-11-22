@@ -21,7 +21,7 @@ namespace ConsensusChessFeatureTests
             EngineSocialMock.Verify(ns => ns.PostAsync(
                 It.Is<Post>(p =>
                     p.Succeeded == true &&
-                    p.Message == "UnrecognisedCommand" &&
+                    p.Message == "This instruction can't be processed: UnrecognisedCommand" &&
                     p.NetworkReplyToId == command.SourceId),
                 null),
                 Times.Once);
@@ -94,12 +94,10 @@ namespace ConsensusChessFeatureTests
 
             await receivers[EngineId.Shortcode].Invoke(command);
 
-            await Task.Delay(1000);
-
             EngineSocialMock.Verify(ns => ns.PostAsync(
             It.Is<Post>(p =>
                 p.Succeeded == true &&
-                p.Message == "NotAuthorised" &&
+                p.Message == "This instruction can't be processed: NotAuthorised" &&
                 p.NetworkReplyToId == command.SourceId),
             null),
             Times.Once);

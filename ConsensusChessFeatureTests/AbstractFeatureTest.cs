@@ -38,7 +38,7 @@ public abstract class AbstractFeatureTest
     protected Dictionary<string, Func<SocialCommand, Task>> receivers;
     protected List<Post> postsSent;
 
-    protected TimeSpan FastPollOverride = TimeSpan.FromSeconds(0.5);
+    protected TimeSpan FastPollOverride = TimeSpan.FromMilliseconds(1);
 
     protected AbstractFeatureTest()
     {
