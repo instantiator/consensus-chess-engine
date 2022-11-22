@@ -8,8 +8,10 @@ namespace ConsensusChessShared.DTO
 		GameAnnouncement,
 		BoardUpdate,
 		MoveAccepted,
+		GameNotFound,
 		MoveValidation,
 		Unspecified,
+		CommandRejection,
 		CommandResponse
 	}
 

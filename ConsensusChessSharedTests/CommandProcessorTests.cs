@@ -34,7 +34,7 @@ namespace ConsensusChessSharedTests
             fails = new List<Tuple<SocialCommand, string, CommandRejectionReason?>>();
         }
 
-        private async Task Cmd_OnFailAsync(SocialCommand origin, string error, CommandRejectionReason? reason)
+        private async Task Cmd_OnFailAsync(SocialCommand origin, string error, CommandRejectionReason reason)
         {
             fails.Add(new Tuple<SocialCommand, string, CommandRejectionReason?>(origin, error, reason));
         }

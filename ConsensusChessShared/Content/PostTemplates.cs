@@ -23,8 +23,10 @@ namespace ConsensusChessShared.Content
             { PostType.CommandResponse, "{{ Text }}" },
             { PostType.GameCreationResponse, "New {{Game.SideRules}} game for: {{AllNodes}}" },
             { PostType.GameAnnouncement, "New {{ Game.SideRules }} game...\nWhite: {{ WhiteParticipantNetworkServers }}\nBlack: {{ BlackParticipantNetworkServers }}\nMove duration: {{ Game.MoveDuration }}" },
+            { PostType.GameNotFound, "No game linked to move post from {{ Account }}: {{ SAN }}" },
+            { PostType.CommandRejection, "{{ RejectionReason }}" },
             { PostType.MoveAccepted, "Move accepted - thank you" },
-            { PostType.MoveValidation, "{{ Text }}" },
+            { PostType.MoveValidation, "{{ ValidationState }} from {{ Account }}: {{ SAN }}, {{ Detail }}" },
             { PostType.Unspecified, "{{ Text }}" },
         };
 

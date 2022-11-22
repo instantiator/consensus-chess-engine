@@ -1,7 +1,11 @@
 ﻿using System;
+using System.Net.NetworkInformation;
 using System.Reflection;
+using System.Security.Principal;
 using ConsensusChessShared.DTO;
+using ConsensusChessShared.Exceptions;
 using ConsensusChessShared.Social;
+using Mastonet.Entities;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Newtonsoft.Json.Linq;
 
@@ -9,6 +13,8 @@ namespace ConsensusChessShared.Content
 {
 	public class PostBuilder
 	{
+		public static string UNKNOWN = "(unknown)";
+
 		private static PostTemplates Templates = new PostTemplates();
 
 		public PostType Type { get; private set; }
@@ -51,6 +57,36 @@ namespace ConsensusChessShared.Content
 			WithMapping("SocialStatus", status.ToString());
 			return this;
 		}
+
+		public PostBuilder WithValidationState(VoteValidationState state)
+		{
+            WithMapping("ValidationState", state.ToString());
+            return this;
+        }
+
+		public PostBuilder WithRejectionReason(CommandRejectionReason reason)
+		{
+			WithMapping("RejectionReason", reason.ToString());
+			return this;
+		}
+
+        public PostBuilder WithDetail(string? detail)
+        {
+            WithMapping("Detail", detail ?? "");
+            return this;
+        }
+
+        public PostBuilder WithAccount(string? account)
+		{
+            WithMapping("Account", account ?? UNKNOWN);
+            return this;
+        }
+
+        public PostBuilder WithSAN(string SAN)
+		{
+            WithMapping("SAN", SAN);
+            return this;
+        }
 
         public PostBuilder WithObject(string name, Object obj)
 		{

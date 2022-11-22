@@ -24,7 +24,7 @@ namespace ConsensusChessShared.Service
         /// <exception cref="CommandRejectionException">An issue occurred whilst executing the command</throws>
         public delegate Task CommandEnactionAsync(SocialCommand origin, IEnumerable<string> words);
 
-        public event Func<SocialCommand, string, CommandRejectionReason?, Task> OnFailAsync;
+        public event Func<SocialCommand, string, CommandRejectionReason, Task> OnFailAsync;
 
         private IEnumerable<string> skips;
         private IEnumerable<string> authorisedAccounts;
@@ -70,7 +70,7 @@ namespace ConsensusChessShared.Service
             {
                 if (string.IsNullOrWhiteSpace(commandWord))
                 {
-                    throw new CommandRejectionException(commandWords, command.NetworkUserId, CommandRejectionReason.NoCommandWords);
+                    throw new CommandRejectionException(commandWords, command.NetworkUserId!, CommandRejectionReason.NoCommandWords);
                 }
 
                 if (register.ContainsKey(commandWord))

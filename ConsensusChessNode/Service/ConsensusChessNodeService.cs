@@ -147,8 +147,9 @@ namespace ConsensusChessNode.Service
                     // TODO: remove - this is messy logging to try and catch the issue
                     log.LogWarning(JsonConvert.SerializeObject(db.Games.ToList()));
 
-                    var reply = new PostBuilder(PostType.MoveValidation)
-                        .WithText(summary)
+                    var reply = new PostBuilder(PostType.GameNotFound)
+                        .WithAccount(e.Command.SourceAccount)
+                        .WithSAN(voteSAN)
                         .InReplyTo(origin)
                         .Build();
 
@@ -161,7 +162,10 @@ namespace ConsensusChessNode.Service
                     log.LogWarning(summary);
 
                     var reply = new PostBuilder(PostType.MoveValidation)
-                        .WithText(summary)
+                        .WithValidationState(e.Reason)
+                        .WithAccount(participant?.NetworkUserAccount)
+                        .WithSAN(voteSAN)
+                        .WithDetail(e?.Detail)
                         .InReplyTo(origin)
                         .Build();
 
@@ -181,7 +185,7 @@ namespace ConsensusChessNode.Service
         {
             log.LogInformation($"Shutting down.");
             polling = false;
-            pollingCancellation.Cancel();
+            pollingCancellation?.Cancel();
         }
 
         protected override async Task FinishAsync()

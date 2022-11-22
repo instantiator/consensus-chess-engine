@@ -91,10 +91,10 @@ namespace ConsensusChessShared.Service
             IndicateHealthReady();
         }
 
-        private async Task Cmd_OnFailAsync(SocialCommand origin, string message, CommandRejectionReason? reason)
+        private async Task Cmd_OnFailAsync(SocialCommand origin, string message, CommandRejectionReason reason)
         {
-            var post = new PostBuilder(PostType.CommandResponse)
-                .WithText(message)
+            var post = new PostBuilder(PostType.CommandRejection)
+                .WithRejectionReason(reason)
                 .InReplyTo(origin)
                 .Build();
 

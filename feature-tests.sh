@@ -38,11 +38,10 @@ export TEST_FILTER=${FILTER}
 # remove any residual containers and the attached database volume before run
 docker compose -p consensus-chess-feature \
   -f compose.feature-tests.yaml \
-  --env-file environments/int-database.env \
   down -v
 
 # start all containers required for the test, exit when it finishes
-docker compose -p consensus-chess-int \
+docker compose -p consensus-chess-feature \
   -f compose.feature-tests.yaml \
   up --build feature-tests \
   --exit-code-from feature-tests \
@@ -92,9 +91,8 @@ EOF
 fi
 
 # stop all containers (leave the db intact) after the run
-docker compose -p consensus-chess-int \
-  -f compose.yaml -f compose.int.yaml \
-  --env-file environments/int-database.env \
+docker compose -p consensus-chess-feature \
+  -f compose.feature-tests.yaml \
   stop
 
 exit $TEST_CODE

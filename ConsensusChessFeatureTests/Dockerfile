@@ -17,7 +17,7 @@ RUN dotnet restore ConsensusChessFeatureTests/ConsensusChessFeatureTests.csproj
 
 COPY . .
 
-WORKDIR "/src"
+WORKDIR /src
 RUN dotnet test ConsensusChessSharedTests/ConsensusChessSharedTests.csproj
 
 RUN dotnet build ConsensusChessFeatureTests/ConsensusChessFeatureTests.csproj
