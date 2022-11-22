@@ -36,6 +36,7 @@ public abstract class AbstractFeatureTest
     public Mock<ISocialConnection> EngineSocialMock { get; private set; }
 
     protected Dictionary<string, Func<SocialCommand, Task>> receivers;
+    protected List<Post> postsSent;
 
     protected TimeSpan FastPollOverride = TimeSpan.FromSeconds(1);
 
@@ -52,6 +53,7 @@ public abstract class AbstractFeatureTest
             logPath = Path.Join(path, "feature-tests.log");
         }
         if (File.Exists(logPath)) { File.Delete(logPath); }
+        postsSent = new List<Post>();
     }
 
     [TestInitialize]
@@ -70,6 +72,7 @@ public abstract class AbstractFeatureTest
         EngineSocialMock = new Mock<ISocialConnection>();
 
         receivers = new Dictionary<string, Func<SocialCommand, Task>>();
+        postsSent = new List<Post>();
 
         Dbo = new SqliteDbOperator(NodeLogMock.Object, TestContext!.TestName, DateTime.Now);
 
@@ -151,8 +154,16 @@ public abstract class AbstractFeatureTest
             (post, dry)
                 => Task.FromResult(FeatureDataGenerator.SimulatePost(post, shortcode, NodeNetwork));
 
+        var storePost = (Post post, bool? hush) =>
+        {
+            post.Succeeded = true;
+            postsSent.Add(post);
+            return post;
+        };
+
         mock.Setup(sc => sc.PostAsync(It.IsAny<Post>(), It.IsAny<bool?>()))
             .Returns(postFunc)
+            .Callback((Post post, bool? hush) => Task.FromResult(storePost(post, hush)))
             .Verifiable();
 
         Func<string, PostType, bool, Task<Post>> postTextFunc =

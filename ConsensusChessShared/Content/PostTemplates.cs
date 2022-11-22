@@ -21,7 +21,9 @@ namespace ConsensusChessShared.Content
             { PostType.SocialStatus, "{{ State.Name }} ({{ State.Shortcode }}): {{ SocialStatus }}" },
             { PostType.BoardUpdate, "New board. You have {{ Game.MoveDuration }} to vote.\n{{ FEN }}" },
             { PostType.CommandResponse, "{{ Text }}" },
+            { PostType.GameCreationResponse, "New {{Game.SideRules}} game for: {{AllNodes}}" },
             { PostType.GameAnnouncement, "New {{ Game.SideRules }} game...\nWhite: {{ WhiteParticipantNetworkServers }}\nBlack: {{ BlackParticipantNetworkServers }}\nMove duration: {{ Game.MoveDuration }}" },
+            { PostType.MoveAccepted, "Move accepted - thank you" },
             { PostType.MoveValidation, "{{ Text }}" },
             { PostType.Unspecified, "{{ Text }}" },
         };

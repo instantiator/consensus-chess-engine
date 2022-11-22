@@ -42,6 +42,7 @@ namespace ConsensusChessFeatureTests
 
             await receivers[EngineId.Shortcode].Invoke(command);
 
+            // akcknowledgement
             EngineSocialMock.Verify(ns => ns.PostAsync(
             It.Is<Post>(p =>
                 p.Succeeded == true &&
@@ -49,6 +50,14 @@ namespace ConsensusChessFeatureTests
                 p.NetworkReplyToId == command.SourceId),
             null),
             Times.Once);
+
+            // announcement
+            EngineSocialMock.Verify(ns => ns.PostAsync(
+                It.Is<Post>(p =>
+                    p.Succeeded == true &&
+                    p.Message == "New MoveLock game...\nWhite: \nBlack: \nMove duration: 2.00:00:00"),
+                null),
+                Times.Once);
 
             using (var db = Dbo.GetDb())
             {
@@ -69,6 +78,68 @@ namespace ConsensusChessFeatureTests
                 Assert.AreEqual(Board.INITIAL_FEN, game.Moves.Single().From.FEN);
             }
         }
+
+        [TestMethod]
+        public async Task UnauthorisedNewGameCommand_responds_Rejection()
+        {
+            var engine = await StartEngineAsync();
+            var node = await StartNodeAsync();
+
+            using (var db = Dbo.GetDb())
+            {
+                Assert.AreEqual(0, db.Games.Count());
+            }
+
+            var command = FeatureDataGenerator.GenerateCommand($"new {NodeId.Shortcode}", EngineNetwork, authorised: false);
+
+            await receivers[EngineId.Shortcode].Invoke(command);
+
+            await Task.Delay(1000);
+
+            EngineSocialMock.Verify(ns => ns.PostAsync(
+            It.Is<Post>(p =>
+                p.Succeeded == true &&
+                p.Message == "NotAuthorised" &&
+                p.NetworkReplyToId == command.SourceId),
+            null),
+            Times.Once);
+
+            using (var db = Dbo.GetDb())
+            {
+                Assert.AreEqual(0, db.Games.Count());
+            }
+        }
+
+        [TestMethod]
+        public async Task UnknownNodesInNewGameCommand_responds_Rejection()
+        {
+            var engine = await StartEngineAsync();
+            var node = await StartNodeAsync();
+
+            using (var db = Dbo.GetDb())
+            {
+                Assert.AreEqual(0, db.Games.Count());
+            }
+
+            var command = FeatureDataGenerator.GenerateCommand($"new beans-on-toast", EngineNetwork);
+
+            await receivers[EngineId.Shortcode].Invoke(command);
+
+            await Task.Delay(1000);
+
+            EngineSocialMock.Verify(ns => ns.PostAsync(
+            It.Is<Post>(p =>
+                p.Succeeded == true &&
+                p.Message == "Unrecognised shortcodes: beans-on-toast" &&
+                p.NetworkReplyToId == command.SourceId),
+            null),
+            Times.Once);
+
+            using (var db = Dbo.GetDb())
+            {
+                Assert.AreEqual(0, db.Games.Count());
+            }
+        }
+
     }
 }
-

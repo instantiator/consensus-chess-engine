@@ -95,7 +95,7 @@ namespace ConsensusChessShared.Service
         {
             var post = new PostBuilder(PostType.CommandResponse)
                 .WithText(message)
-                .InReplyTo(origin.SourceId)
+                .InReplyTo(origin)
                 .Build();
 
             await social.PostAsync(post);

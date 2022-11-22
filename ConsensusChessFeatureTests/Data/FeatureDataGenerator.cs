@@ -69,7 +69,7 @@ namespace ConsensusChessFeatureTests.Data
             };
         }
 
-        public static SocialCommand GenerateCommand(string message, Network network, bool authorised = true, string from = "instantiator")
+        public static SocialCommand GenerateCommand(string message, Network network, bool authorised = true, string from = "instantiator", long? inReplyTo = null)
         {
             return new SocialCommand()
             {
@@ -82,6 +82,7 @@ namespace ConsensusChessFeatureTests.Data
                 ReceivingNetwork = network,
                 NetworkUserId = from,
                 SourceAccount = from,
+                InReplyToId = inReplyTo,
                 SourceId = FeatureDataGenerator.RollingPostId++
             };
 

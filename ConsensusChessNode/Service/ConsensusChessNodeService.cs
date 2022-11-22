@@ -131,9 +131,7 @@ namespace ConsensusChessNode.Service
                     await db.SaveChangesAsync();
 
                     // post validation response, and attach to vote
-                    var summary = "Move accepted - thank you";
-                    var reply = new PostBuilder(PostType.MoveValidation)
-                        .WithText(summary)
+                    var reply = new PostBuilder(PostType.MoveAccepted)
                         .InReplyTo(origin)
                         .Build();
 
@@ -158,7 +156,8 @@ namespace ConsensusChessNode.Service
                 }
                 catch (VoteRejectionException e)
                 {
-                    var summary = $"{e.Reason} from {e.Command?.SourceAccount ?? "unknown"}: {voteSAN}, {e.Message}";
+                    
+                    var summary = $"{e.Reason} from {participant?.NetworkUserAccount ?? "unknown"}: {voteSAN}, {e.Detail}";
                     log.LogWarning(summary);
 
                     var reply = new PostBuilder(PostType.MoveValidation)

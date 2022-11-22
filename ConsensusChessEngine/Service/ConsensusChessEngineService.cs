@@ -80,8 +80,9 @@ namespace ConsensusChessEngine.Service
 
                     await social.PostAsync(post);
 
-                    var reply = new PostBuilder(PostType.CommandResponse)
-                        .WithText(summary)
+                    var reply = new PostBuilder(PostType.GameCreationResponse)
+                        .WithGame(game)
+                        .WithMapping("AllNodes", string.Join(", ", nodeShortcodes))
                         .InReplyTo(origin.SourceId)
                         .Build();
 
