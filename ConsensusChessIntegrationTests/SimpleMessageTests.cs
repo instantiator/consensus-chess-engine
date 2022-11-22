@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Xml.Linq;
+using ConsensusChessShared.Constants;
 using ConsensusChessShared.DTO;
 using ConsensusChessShared.Helpers;
 using ConsensusChessShared.Service;

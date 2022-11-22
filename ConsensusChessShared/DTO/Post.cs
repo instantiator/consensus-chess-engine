@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using ConsensusChessShared.Constants;
 using ConsensusChessShared.Content;
 
 namespace ConsensusChessShared.DTO

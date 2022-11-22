@@ -1,5 +1,5 @@
 ﻿using System;
-namespace ConsensusChessShared.DTO
+namespace ConsensusChessShared.Constants
 {
 	public enum NodeType
 	{

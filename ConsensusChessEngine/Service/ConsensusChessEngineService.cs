@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using ConsensusChessShared.Constants;
 using ConsensusChessShared.Content;
 using ConsensusChessShared.DTO;
 using ConsensusChessShared.Exceptions;

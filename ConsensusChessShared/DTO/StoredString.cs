@@ -14,9 +14,6 @@ namespace ConsensusChessShared.DTO
         public Guid Id { get; set; }
         public string? Value { get; set; }
 
-        //public static implicit operator string?(StoredString ss) => ss.Value;
-        //public static implicit operator StoredString(string? s) => new StoredString(s);
-
         public static explicit operator string?(StoredString ss) => ss.Value;
         public static explicit operator StoredString(string? s) => new StoredString(s);
 
@@ -25,6 +22,11 @@ namespace ConsensusChessShared.DTO
             if (obj is string) { return Value == obj as string; }
             if (obj is StoredString) { return Value == (obj as StoredString)?.Value; }
             return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return Value?.GetHashCode() ?? base.GetHashCode();
         }
     }
 }

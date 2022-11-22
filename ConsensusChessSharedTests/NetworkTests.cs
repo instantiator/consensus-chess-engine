@@ -1,4 +1,5 @@
 ﻿using System;
+using ConsensusChessShared.Constants;
 using ConsensusChessShared.DTO;
 using ConsensusChessSharedTests.Data;
 

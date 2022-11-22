@@ -24,6 +24,7 @@
     <None Remove="Gera.Chess" />
     <None Remove="Content\" />
     <None Remove="Handlebars.Net" />
+    <None Remove="Constants\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DTO\" />
@@ -34,6 +35,7 @@
     <Folder Include="Exceptions\" />
     <Folder Include="Migrations\" />
     <Folder Include="Content\" />
+    <Folder Include="Constants\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.0" />

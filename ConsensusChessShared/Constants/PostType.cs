@@ -1,5 +1,5 @@
 ﻿using System;
-namespace ConsensusChessShared.Content
+namespace ConsensusChessShared.Constants
 {
 	public enum PostType
 	{

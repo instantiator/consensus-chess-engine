@@ -1,6 +1,7 @@
 ﻿using System;
 using Chess;
 using ConsensusChessEngine.Service;
+using ConsensusChessShared.Constants;
 using ConsensusChessShared.DTO;
 using ConsensusChessShared.Exceptions;
 using ConsensusChessShared.Service;

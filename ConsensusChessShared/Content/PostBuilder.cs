@@ -2,6 +2,7 @@
 using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Security.Principal;
+using ConsensusChessShared.Constants;
 using ConsensusChessShared.DTO;
 using ConsensusChessShared.Exceptions;
 using ConsensusChessShared.Social;
