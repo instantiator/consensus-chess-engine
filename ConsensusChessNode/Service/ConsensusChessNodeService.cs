@@ -28,17 +28,17 @@ namespace ConsensusChessNode.Service
         {
             using (var db = dbo.GetDb())
             {
-                var unpostedBoardChecks = gm.FindUnpostedBoards(db.Games, state.Shortcode);
+                // find and post uposted boards from active games
+                var unpostedBoardChecks = gm.FindUnpostedActiveBoards(db.Games, state.Shortcode);
                 foreach (var check in unpostedBoardChecks)
                 {
                     var game = check.Key;
                     var board = check.Value;
-
                     if (board != null)
                     {
                         log.LogInformation($"Found a new board to post in game: {game.Id}");
 
-                        var post = new PostBuilder(PostType.BoardUpdate)
+                        var post = new PostBuilder(PostType.Node_BoardUpdate)
                             .WithGame(game)
                             .WithBoard(board)
                             .Build();
@@ -49,6 +49,11 @@ namespace ConsensusChessNode.Service
                         await db.SaveChangesAsync();
                     }
                 }
+
+                // TODO: find and post unposted abandoned games
+
+                // TODO: find and post unposted ended games
+
             }
         }
 
@@ -90,10 +95,10 @@ namespace ConsensusChessNode.Service
                     game = dbo.GetActiveGameForCurrentBoardResponse(db, origin); // throws GameNotFoundException
 
                     // establish wether this participant is permitted to vote on this move
-                    var mayVote = gm.ParticipantMayVote(game, participant);
+                    var mayVote = gm.ParticipantOnSide(game, participant);
                     if (!mayVote)
                     {
-                        throw new VoteRejectionException(vote, VoteValidationState.NotPermitted, origin);
+                        throw new VoteRejectionException(vote, VoteValidationState.OffSide, origin);
                     }
 
                     // check validity of vote SAN
@@ -101,7 +106,7 @@ namespace ConsensusChessNode.Service
                     vote.ValidationState = VoteValidationState.Valid;
 
                     // supercede any pre-existing vote
-                    var preexistingVote = gm.GetCurrentValidVote(game, participant);
+                    var preexistingVote = gm.GetCurrentValidVote(game.CurrentMove, participant);
                     if (preexistingVote != null)
                     {
                         log.LogDebug("Marking preexisting vote superceded.");

@@ -6,7 +6,7 @@ namespace ConsensusChessShared.DTO
 		Valid,
 		NoGame,
 		InvalidSAN,
-		NotPermitted,
+		OffSide,
 		Superceded
 	}
 }

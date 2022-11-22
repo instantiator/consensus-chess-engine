@@ -18,7 +18,7 @@ namespace ConsensusChessShared.DTO
 
         public virtual Board From { get; set; }
 		public virtual Board? To { get; set; }
-		public virtual Vote? SelectedVote { get; set; }
+		public virtual string? SelectedSAN { get; set; }
 		public virtual List<Vote> Votes { get; set; }
 		public DateTime Deadline { get; set; }
 

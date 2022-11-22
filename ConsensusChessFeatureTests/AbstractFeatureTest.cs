@@ -4,6 +4,7 @@ using ConsensusChessFeatureTests.Data;
 using ConsensusChessFeatureTests.Database;
 using ConsensusChessFeatureTests.Service;
 using ConsensusChessNode.Service;
+using ConsensusChessShared.Content;
 using ConsensusChessShared.DTO;
 using ConsensusChessShared.Service;
 using ConsensusChessShared.Social;

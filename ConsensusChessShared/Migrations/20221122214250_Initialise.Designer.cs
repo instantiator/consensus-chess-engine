@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ConsensusChessShared.Migrations
 {
     [DbContext(typeof(ConsensusChessPostgresContext))]
-    [Migration("20221118162458_Init")]
-    partial class Init
+    [Migration("20221122214250_Initialise")]
+    partial class Initialise
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -120,6 +120,10 @@ namespace ConsensusChessShared.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("side_rules");
 
+                    b.Property<int>("State")
+                        .HasColumnType("integer")
+                        .HasColumnName("state");
+
                     b.HasKey("Id")
                         .HasName("pk_games");
 
@@ -183,9 +187,9 @@ namespace ConsensusChessShared.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("game_id");
 
-                    b.Property<Guid?>("SelectedVoteId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("selected_vote_id");
+                    b.Property<string>("SelectedSAN")
+                        .HasColumnType("text")
+                        .HasColumnName("selected_san");
 
                     b.Property<Guid?>("ToId")
                         .HasColumnType("uuid")
@@ -199,9 +203,6 @@ namespace ConsensusChessShared.Migrations
 
                     b.HasIndex("GameId")
                         .HasDatabaseName("ix_move_game_id");
-
-                    b.HasIndex("SelectedVoteId")
-                        .HasDatabaseName("ix_move_selected_vote_id");
 
                     b.HasIndex("ToId")
                         .HasDatabaseName("ix_move_to_id");
@@ -365,6 +366,10 @@ namespace ConsensusChessShared.Migrations
                         .HasColumnType("text")
                         .HasColumnName("exception_type");
 
+                    b.Property<Guid?>("GameId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("game_id");
+
                     b.Property<string>("Message")
                         .IsRequired()
                         .HasColumnType("text")
@@ -405,6 +410,9 @@ namespace ConsensusChessShared.Migrations
 
                     b.HasIndex("BoardId")
                         .HasDatabaseName("ix_post_board_id");
+
+                    b.HasIndex("GameId")
+                        .HasDatabaseName("ix_post_game_id");
 
                     b.HasIndex("NodeStateId")
                         .HasDatabaseName("ix_post_node_state_id");
@@ -538,19 +546,12 @@ namespace ConsensusChessShared.Migrations
                         .HasForeignKey("GameId")
                         .HasConstraintName("fk_move_games_game_id");
 
-                    b.HasOne("ConsensusChessShared.DTO.Vote", "SelectedVote")
-                        .WithMany()
-                        .HasForeignKey("SelectedVoteId")
-                        .HasConstraintName("fk_move_vote_selected_vote_id");
-
                     b.HasOne("ConsensusChessShared.DTO.Board", "To")
                         .WithMany()
                         .HasForeignKey("ToId")
                         .HasConstraintName("fk_move_board_to_id");
 
                     b.Navigation("From");
-
-                    b.Navigation("SelectedVote");
 
                     b.Navigation("To");
                 });
@@ -573,6 +574,11 @@ namespace ConsensusChessShared.Migrations
                         .WithMany("BoardPosts")
                         .HasForeignKey("BoardId")
                         .HasConstraintName("fk_post_board_board_id");
+
+                    b.HasOne("ConsensusChessShared.DTO.Game", null)
+                        .WithMany("GamePosts")
+                        .HasForeignKey("GameId")
+                        .HasConstraintName("fk_post_games_game_id");
 
                     b.HasOne("ConsensusChessShared.DTO.NodeState", null)
                         .WithMany("StatePosts")
@@ -637,6 +643,8 @@ namespace ConsensusChessShared.Migrations
                     b.Navigation("BlackParticipantNetworkServers");
 
                     b.Navigation("BlackPostingNodeShortcodes");
+
+                    b.Navigation("GamePosts");
 
                     b.Navigation("Moves");
 

@@ -113,6 +113,10 @@ namespace ConsensusChessFeatureTests.Migrations
                         .HasColumnType("INTEGER")
                         .HasColumnName("side_rules");
 
+                    b.Property<int>("State")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("state");
+
                     b.HasKey("Id")
                         .HasName("pk_games");
 
@@ -176,9 +180,9 @@ namespace ConsensusChessFeatureTests.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("game_id");
 
-                    b.Property<Guid?>("SelectedVoteId")
+                    b.Property<string>("SelectedSAN")
                         .HasColumnType("TEXT")
-                        .HasColumnName("selected_vote_id");
+                        .HasColumnName("selected_san");
 
                     b.Property<Guid?>("ToId")
                         .HasColumnType("TEXT")
@@ -192,9 +196,6 @@ namespace ConsensusChessFeatureTests.Migrations
 
                     b.HasIndex("GameId")
                         .HasDatabaseName("ix_move_game_id");
-
-                    b.HasIndex("SelectedVoteId")
-                        .HasDatabaseName("ix_move_selected_vote_id");
 
                     b.HasIndex("ToId")
                         .HasDatabaseName("ix_move_to_id");
@@ -358,6 +359,10 @@ namespace ConsensusChessFeatureTests.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("exception_type");
 
+                    b.Property<Guid?>("GameId")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("game_id");
+
                     b.Property<string>("Message")
                         .IsRequired()
                         .HasColumnType("TEXT")
@@ -398,6 +403,9 @@ namespace ConsensusChessFeatureTests.Migrations
 
                     b.HasIndex("BoardId")
                         .HasDatabaseName("ix_post_board_id");
+
+                    b.HasIndex("GameId")
+                        .HasDatabaseName("ix_post_game_id");
 
                     b.HasIndex("NodeStateId")
                         .HasDatabaseName("ix_post_node_state_id");
@@ -531,19 +539,12 @@ namespace ConsensusChessFeatureTests.Migrations
                         .HasForeignKey("GameId")
                         .HasConstraintName("fk_move_games_game_id");
 
-                    b.HasOne("ConsensusChessShared.DTO.Vote", "SelectedVote")
-                        .WithMany()
-                        .HasForeignKey("SelectedVoteId")
-                        .HasConstraintName("fk_move_vote_selected_vote_id");
-
                     b.HasOne("ConsensusChessShared.DTO.Board", "To")
                         .WithMany()
                         .HasForeignKey("ToId")
                         .HasConstraintName("fk_move_board_to_id");
 
                     b.Navigation("From");
-
-                    b.Navigation("SelectedVote");
 
                     b.Navigation("To");
                 });
@@ -566,6 +567,11 @@ namespace ConsensusChessFeatureTests.Migrations
                         .WithMany("BoardPosts")
                         .HasForeignKey("BoardId")
                         .HasConstraintName("fk_post_board_board_id");
+
+                    b.HasOne("ConsensusChessShared.DTO.Game", null)
+                        .WithMany("GamePosts")
+                        .HasForeignKey("GameId")
+                        .HasConstraintName("fk_post_games_game_id");
 
                     b.HasOne("ConsensusChessShared.DTO.NodeState", null)
                         .WithMany("StatePosts")
@@ -630,6 +636,8 @@ namespace ConsensusChessFeatureTests.Migrations
                     b.Navigation("BlackParticipantNetworkServers");
 
                     b.Navigation("BlackPostingNodeShortcodes");
+
+                    b.Navigation("GamePosts");
 
                     b.Navigation("Moves");
 

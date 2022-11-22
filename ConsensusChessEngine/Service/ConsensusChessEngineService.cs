@@ -27,7 +27,55 @@ namespace ConsensusChessEngine.Service
 
         protected override async Task PollAsync(CancellationToken cancellationToken)
         {
-            // TODO: check each game, if the current move has expired tally votes and recalculate the board
+            IEnumerable<Game> gamesToMove;
+            using (var db = dbo.GetDb())
+            {
+                gamesToMove = dbo.GetActiveGamesWithExpiredMoves(db);
+                foreach (var game in gamesToMove)
+                {
+                    await AdvanceGameAsync(game);
+                    db.Games.Update(game);
+                    await db.SaveChangesAsync();
+                }
+            }
+        }
+
+        private async Task AdvanceGameAsync(Game game)
+        {
+            // count all votes
+            var votes = gm.CountVotes(game.CurrentMove);
+            var summary = string.Join(
+                "\n",
+                votes
+                    .OrderByDescending(pair => pair.Value)
+                    .Select(pair => $"{pair.Key}: {pair.Value}"));
+            log.LogDebug($"Votes for {game.Shortcode}:\n{summary}");
+            // TODO: intervention point to post stats about the game, see: IGC-69
+
+            // determine next move for the game, and apply it
+            var nextSAN = gm.NextMoveFor(votes);
+            if (nextSAN != null)
+            {
+                log.LogWarning($"Advancing game: {game.Shortcode} with move: {nextSAN}");
+                gm.AdvanceGame(game, nextSAN);
+                var post = new PostBuilder(PostType.Engine_GameAdvance)
+                    .WithGame(game)
+                    .Build();
+                var posted = await social.PostAsync(post);
+                game.GamePosts.Add(posted);
+                // TODO: intervention point to detect game endings, see: IGC-12
+            }
+            else
+            {
+                log.LogWarning($"0 votes found for game: {game.Shortcode}");
+                log.LogInformation($"Deactivating game: {game.Shortcode}");
+                gm.AbandonGame(game);
+                var post = new PostBuilder(PostType.Engine_GameAbandoned)
+                    .WithGame(game)
+                    .Build();
+                var posted = await social.PostAsync(post);
+                game.GamePosts.Add(posted);
+            }
         }
 
         protected override void RegisterForCommands(CommandProcessor processor)
@@ -68,19 +116,19 @@ namespace ConsensusChessEngine.Service
                     db.Games.Add(game);
                     await db.SaveChangesAsync();
 
-                    // TODO: don't forget to update (or add!) an integration test
-
-                    // TODO: update summary
                     var summary = $"New {game.SideRules} game for: {string.Join(", ", nodeShortcodes)}";
                     log.LogInformation(summary);
 
-                    var post = new PostBuilder(PostType.GameAnnouncement)
+                    var post = new PostBuilder(PostType.Engine_GameAnnouncement)
                         .WithGame(game)
                         .Build();
 
                     await social.PostAsync(post);
 
-                    var reply = new PostBuilder(PostType.GameCreationResponse)
+                    game.GamePosts.Add(post);
+                    await db.SaveChangesAsync();
+
+                    var reply = new PostBuilder(PostType.Engine_GameCreationResponse)
                         .WithGame(game)
                         .WithMapping("AllNodes", string.Join(", ", nodeShortcodes))
                         .InReplyTo(origin.SourceId)
@@ -100,6 +148,7 @@ namespace ConsensusChessEngine.Service
                         .Build();
                     await social.PostAsync(reply);
                 }
+
                 ReportOnGames();
             }
         }

@@ -114,7 +114,7 @@ namespace ConsensusChessSharedTests
 
             var participant = Participant.From(cmd);
 
-            var ok = gm.ParticipantMayVote(game, participant);
+            var ok = gm.ParticipantOnSide(game, participant);
             Assert.IsTrue(ok);
         }
 
@@ -142,7 +142,7 @@ namespace ConsensusChessSharedTests
                 GameSide = Side.White
             });
 
-            var ok = gm.ParticipantMayVote(game, participant);
+            var ok = gm.ParticipantOnSide(game, participant);
             Assert.IsTrue(ok);
         }
 
@@ -168,7 +168,7 @@ namespace ConsensusChessSharedTests
                 GameSide = Side.Black
             });
 
-            var ok = gm.ParticipantMayVote(game, participant);
+            var ok = gm.ParticipantOnSide(game, participant);
             Assert.IsFalse(ok);
         }
 

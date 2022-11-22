@@ -33,8 +33,14 @@ public class Game : IDTO
     public virtual List<StoredString> WhiteParticipantNetworkServers { get; set; }
     public virtual List<StoredString> BlackPostingNodeShortcodes { get; set; }
     public virtual List<StoredString> WhitePostingNodeShortcodes { get; set; }
+    public virtual List<Post> GamePosts { get; set; }
+    public virtual GameState State { get; set; }
 
-    [NotMapped] public bool Active => DateTime.Now >= ScheduledStart && Finished == null;
+    [NotMapped] public bool Active
+        => DateTime.Now >= ScheduledStart
+        && Finished == null
+        && State == GameState.InProgress;
+
     [NotMapped] public Move CurrentMove => Moves.OrderBy(m => m.Deadline).Last();
     [NotMapped] public Board CurrentBoard => CurrentMove.From;
     [NotMapped] public Side CurrentSide => CurrentBoard.ActiveSide;
@@ -56,6 +62,8 @@ public class Game : IDTO
             Description = description,
             ScheduledStart = DateTime.Now.ToUniversalTime(),
             MoveDuration = DEFAULT_MOVE_DURATION,
+            State = GameState.InProgress,
+            GamePosts = new List<Post>(),
             Moves = new List<Move>()
             {
                 Move.CreateStartingMove(DEFAULT_MOVE_DURATION)

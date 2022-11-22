@@ -55,7 +55,7 @@ namespace ConsensusChessFeatureTests
 			{
 				Assert.AreEqual(1, db.Games.Single().CurrentBoard.BoardPosts.Count());
                 Assert.IsTrue(db.Games.Single().CurrentBoard.BoardPosts.Single().Succeeded);
-				Assert.IsTrue(db.Games.Single().CurrentBoard.BoardPosts.Single().Type == PostType.BoardUpdate);
+				Assert.IsTrue(db.Games.Single().CurrentBoard.BoardPosts.Single().Type == PostType.Node_BoardUpdate);
             }
 
             var confirmation = $"New board. You have {game.MoveDuration.ToString()} to vote.";
@@ -294,7 +294,7 @@ namespace ConsensusChessFeatureTests
             var command = FeatureDataGenerator.GenerateCommand("move e4", NodeNetwork, inReplyTo: boardPost.NetworkPostId);
             await receivers[NodeId.Shortcode].Invoke(command);
 
-            var validation = "NotPermitted from instantiator: e4, ";
+            var validation = "OffSide from instantiator: e4, ";
             NodeSocialMock.Verify(ns => ns.PostAsync(
                 It.Is<Post>(p =>
                     p.Succeeded == true &&
@@ -309,7 +309,7 @@ namespace ConsensusChessFeatureTests
                 Assert.AreEqual(1, move.Votes.Count());
                 var vote = move.Votes.Single();
                 Assert.AreEqual("e4", vote.MoveText);
-                Assert.AreEqual(VoteValidationState.NotPermitted, vote.ValidationState);
+                Assert.AreEqual(VoteValidationState.OffSide, vote.ValidationState);
 
                 Assert.IsNotNull(vote.Participant);
                 Assert.AreEqual(1, vote.Participant.Commitments.Count()); // no additional commitment created

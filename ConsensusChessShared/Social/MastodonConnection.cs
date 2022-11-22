@@ -1,4 +1,5 @@
 ﻿using System;
+using ConsensusChessShared.Content;
 using ConsensusChessShared.DTO;
 using Mastonet;
 using Mastonet.Entities;
@@ -46,11 +47,22 @@ namespace ConsensusChessShared.Social
 
         public Dictionary<PostType, Visibility> VisibilityMapping = new Dictionary<PostType, Visibility>()
         {
-            { PostType.CommandResponse, Visibility.Direct },
-            { PostType.MoveValidation, Visibility.Direct },
-            { PostType.GameAnnouncement, Visibility.Unlisted }, // TODO: public when live
-            { PostType.BoardUpdate, Visibility.Unlisted },      // TODO: public when live
             { PostType.SocialStatus, Visibility.Private },
+
+            { PostType.CommandResponse, Visibility.Direct },
+            { PostType.CommandRejection, Visibility.Direct },
+
+            { PostType.MoveAccepted, Visibility.Direct },
+            { PostType.MoveValidation, Visibility.Direct },
+            { PostType.GameNotFound, Visibility.Direct },
+
+            { PostType.Engine_GameAnnouncement, Visibility.Unlisted },
+            { PostType.Engine_GameAdvance, Visibility.Unlisted },
+            { PostType.Engine_GameCreationResponse, Visibility.Unlisted },
+            { PostType.Engine_GameAbandoned, Visibility.Unlisted },
+
+            { PostType.Node_BoardUpdate, Visibility.Unlisted }, // TODO: public when live
+
             { PostType.Unspecified, Visibility.Unlisted },
         };
 

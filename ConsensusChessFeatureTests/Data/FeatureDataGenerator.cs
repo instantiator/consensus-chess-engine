@@ -1,5 +1,6 @@
 ﻿using System;
 using ConsensusChessFeatureTests.Service;
+using ConsensusChessShared.Content;
 using ConsensusChessShared.DTO;
 using ConsensusChessShared.Service;
 using ConsensusChessShared.Social;

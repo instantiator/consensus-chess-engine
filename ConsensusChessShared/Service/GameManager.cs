@@ -27,10 +27,10 @@ namespace ConsensusChessShared.Service
                 SideRules.MoveLock);
         }
 
-        public Dictionary<Game,Board?> FindUnpostedBoards(DbSet<Game> games, string postingNodeShortcode)
+        public Dictionary<Game,Board?> FindUnpostedActiveBoards(DbSet<Game> games, string postingNodeShortcode)
         {
             return games.ToList()
-                .Where(g => UnpostedBoardOrNull(g, postingNodeShortcode) != null)
+                .Where(g => g.Active && UnpostedBoardOrNull(g, postingNodeShortcode) != null)
                 .ToDictionary(g => g, g => UnpostedBoardOrNull(g, postingNodeShortcode));
         }
         
@@ -78,7 +78,14 @@ namespace ConsensusChessShared.Service
             }
         }
 
-        public bool ParticipantMayVote(Game game, Participant participant)
+        /// <summary>
+        /// Checks if the participant may vote on game provided, based on the side rules.
+        /// </summary>
+        /// <param name="game"></param>
+        /// <param name="participant"></param>
+        /// <returns>true if the particpant matches the current side rule for the game</returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public bool ParticipantOnSide(Game game, Participant participant)
         {
             switch (game.SideRules)
             {
@@ -97,11 +104,80 @@ namespace ConsensusChessShared.Service
             }
         }
 
-        public Vote? GetCurrentValidVote(Game game, Participant participant)
+        /// <summary>
+        /// Retrieves the participant's current, valid vote (or null) on the given move.
+        /// </summary>
+        /// <param name="move"></param>
+        /// <param name="participant"></param>
+        /// <returns>Their Vote or null</returns>
+        public Vote? GetCurrentValidVote(DTO.Move move, Participant participant)
         {
-            return game.CurrentMove.Votes.SingleOrDefault(v =>
+            return move.Votes.SingleOrDefault(v =>
                 v.Participant.Id == participant.Id &&
                 v.ValidationState == VoteValidationState.Valid);
+        }
+
+        /// <summary>
+        /// Counts the numbers of distinct votes.
+        /// </summary>
+        /// <param name="move">The move to analyse</param>
+        /// <returns>A dictionary of move SAN to count</returns>
+        public Dictionary<string, int> CountVotes(DTO.Move move)
+        {
+            // Assume that the SAN is canonical. See: ICG-66 canonical SAN
+            return move.Votes
+                .Where(v => v.ValidationState == VoteValidationState.Valid)
+                .Select(v => v.MoveText)
+                .Distinct()
+                .ToDictionary(dv => dv, dv => move.Votes.Count(v => v.MoveText == dv));
+        }
+
+        /// <summary>
+        /// Determines the next move - either the most popular vote, or (in case of a tie) a random choice between the most popular votes.
+        /// </summary>
+        /// <param name="votes"></param>
+        /// <returns>SAN for the next move or null if there were 0 votes</returns>
+        public string? NextMoveFor(Dictionary<string,int> votes)
+        {
+            if (votes.Count() == 0) { return null; }
+            var maxVote = votes.Max(pair => pair.Value);
+            var mostPopularSAN = votes.Where(pair => pair.Value == maxVote).Select(v => v.Key);
+            if (mostPopularSAN.Count() == 1)
+            {
+                return mostPopularSAN.Single();
+            }
+            else
+            {
+                var random = new Random();
+                return mostPopularSAN.ElementAt(random.Next(mostPopularSAN.Count()-1));
+            }
+        }
+
+        public void AdvanceGame(Game game, string move)
+        {
+            var newBoard = CreateNextBoard(game.CurrentBoard, move);
+
+            // update game moves list
+            game.CurrentMove.To = newBoard;
+            game.CurrentMove.SelectedSAN = move;
+            game.Moves.Add(new DTO.Move()
+            {
+                Deadline = DateTime.Now.Add(game.MoveDuration).ToUniversalTime(),
+                From = newBoard
+            });
+        }
+
+        public Board CreateNextBoard(Board board, string SAN)
+        {
+            var chessboard = ChessBoard.LoadFromFen(board.FEN);
+            chessboard.Move(SAN);
+            return Board.FromFEN(chessboard.ToFen());
+        }
+
+        public void AbandonGame(Game game)
+        {
+            game.State = GameState.Abandoned;
+            game.Finished = DateTime.Now.ToUniversalTime();
         }
     }
 }

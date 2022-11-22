@@ -58,6 +58,7 @@ namespace ConsensusChessShared.Service
         /// <summary>
         /// Retrieves the game with the board post that this vote is in response to - or throws an exception.
         /// </summary>
+        /// <param name="db"></param>
         /// <param name="cmd">the social command to check</param>
         /// <returns>the game that this social command refers to</returns>
         /// <exception cref="GameNotFoundException">if the post is not in reply to a current board in any game</exception>
@@ -83,6 +84,21 @@ namespace ConsensusChessShared.Service
             return game;
         }
 
+        /// <summary>
+        /// Identifies currently active games with current move expired.
+        /// </summary>
+        /// <param name="db"></param>
+        /// <returns>a collection of active games</returns>
+        public IEnumerable<Game> GetActiveGamesWithExpiredMoves(ConsensusChessDbContext db)
+        {
+            return db.Games.ToList().Where(g => g.CurrentMove.Expired);
+        }
+
+        /// <summary>
+        /// Generates a unique shortcode for a game (checks that it doesn't appear in the db already).
+        /// </summary>
+        /// <param name="db"></param>
+        /// <returns></returns>
         public string GenerateUniqueGameShortcode(ConsensusChessDbContext db)
         {
             var shortcodes = db.Games.Select(g => g.Shortcode);

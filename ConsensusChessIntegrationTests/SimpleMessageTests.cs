@@ -188,7 +188,7 @@ namespace ConsensusChessIntegrationTests
                 var game = db.Games.ToList().Single();
                 var participant = db.Participant.Single(p => p.NetworkUserAccount == "instantiator@mastodon.social");
                 var gm = new GameManager(mockLogger.Object);
-                var preexistingVote = gm.GetCurrentValidVote(game, participant);
+                var preexistingVote = gm.GetCurrentValidVote(game.CurrentMove, participant);
 
                 Assert.IsNotNull(preexistingVote);
                 Assert.AreEqual("e4", preexistingVote.MoveText);

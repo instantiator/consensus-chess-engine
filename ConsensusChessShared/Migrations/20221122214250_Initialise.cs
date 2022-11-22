@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ConsensusChessShared.Migrations
 {
     /// <inheritdoc />
-    public partial class Init : Migration
+    public partial class Initialise : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -35,7 +35,8 @@ namespace ConsensusChessShared.Migrations
                     scheduledstart = table.Column<DateTime>(name: "scheduled_start", type: "timestamp with time zone", nullable: false),
                     finished = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     moveduration = table.Column<TimeSpan>(name: "move_duration", type: "interval", nullable: false),
-                    siderules = table.Column<int>(name: "side_rules", type: "integer", nullable: false)
+                    siderules = table.Column<int>(name: "side_rules", type: "integer", nullable: false),
+                    state = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -74,6 +75,39 @@ namespace ConsensusChessShared.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("pk_participant", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "move",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    fromid = table.Column<Guid>(name: "from_id", type: "uuid", nullable: false),
+                    toid = table.Column<Guid>(name: "to_id", type: "uuid", nullable: true),
+                    selectedsan = table.Column<string>(name: "selected_san", type: "text", nullable: true),
+                    deadline = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    gameid = table.Column<Guid>(name: "game_id", type: "uuid", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_move", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_move_board_from_id",
+                        column: x => x.fromid,
+                        principalTable: "board",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "fk_move_board_to_id",
+                        column: x => x.toid,
+                        principalTable: "board",
+                        principalColumn: "id");
+                    table.ForeignKey(
+                        name: "fk_move_games_game_id",
+                        column: x => x.gameid,
+                        principalTable: "games",
+                        principalColumn: "id");
                 });
 
             migrationBuilder.CreateTable(
@@ -172,6 +206,7 @@ namespace ConsensusChessShared.Migrations
                     errormessage = table.Column<string>(name: "error_message", type: "text", nullable: true),
                     exceptiontype = table.Column<string>(name: "exception_type", type: "text", nullable: true),
                     boardid = table.Column<Guid>(name: "board_id", type: "uuid", nullable: true),
+                    gameid = table.Column<Guid>(name: "game_id", type: "uuid", nullable: true),
                     nodestateid = table.Column<Guid>(name: "node_state_id", type: "uuid", nullable: true)
                 },
                 constraints: table =>
@@ -181,6 +216,11 @@ namespace ConsensusChessShared.Migrations
                         name: "fk_post_board_board_id",
                         column: x => x.boardid,
                         principalTable: "board",
+                        principalColumn: "id");
+                    table.ForeignKey(
+                        name: "fk_post_games_game_id",
+                        column: x => x.gameid,
+                        principalTable: "games",
                         principalColumn: "id");
                     table.ForeignKey(
                         name: "fk_post_node_state_node_state_id",
@@ -206,39 +246,6 @@ namespace ConsensusChessShared.Migrations
                         name: "fk_media_post_post_id",
                         column: x => x.postid,
                         principalTable: "post",
-                        principalColumn: "id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "move",
-                columns: table => new
-                {
-                    id = table.Column<Guid>(type: "uuid", nullable: false),
-                    created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    fromid = table.Column<Guid>(name: "from_id", type: "uuid", nullable: false),
-                    toid = table.Column<Guid>(name: "to_id", type: "uuid", nullable: true),
-                    selectedvoteid = table.Column<Guid>(name: "selected_vote_id", type: "uuid", nullable: true),
-                    deadline = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    gameid = table.Column<Guid>(name: "game_id", type: "uuid", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_move", x => x.id);
-                    table.ForeignKey(
-                        name: "fk_move_board_from_id",
-                        column: x => x.fromid,
-                        principalTable: "board",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "fk_move_board_to_id",
-                        column: x => x.toid,
-                        principalTable: "board",
-                        principalColumn: "id");
-                    table.ForeignKey(
-                        name: "fk_move_games_game_id",
-                        column: x => x.gameid,
-                        principalTable: "games",
                         principalColumn: "id");
                 });
 
@@ -297,11 +304,6 @@ namespace ConsensusChessShared.Migrations
                 column: "game_id");
 
             migrationBuilder.CreateIndex(
-                name: "ix_move_selected_vote_id",
-                table: "move",
-                column: "selected_vote_id");
-
-            migrationBuilder.CreateIndex(
                 name: "ix_move_to_id",
                 table: "move",
                 column: "to_id");
@@ -321,6 +323,11 @@ namespace ConsensusChessShared.Migrations
                 name: "ix_post_board_id",
                 table: "post",
                 column: "board_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_post_game_id",
+                table: "post",
+                column: "game_id");
 
             migrationBuilder.CreateIndex(
                 name: "ix_post_node_state_id",
@@ -361,42 +368,11 @@ namespace ConsensusChessShared.Migrations
                 name: "ix_vote_validation_post_id",
                 table: "vote",
                 column: "validation_post_id");
-
-            migrationBuilder.AddForeignKey(
-                name: "fk_move_vote_selected_vote_id",
-                table: "move",
-                column: "selected_vote_id",
-                principalTable: "vote",
-                principalColumn: "id");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "fk_vote_participant_participant_id",
-                table: "vote");
-
-            migrationBuilder.DropForeignKey(
-                name: "fk_vote_post_validation_post_id",
-                table: "vote");
-
-            migrationBuilder.DropForeignKey(
-                name: "fk_move_board_from_id",
-                table: "move");
-
-            migrationBuilder.DropForeignKey(
-                name: "fk_move_board_to_id",
-                table: "move");
-
-            migrationBuilder.DropForeignKey(
-                name: "fk_move_games_game_id",
-                table: "move");
-
-            migrationBuilder.DropForeignKey(
-                name: "fk_move_vote_selected_vote_id",
-                table: "move");
-
             migrationBuilder.DropTable(
                 name: "commitment");
 
@@ -407,16 +383,16 @@ namespace ConsensusChessShared.Migrations
                 name: "stored_string");
 
             migrationBuilder.DropTable(
+                name: "vote");
+
+            migrationBuilder.DropTable(
+                name: "move");
+
+            migrationBuilder.DropTable(
                 name: "participant");
 
             migrationBuilder.DropTable(
                 name: "post");
-
-            migrationBuilder.DropTable(
-                name: "node_state");
-
-            migrationBuilder.DropTable(
-                name: "network");
 
             migrationBuilder.DropTable(
                 name: "board");
@@ -425,10 +401,10 @@ namespace ConsensusChessShared.Migrations
                 name: "games");
 
             migrationBuilder.DropTable(
-                name: "vote");
+                name: "node_state");
 
             migrationBuilder.DropTable(
-                name: "move");
+                name: "network");
         }
     }
 }
