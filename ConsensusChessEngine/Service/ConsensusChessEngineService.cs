@@ -124,8 +124,8 @@ namespace ConsensusChessEngine.Service
                         .Build();
 
                     await social.PostAsync(post);
-
                     game.GamePosts.Add(post);
+                    db.Update(game);
                     await db.SaveChangesAsync();
 
                     var reply = new PostBuilder(PostType.Engine_GameCreationResponse)

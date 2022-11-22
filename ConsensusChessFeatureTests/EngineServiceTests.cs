@@ -77,6 +77,8 @@ namespace ConsensusChessFeatureTests
                 Assert.AreEqual(NodeId.Shortcode, game.BlackPostingNodeShortcodes.Single().Value);
 
                 Assert.AreEqual(Board.INITIAL_FEN, game.Moves.Single().From.FEN);
+
+                Assert.AreEqual(1, game.GamePosts.Count(p => p.Type == PostType.Engine_GameAnnouncement));
             }
         }
 
