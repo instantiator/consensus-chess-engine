@@ -34,7 +34,7 @@ public class Game : IDTO
     public virtual List<StoredString> BlackPostingNodeShortcodes { get; set; }
     public virtual List<StoredString> WhitePostingNodeShortcodes { get; set; }
 
-    [NotMapped] public bool Active => DateTime.Now > ScheduledStart && Finished == null;
+    [NotMapped] public bool Active => DateTime.Now >= ScheduledStart && Finished == null;
     [NotMapped] public Move CurrentMove => Moves.OrderBy(m => m.Deadline).Last();
     [NotMapped] public Board CurrentBoard => CurrentMove.From;
     [NotMapped] public Side CurrentSide => CurrentBoard.ActiveSide;

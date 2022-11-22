@@ -61,7 +61,7 @@ namespace ConsensusChessShared.Service
         /// <param name="cmd">the social command to check</param>
         /// <returns>the game that this social command refers to</returns>
         /// <exception cref="GameNotFoundException">if the post is not in reply to a current board in any game</exception>
-        public Game GetGameForResponse(ConsensusChessDbContext db, SocialCommand cmd)
+        public Game GetActiveGameForCurrentBoardResponse(ConsensusChessDbContext db, SocialCommand cmd)
         {
             // check if this is in reply to any boardpost from any game
             var game = db.Games.ToList().SingleOrDefault(g =>
@@ -76,6 +76,9 @@ namespace ConsensusChessShared.Service
 
             if (currentBoard == null)
                 throw new GameNotFoundException(cmd, GameNotFoundReason.BoardReferenceExpired);
+
+            if (!game.Active)
+                throw new GameNotFoundException(cmd, GameNotFoundReason.GameInactive);
 
             return game;
         }

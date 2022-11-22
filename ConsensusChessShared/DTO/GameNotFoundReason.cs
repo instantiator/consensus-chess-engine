@@ -4,7 +4,8 @@ namespace ConsensusChessShared.DTO
 	public enum GameNotFoundReason
 	{
 		NoLinkedGame,
-		BoardReferenceExpired
+		BoardReferenceExpired,
+		GameInactive
 	}
 }
 
