@@ -29,7 +29,7 @@ namespace ConsensusChessShared.Content
             { PostType.GameNotFound, "This vote can't be processed: {{ GameNotFoundReason }}" },
             { PostType.CommandRejection, "This instruction can't be processed: {{ CommandRejectionReason }}" },
             { PostType.MoveAccepted, "Move accepted - thank you" },
-            { PostType.MoveValidation, "{{ ValidationState }} from {{ Account }}: {{ SAN }}, {{ Detail }}" },
+            { PostType.MoveValidation, "{{ ValidationState }} from {{ Username.Full }}: {{ SAN }}, {{ Detail }}" },
             { PostType.Unspecified, "{{ Text }}" },
         };
 

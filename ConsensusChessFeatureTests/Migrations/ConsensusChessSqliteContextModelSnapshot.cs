@@ -311,18 +311,15 @@ namespace ConsensusChessFeatureTests.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("created");
 
-                    b.Property<string>("NetworkServer")
-                        .IsRequired()
+                    b.Property<Guid>("UsernameId")
                         .HasColumnType("TEXT")
-                        .HasColumnName("network_server");
-
-                    b.Property<string>("NetworkUserAccount")
-                        .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasColumnName("network_user_account");
+                        .HasColumnName("username_id");
 
                     b.HasKey("Id")
                         .HasName("pk_participant");
+
+                    b.HasIndex("UsernameId")
+                        .HasDatabaseName("ix_participant_username_id");
 
                     b.ToTable("participant", (string)null);
                 });
@@ -411,6 +408,42 @@ namespace ConsensusChessFeatureTests.Migrations
                         .HasDatabaseName("ix_post_node_state_id");
 
                     b.ToTable("post", (string)null);
+                });
+
+            modelBuilder.Entity("ConsensusChessShared.DTO.SocialUsername", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("created");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("display_name");
+
+                    b.Property<int>("NetworkType")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("network_type");
+
+                    b.Property<string>("Server")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("server");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("username");
+
+                    b.HasKey("Id")
+                        .HasName("pk_social_username");
+
+                    b.ToTable("social_username", (string)null);
                 });
 
             modelBuilder.Entity("ConsensusChessShared.DTO.StoredString", b =>
@@ -559,6 +592,18 @@ namespace ConsensusChessFeatureTests.Migrations
                         .HasConstraintName("fk_node_state_network_network_id");
 
                     b.Navigation("Network");
+                });
+
+            modelBuilder.Entity("ConsensusChessShared.DTO.Participant", b =>
+                {
+                    b.HasOne("ConsensusChessShared.DTO.SocialUsername", "Username")
+                        .WithMany()
+                        .HasForeignKey("UsernameId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_participant_social_username_username_id");
+
+                    b.Navigation("Username");
                 });
 
             modelBuilder.Entity("ConsensusChessShared.DTO.Post", b =>

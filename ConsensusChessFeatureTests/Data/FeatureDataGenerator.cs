@@ -73,21 +73,18 @@ namespace ConsensusChessFeatureTests.Data
 
         public static SocialCommand GenerateCommand(string message, Network network, bool authorised = true, string from = "instantiator", long? inReplyTo = null)
         {
-            return new SocialCommand()
-            {
-                DeliveryMedium = "mock",
-                DeliveryType = "notification",
-                IsAuthorised = authorised,
-                IsRetrospective = false,
-                IsForThisNode = true,
-                RawText = message,
-                ReceivingNetwork = network,
-                NetworkUserId = from,
-                SourceAccount = from,
-                InReplyToId = inReplyTo,
-                SourceId = FeatureDataGenerator.RollingPostId++
-            };
-
+            return new SocialCommand(
+                receivingNetwork: network,
+                username: SocialUsername.From(from, $"Display name for {from}", network),
+                postId: RollingPostId++,
+                text: message,
+                isForThisNode: true,
+                isAuthorised: authorised,
+                isRetrospective: false,
+                isProcessed: false,
+                deliveryMedium: "FeatureTest",
+                deliveryType: "GenerateCommand",
+                inReplyTo: inReplyTo);
         }
     }
 }

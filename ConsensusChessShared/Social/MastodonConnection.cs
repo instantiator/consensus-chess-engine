@@ -41,10 +41,10 @@ namespace ConsensusChessShared.Social
         protected override async Task InitImplementationAsync()
         {
             user = await client.GetCurrentUser();
+            Username = SocialUsername.From(user.AccountName!, user.DisplayName!, network);
         }
 
-        public override string? DisplayName => user?.DisplayName;
-        public override string? AccountName => user?.AccountName;
+        public override SocialUsername? Username { get; set; }
 
         public Dictionary<PostType, Visibility> VisibilityMapping = new Dictionary<PostType, Visibility>()
         {
@@ -177,14 +177,14 @@ namespace ConsensusChessShared.Social
         /// <summary>
         /// All the words that should be skipped when processing a command.
         /// ie. the account name (short and long forms).
-        /// NB. this is a bit defensive. I know - I just wanted it to work.
+        /// TODO: this is a bit defensive. I know - I just wanted it to work.
         /// </summary>
         public override IEnumerable<string> CalculateCommandSkips() => new[]
         {
-            $"@{AccountName}",
-            $"@{AccountName}@{network.NetworkServer}",
-            $"{AccountName}",
-            $"{AccountName}@{network.NetworkServer}",
+            Username!.Full,
+            Username!.AtFull,
+            Username!.Username,
+            Username!.AtUsername,
         };
 
         public SocialCommand? ConvertToSocialCommand(Notification notification, bool isRetrospective)
@@ -203,23 +203,23 @@ namespace ConsensusChessShared.Social
 
             var isFavourited = notification.Status?.Favourited ?? false; // favourited == processed
             var isAuthorised = network.AuthorisedAccountsList.Contains(isFrom);
+            var username = SocialUsername.From(
+                notification.Account.AccountName,
+                notification.Account.DisplayName,
+                network);
 
-            return new SocialCommand()
-            {
-                ReceivingNetwork = network,
-                NetworkUserId = isFrom,
-                SourceAccount = isFrom,
-                RawText = notification.Status?.Content,
-                SourceId = notification.Status?.Id,
-                InReplyToId = notification.Status?.InReplyToId,
-                IsAuthorised = isAuthorised,
-                IsRetrospective = isRetrospective,
-                IsForThisNode = isForMe,
-                IsProcessed = isFavourited,
-                DeliveryMedium = "mastodon",
-                DeliveryType = notification.Type
-            };
-
+            return new SocialCommand(
+                receivingNetwork: network,
+                username: username,
+                postId: notification.Status!.Id,
+                text: notification.Status!.Content,
+                isForThisNode: isForMe,
+                isAuthorised: isAuthorised,
+                isRetrospective: isRetrospective,
+                isProcessed: isFavourited,
+                deliveryMedium: typeof(MastodonConnection).Name,
+                deliveryType: notification.Type,
+                inReplyTo: notification.Status!.InReplyToId);
         }
     }
 }

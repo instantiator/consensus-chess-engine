@@ -137,8 +137,8 @@ namespace ConsensusChessIntegrationTests
                 Assert.AreEqual(1, votes.Count());
 
                 var vote = votes.Single();
-                Assert.AreEqual("instantiator@mastodon.social", vote.Participant.NetworkUserAccount);
-                Assert.AreEqual("mastodon.social", vote.Participant.NetworkServer);
+                Assert.AreEqual("instantiator@mastodon.social", vote.Participant.Username.Full);
+                Assert.AreEqual("mastodon.social", vote.Participant.Username.Server);
                 Assert.AreEqual(VoteValidationState.Valid, vote.ValidationState);
 
                 Assert.IsNotNull(vote.ValidationPost);
@@ -187,7 +187,7 @@ namespace ConsensusChessIntegrationTests
             using (var db = GetDb())
             {
                 var game = db.Games.ToList().Single();
-                var participant = db.Participant.Single(p => p.NetworkUserAccount == "instantiator@mastodon.social");
+                var participant = db.Participant.Single(p => p.Username.Full == "instantiator@mastodon.social");
                 var gm = new GameManager(mockLogger.Object);
                 var preexistingVote = gm.GetCurrentValidVote(game.CurrentMove, participant);
 

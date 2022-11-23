@@ -94,7 +94,7 @@ namespace ConsensusChessShared.Service
                     return true; // anybody can play
 
                 case SideRules.ServerLock:
-                    return game.CurrentParticipantNetworkServers.Contains(new StoredString(participant.NetworkServer));
+                    return game.CurrentParticipantNetworkServers.Contains(new StoredString(participant.Username.Server));
 
                 case SideRules.MoveLock:
                     var commitment = participant.Commitments.SingleOrDefault(c => c.GameShortcode == game.Shortcode);

@@ -66,7 +66,7 @@ namespace ConsensusChessNode.Service
 
         private async Task ProcessVoteAsync(SocialCommand origin, IEnumerable<string> words)
         {
-            log.LogDebug($"Processing vote from {origin.SourceAccount}, in reply to {origin.InReplyToId?.ToString() ?? "(none)"}: {string.Join(" ", words)}");
+            log.LogDebug($"Processing vote from {origin.SourceUsername.Full}, in reply to {origin.InReplyToId?.ToString() ?? "(none)"}: {string.Join(" ", words)}");
 
             var voteSAN = string.Join(" ", words.Skip(1));
             log.LogDebug($"Vote SAN: {voteSAN}");
@@ -86,7 +86,7 @@ namespace ConsensusChessNode.Service
                     {
                         MoveText = voteSAN,
                         Participant = participant,
-                        NetworkMovePostId = origin.SourceId!.Value,
+                        NetworkMovePostId = origin.SourcePostId,
                     };
                     log.LogDebug($"Participant: {JsonConvert.SerializeObject(participant)}");
                     log.LogDebug($"Vote: {JsonConvert.SerializeObject(vote)}");
@@ -147,7 +147,7 @@ namespace ConsensusChessNode.Service
                 }
                 catch (GameNotFoundException e)
                 {
-                    var summary = $"No game linked to move post from {e.Command.SourceAccount}: {voteSAN}";
+                    var summary = $"No game linked to move post from {e.Command.SourceUsername.Full}: {voteSAN}";
                     log.LogWarning(summary);
 
                     // TODO: remove - this is messy logging to try and catch the issue
@@ -163,12 +163,12 @@ namespace ConsensusChessNode.Service
                 catch (VoteRejectionException e)
                 {
                     
-                    var summary = $"{e.Reason} from {participant?.NetworkUserAccount ?? "unknown"}: {voteSAN}, {e.Detail}";
+                    var summary = $"{e.Reason} from {participant?.Username.Full ?? "unknown"}: {voteSAN}, {e.Detail}";
                     log.LogWarning(summary);
 
                     var reply = new PostBuilder(PostType.MoveValidation)
                         .WithValidationState(e.Reason)
-                        .WithAccount(participant?.NetworkUserAccount)
+                        .WithUsername(participant?.Username)
                         .WithSAN(voteSAN)
                         .WithDetail(e?.Detail)
                         .InReplyTo(origin)

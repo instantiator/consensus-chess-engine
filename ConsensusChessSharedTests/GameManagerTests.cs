@@ -6,6 +6,7 @@ using ConsensusChessShared.DTO;
 using ConsensusChessShared.Exceptions;
 using ConsensusChessShared.Service;
 using ConsensusChessShared.Social;
+using ConsensusChessSharedTests.Data;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -105,16 +106,8 @@ namespace ConsensusChessSharedTests
 
             // no need to specify networks for move lock game
             var game = gm.CreateSimpleMoveLockGame("test-game", "Test game", null, new[] { "node-0-test" });
-
-            var cmd = new SocialCommand()
-            {
-                SourceId = 999,
-                ReceivingNetwork = network,
-                SourceAccount = "somebody@mastodon.somewhere"
-            };
-
+            var cmd = SampleDataGenerator.SimpleCommand(message: "anything", sender: "somebody@mastodon.somewhere");
             var participant = Participant.From(cmd);
-
             var ok = gm.ParticipantOnSide(game, participant);
             Assert.IsTrue(ok);
         }
@@ -128,14 +121,7 @@ namespace ConsensusChessSharedTests
             };
 
             var game = gm.CreateSimpleMoveLockGame("test-game", "Test game", null, new[] { "node-0-test" });
-
-            var cmd = new SocialCommand()
-            {
-                SourceId = 999,
-                ReceivingNetwork = network,
-                SourceAccount = "somebody@mastodon.somewhere"
-            };
-
+            var cmd = SampleDataGenerator.SimpleCommand(message: "anything", sender: "somebody@mastodon.somewhere");
             var participant = Participant.From(cmd);
             participant.Commitments.Add(new Commitment()
             {
@@ -156,12 +142,7 @@ namespace ConsensusChessSharedTests
             };
             var game = gm.CreateSimpleMoveLockGame("test-game", "Test game", null, new[] { "node-0-test" });
 
-            var cmd = new SocialCommand()
-            {
-                SourceId = 999,
-                ReceivingNetwork = network,
-                SourceAccount = "somebody@mastodon.somewhere"
-            };
+            var cmd = SampleDataGenerator.SimpleCommand(message: "anything", sender: "somebody@mastodon.somewhere");
             var participant = Participant.From(cmd);
             participant.Commitments.Add(new Commitment()
             {

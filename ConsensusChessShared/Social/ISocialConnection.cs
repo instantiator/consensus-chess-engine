@@ -9,8 +9,7 @@ namespace ConsensusChessShared.Social
 	{
 		bool Ready { get; }
 		Task InitAsync(NodeState state);
-		string? DisplayName { get; }
-		string? AccountName { get; }
+        SocialUsername? Username { get; }
 
         event Func<NodeState, Task> OnStateChange;
 

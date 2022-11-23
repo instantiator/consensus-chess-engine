@@ -17,7 +17,7 @@ namespace ConsensusChessShared.Service
 		public static ServiceIdentity FromEnv(IDictionary env)
 		{
             var environment = env is Dictionary<string, string>
-                ? env as Dictionary<string, string>
+                ? (Dictionary<string, string>)env
                 : env.Cast<DictionaryEntry>().ToDictionary(x => (string)x.Key, x => (string)x.Value!);
 
             var name = environment["NODE_NAME"];

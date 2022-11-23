@@ -19,7 +19,7 @@ namespace ConsensusChessSharedTests
             Assert.AreEqual("app-key",network.AppKey);
             Assert.AreEqual("app-secret",network.AppSecret);
             Assert.AreEqual("access-token",network.AppToken);
-            Assert.AreEqual("@instantiator@mastodon.social,@icgames@botsin.space", network.AuthorisedAccounts);
+            Assert.AreEqual("instantiator@mastodon.social,icgames@botsin.space", network.AuthorisedAccounts);
             Assert.AreEqual(2, network.AuthorisedAccountsList.Count());
             Assert.AreEqual("instantiator@mastodon.social", network.AuthorisedAccountsList.ElementAt(0));
             Assert.AreEqual("icgames@botsin.space", network.AuthorisedAccountsList.ElementAt(1));

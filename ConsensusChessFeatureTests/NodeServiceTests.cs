@@ -24,7 +24,7 @@ namespace ConsensusChessFeatureTests
                 It.Is<Post>(p =>
 					p.Succeeded == true &&
 					p.Message == "This instruction can't be processed: UnrecognisedCommand" &&
-					p.NetworkReplyToId == command.SourceId),
+					p.NetworkReplyToId == command.SourcePostId),
 				null),
                 Times.Once);
         }
@@ -104,7 +104,7 @@ namespace ConsensusChessFeatureTests
                 It.Is<Post>(p =>
                     p.Succeeded == true &&
                     p.Message == "Move accepted - thank you" &&
-                    p.NetworkReplyToId == command.SourceId),
+                    p.NetworkReplyToId == command.SourcePostId),
                 null),
                 Times.Once);
 
@@ -118,8 +118,7 @@ namespace ConsensusChessFeatureTests
 
                 Assert.IsNotNull(vote.Participant);
                 Assert.AreEqual(1, vote.Participant.Commitments.Count());
-                Assert.AreEqual("instantiator", vote.Participant.NetworkServer);
-                Assert.AreEqual("instantiator", vote.Participant.NetworkUserAccount);
+                Assert.AreEqual("instantiator@fake.mastodon.server", vote.Participant.Username.Full);
                 Assert.AreEqual(game.Shortcode, vote.Participant.Commitments.Single().GameShortcode);
                 Assert.AreEqual(Side.White, vote.Participant.Commitments.Single().GameSide);
 
@@ -160,12 +159,12 @@ namespace ConsensusChessFeatureTests
             var command = FeatureDataGenerator.GenerateCommand("move e5", NodeNetwork, inReplyTo: boardPost.NetworkPostId);
             await receivers[NodeId.Shortcode].Invoke(command);
 
-            var validation = "InvalidSAN from instantiator: e5, ChessSanNotFoundException: Given SAN move: e5 has been not found with current board positions.";
+            var validation = "InvalidSAN from instantiator@fake.mastodon.server: e5, ChessSanNotFoundException: Given SAN move: e5 has been not found with current board positions.";
             NodeSocialMock.Verify(ns => ns.PostAsync(
                 It.Is<Post>(p =>
                     p.Succeeded == true &&
                     p.Message ==  validation &&
-                    p.NetworkReplyToId == command.SourceId),
+                    p.NetworkReplyToId == command.SourcePostId),
                 null),
                 Times.Once);
 
@@ -218,12 +217,12 @@ namespace ConsensusChessFeatureTests
             var command = FeatureDataGenerator.GenerateCommand("move e6", NodeNetwork, inReplyTo: boardPost.NetworkPostId);
             await receivers[NodeId.Shortcode].Invoke(command);
 
-            var validation = "InvalidSAN from instantiator: e6, ChessSanNotFoundException: Given SAN move: e6 has been not found with current board positions.";
+            var validation = "InvalidSAN from instantiator@fake.mastodon.server: e6, ChessSanNotFoundException: Given SAN move: e6 has been not found with current board positions.";
             NodeSocialMock.Verify(ns => ns.PostAsync(
                 It.Is<Post>(p =>
                     p.Succeeded == true &&
                     p.Message == validation &&
-                    p.NetworkReplyToId == command.SourceId),
+                    p.NetworkReplyToId == command.SourcePostId),
                 null),
                 Times.Once);
 
@@ -275,32 +274,34 @@ namespace ConsensusChessFeatureTests
 
             using (var db = Dbo.GetDb())
             {
-                var participant = new Participant()
-                {
-                    NetworkServer = "instantiator",
-                    NetworkUserAccount = "instantiator",
-                    Commitments = new List<Commitment>()
+                var participant = new Participant(SocialUsername.From("instantiator", "Lewis", NodeNetwork));
+                participant.Commitments.Add(
+                    new Commitment()
                     {
-                        new Commitment()
-                        {
-                            GameShortcode = game.Shortcode,
-                            GameSide = Side.Black,
-                        }
-                    },
-                };
+                        GameShortcode = game.Shortcode,
+                        GameSide = Side.Black,
+                    });
+                db.Participant.Attach(participant);
                 db.Participant.Add(participant);
                 await db.SaveChangesAsync();
+            }
+
+            using (var db = Dbo.GetDb())
+            {
+                var participant = db.Participant.Single();
+                Assert.AreEqual(1, participant.Commitments.Count());
+                Assert.AreEqual(SocialUsername.From("instantiator", "Lewis", NodeNetwork), participant.Username);
             }
 
             var command = FeatureDataGenerator.GenerateCommand("move e4", NodeNetwork, inReplyTo: boardPost.NetworkPostId);
             await receivers[NodeId.Shortcode].Invoke(command);
 
-            var validation = "OffSide from instantiator: e4, ";
+            var validation = "OffSide from instantiator@fake.mastodon.server: e4, ";
             NodeSocialMock.Verify(ns => ns.PostAsync(
                 It.Is<Post>(p =>
                     p.Succeeded == true &&
                     p.Message == validation &&
-                    p.NetworkReplyToId == command.SourceId),
+                    p.NetworkReplyToId == command.SourcePostId),
                 null),
                 Times.Once);
 

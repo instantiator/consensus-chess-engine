@@ -39,8 +39,8 @@ namespace ConsensusChessShared.Social
 
         protected abstract Task InitImplementationAsync();
 
-		public abstract string? DisplayName { get; }
-		public abstract string? AccountName { get; }
+        public abstract SocialUsername? Username { get; set; }
+
 		public abstract IEnumerable<string> CalculateCommandSkips();
         protected abstract Task GetMissedCommands();
         protected abstract Task MarkCommandProcessedAsync(long id);
@@ -103,16 +103,16 @@ namespace ConsensusChessShared.Social
             {
 
                 // always mark the status as seen - we won't try again, even if execution fails
-                if (command.IsForThisNode && command.SourceId != null && !command.IsProcessed)
+                if (command.IsForThisNode && !command.IsProcessed)
                 {
-                    await MarkCommandProcessedAsync(command.SourceId.Value);
+                    await MarkCommandProcessedAsync(command.SourcePostId);
                     command.IsProcessed = true;
                 }
 
                 // always update the last notification id
-                if (command.SourceId.HasValue && command.SourceId.Value > state!.LastNotificationId)
+                if (command.SourcePostId > state!.LastNotificationId)
                 {
-                    state.LastNotificationId = command.SourceId.Value;
+                    state.LastNotificationId = command.SourcePostId;
                     await ReportStateChangeAsync();
                 }
             }

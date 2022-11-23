@@ -13,21 +13,21 @@ namespace ConsensusChessShared.DTO
             Commitments = new List<Commitment>();
         }
 
+        public Participant(SocialUsername username) : this()
+        {
+            Username = username;
+        }
+
         [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public Guid Id { get; set; }
         public DateTime Created { get; set; }
 
-		public string NetworkUserAccount { get; set; }
-        public string NetworkServer { get; set; }
+        public virtual SocialUsername Username { get; set; }
 		public virtual List<Commitment> Commitments { get; set; }
 
         public static Participant From(SocialCommand command)
         {
-            return new Participant()
-            {
-                NetworkUserAccount = command.SourceAccount,
-                NetworkServer = command.SourceAccount.Split('@').Last()
-            };
+            return new Participant(command.SourceUsername);
         }
 	}
 }

@@ -7,6 +7,8 @@ namespace ConsensusChessSharedTests.Data
 {
 	public class SampleDataGenerator
 	{
+        public static long RollingPostId = 1;
+
 		public static string[] AuthorisedAccounts =>
             new[]
             {
@@ -38,15 +40,17 @@ namespace ConsensusChessSharedTests.Data
 
         public static SocialCommand SimpleCommand(string message, bool isAuthorised = false, bool isRetrospective = false, string? sender = null)
         {
-            return new SocialCommand()
-            {
-                IsAuthorised = isAuthorised,
-                ReceivingNetwork = FakeNetwork,
-                IsRetrospective = isRetrospective,
-                NetworkUserId = sender ?? "@instantiator@mastodon.social",
-                SourceId = 1981,
-                RawText = message
-            };
+            return new SocialCommand(
+                receivingNetwork: FakeNetwork,
+                username: SocialUsername.From(sender ?? "instantiator@mastodon.social", "lewis", FakeNetwork),
+                postId: RollingPostId++,
+                text: message,
+                isForThisNode: true,
+                isAuthorised: isAuthorised,
+                isRetrospective: isRetrospective,
+                isProcessed: false,
+                deliveryMedium: "UnitTests",
+                deliveryType: "SimpleCommand");
         }
 
         public static IDictionary SimpleNetworkEnv => new Hashtable()
@@ -57,7 +61,7 @@ namespace ConsensusChessSharedTests.Data
             {"NETWORK_APP_KEY","app-key"},
             {"NETWORK_APP_SECRET","app-secret"},
             {"NETWORK_ACCESS_TOKEN","access-token"},
-            {"NETWORK_AUTHORISED_ACCOUNTS","@instantiator@mastodon.social,@icgames@botsin.space"},
+            {"NETWORK_AUTHORISED_ACCOUNTS","instantiator@mastodon.social,icgames@botsin.space"},
             {"NETWORK_DRY_RUNS","true"},
         };
     }

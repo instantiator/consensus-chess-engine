@@ -45,7 +45,7 @@ namespace ConsensusChessShared.Service
         /// <returns>A copy of the new participant</returns>
         public async Task<Participant> FindOrCreateParticipantAsync(ConsensusChessDbContext db, SocialCommand post)
         {
-            var participant = db.Participant.SingleOrDefault(p => p.NetworkUserAccount == post.SourceAccount);
+            var participant = db.Participant.ToList().SingleOrDefault(p => p.Username.Full == post.SourceUsername.Full);
             log.LogDebug(participant == null ? "Participant not found, creating new" : "Participant found");
             if (participant == null)
             {

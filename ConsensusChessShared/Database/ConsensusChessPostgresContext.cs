@@ -37,7 +37,7 @@ namespace ConsensusChessShared.Database
         public static ConsensusChessPostgresContext FromEnv(IDictionary env)
         {
             var environment = env is Dictionary<string, string>
-                ? env as Dictionary<string, string>
+                ? (Dictionary<string, string>)env
                 : env.Cast<DictionaryEntry>().ToDictionary(x => (string)x.Key, x => (string)x.Value!);
 
             var host = environment["DB_HOST"];

@@ -70,7 +70,10 @@ namespace ConsensusChessShared.Service
             {
                 if (string.IsNullOrWhiteSpace(commandWord))
                 {
-                    throw new CommandRejectionException(commandWords, command.NetworkUserId!, CommandRejectionReason.NoCommandWords);
+                    throw new CommandRejectionException(
+                        command,
+                        commandWords,
+                        CommandRejectionReason.NoCommandWords);
                 }
 
                 if (register.ContainsKey(commandWord))
@@ -83,33 +86,42 @@ namespace ConsensusChessShared.Service
                         // check retrospective
                         if (!command.IsRetrospective || rule.MayRunRetrospectively)
                         {
-                            log.LogInformation($"Executing command: {commandWord} from: {command.NetworkUserId}");
+                            log.LogInformation($"Executing command: {commandWord} from: {command.SourceUsername.Full}");
                             await rule.Enaction.Invoke(command, commandWords);
                         }
                         else
                         {
-                            log.LogDebug($"Rejecting retrospective command: {commandWord} from: {command.NetworkUserId}");
-                            throw new CommandRejectionException(commandWords, command.NetworkUserId, CommandRejectionReason.NotForRetrospectiveExecution);
+                            log.LogDebug($"Rejecting retrospective command: {commandWord} from: {command.SourceUsername.Full}");
+                            throw new CommandRejectionException(
+                                command,
+                                commandWords,
+                                CommandRejectionReason.NotForRetrospectiveExecution);
                         }
                     }
                     else
                     {
-                        log.LogDebug($"Rejecting unauthorised command: {commandWord} from: {command.NetworkUserId}");
-                        throw new CommandRejectionException(commandWords, command.NetworkUserId, CommandRejectionReason.NotAuthorised);
+                        log.LogDebug($"Rejecting unauthorised command: {commandWord} from: {command.SourceUsername.Full}");
+                        throw new CommandRejectionException(
+                            command,
+                            commandWords,
+                            CommandRejectionReason.NotAuthorised);
                     }
                 }
                 else
                 {
-                    log.LogDebug($"Rejecting unrecognised command: {commandWord} from: {command.NetworkUserId}");
-                    throw new CommandRejectionException(commandWords, command.NetworkUserId, CommandRejectionReason.UnrecognisedCommand);
+                    log.LogDebug($"Rejecting unrecognised command: {commandWord} from: {command.SourceUsername.Full}");
+                    throw new CommandRejectionException(
+                        command,
+                        commandWords,
+                        CommandRejectionReason.UnrecognisedCommand);
                 }
             }
             catch (CommandRejectionException e)
             {
-                log.LogWarning($"{e.Reason} (from {e.SenderId}): {string.Join(" ",e.Words)}");
+                log.LogWarning($"{e.Reason} (from {e.Command.SourceUsername.Full}): {string.Join(" ",e.Words)}");
                 if (OnFailAsync != null)
                 {
-                    await OnFailAsync.Invoke(command, e.Reason.ToString(), e.Reason);
+                    await OnFailAsync.Invoke(e.Command, e.Reason.ToString(), e.Reason);
                 }
             }
             catch (Exception e)

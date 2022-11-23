@@ -95,8 +95,8 @@ namespace ConsensusChessEngine.Service
                 var summary = "No sides provided - cannot create game.";
                 log.LogWarning(summary);
                 throw new CommandRejectionException(
+                    origin,
                     words,
-                    origin.NetworkUserId,
                     CommandRejectionReason.CommandMalformed,
                     summary);
             }
@@ -132,7 +132,7 @@ namespace ConsensusChessEngine.Service
                     var reply = new PostBuilder(PostType.Engine_GameCreationResponse)
                         .WithGame(game)
                         .WithMapping("AllNodes", string.Join(", ", nodeShortcodes))
-                        .InReplyTo(origin.SourceId)
+                        .InReplyTo(origin.SourcePostId)
                         .Build();
 
                     await social.PostAsync(reply);
@@ -145,7 +145,7 @@ namespace ConsensusChessEngine.Service
                     var summary = $"Unrecognised shortcodes: {string.Join(", ", unrecognised)}";
                     var reply = new PostBuilder(PostType.CommandResponse)
                         .WithText(summary)
-                        .InReplyTo(origin.SourceId)
+                        .InReplyTo(origin.SourcePostId)
                         .Build();
                     await social.PostAsync(reply);
                 }

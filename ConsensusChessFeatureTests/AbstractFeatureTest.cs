@@ -149,8 +149,7 @@ public abstract class AbstractFeatureTest
                 $"@{account}@{network.NetworkServer}",
             });
 
-        mock.Setup(sc => sc.AccountName).Returns($"{account}");
-        mock.Setup(sc => sc.DisplayName).Returns($"Mock for: {account}");
+        mock.Setup(sc => sc.Username).Returns(SocialUsername.From(account, "displayname", network));
 
         Func<Post, bool?, Task<Post>> postFunc =
             (post, dry)

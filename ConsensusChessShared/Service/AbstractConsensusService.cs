@@ -76,8 +76,7 @@ namespace ConsensusChessShared.Service
             EraseHealthIndicators();
 
             await social.InitAsync(state);
-            log.LogDebug($"Display name: {social.DisplayName}");
-            log.LogDebug($"Account name: {social.AccountName}");
+            log.LogDebug($"Username: {social.Username!.Full}");
             log.LogDebug($"Authorised accounts: {string.Join(", ", network.AuthorisedAccountsList)}");
             ReportOnGames();
 

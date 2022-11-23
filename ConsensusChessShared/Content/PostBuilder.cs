@@ -83,11 +83,14 @@ namespace ConsensusChessShared.Content
             return this;
         }
 
-        public PostBuilder WithAccount(string? account)
+		public PostBuilder WithUsername(SocialUsername? username)
 		{
-            WithMapping("Account", account ?? UNKNOWN);
-            return this;
-        }
+			if (username != null)
+			{
+				WithObject("Username", username);
+			}
+			return this;
+		}
 
         public PostBuilder WithSAN(string SAN)
 		{
@@ -121,7 +124,7 @@ namespace ConsensusChessShared.Content
 
         public PostBuilder InReplyTo(SocialCommand origin)
 		{
-			return InReplyTo(origin.SourceId);
+			return InReplyTo(origin.SourcePostId);
 		}
 
         public PostBuilder InReplyTo(long? id)

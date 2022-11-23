@@ -1,19 +1,20 @@
 ﻿using System;
 using System.Runtime.Serialization;
+using ConsensusChessShared.Social;
 
 namespace ConsensusChessShared.Exceptions
 {
     public class CommandRejectionException : Exception
     {
         public CommandRejectionReason Reason { get; private set; }
+        public SocialCommand Command { get; private set; }
         public IEnumerable<string> Words { get; private set; }
-        public string? SenderId { get; private set; }
 
-        public CommandRejectionException(IEnumerable<string> words, string? senderId, CommandRejectionReason reason, string? message = null) : base(message)
+        public CommandRejectionException(SocialCommand command, IEnumerable<string> parsedWords, CommandRejectionReason reason, string? message = null) : base(message)
         {
             Reason = reason;
-            Words = words;
-            SenderId = senderId;
+            Command = command;
+            Words = parsedWords;
         }
     }
 }

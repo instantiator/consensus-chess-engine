@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ConsensusChessShared.Migrations
 {
     /// <inheritdoc />
-    public partial class Initialise : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -64,17 +64,19 @@ namespace ConsensusChessShared.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "participant",
+                name: "social_username",
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
                     created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    networkuseraccount = table.Column<string>(name: "network_user_account", type: "text", nullable: false),
-                    networkserver = table.Column<string>(name: "network_server", type: "text", nullable: false)
+                    networktype = table.Column<int>(name: "network_type", type: "integer", nullable: false),
+                    username = table.Column<string>(type: "text", nullable: false),
+                    server = table.Column<string>(type: "text", nullable: false),
+                    displayname = table.Column<string>(name: "display_name", type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_participant", x => x.id);
+                    table.PrimaryKey("pk_social_username", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -169,23 +171,22 @@ namespace ConsensusChessShared.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "commitment",
+                name: "participant",
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
                     created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    gameshortcode = table.Column<string>(name: "game_shortcode", type: "text", nullable: false),
-                    gameside = table.Column<int>(name: "game_side", type: "integer", nullable: false),
-                    participantid = table.Column<Guid>(name: "participant_id", type: "uuid", nullable: true)
+                    usernameid = table.Column<Guid>(name: "username_id", type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_commitment", x => x.id);
+                    table.PrimaryKey("pk_participant", x => x.id);
                     table.ForeignKey(
-                        name: "fk_commitment_participant_participant_id",
-                        column: x => x.participantid,
-                        principalTable: "participant",
-                        principalColumn: "id");
+                        name: "fk_participant_social_username_username_id",
+                        column: x => x.usernameid,
+                        principalTable: "social_username",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -226,6 +227,26 @@ namespace ConsensusChessShared.Migrations
                         name: "fk_post_node_state_node_state_id",
                         column: x => x.nodestateid,
                         principalTable: "node_state",
+                        principalColumn: "id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "commitment",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    gameshortcode = table.Column<string>(name: "game_shortcode", type: "text", nullable: false),
+                    gameside = table.Column<int>(name: "game_side", type: "integer", nullable: false),
+                    participantid = table.Column<Guid>(name: "participant_id", type: "uuid", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_commitment", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_commitment_participant_participant_id",
+                        column: x => x.participantid,
+                        principalTable: "participant",
                         principalColumn: "id");
                 });
 
@@ -320,6 +341,11 @@ namespace ConsensusChessShared.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "ix_participant_username_id",
+                table: "participant",
+                column: "username_id");
+
+            migrationBuilder.CreateIndex(
                 name: "ix_post_board_id",
                 table: "post",
                 column: "board_id");
@@ -393,6 +419,9 @@ namespace ConsensusChessShared.Migrations
 
             migrationBuilder.DropTable(
                 name: "post");
+
+            migrationBuilder.DropTable(
+                name: "social_username");
 
             migrationBuilder.DropTable(
                 name: "board");

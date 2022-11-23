@@ -25,7 +25,7 @@ namespace ConsensusChessFeatureTests
                 It.Is<Post>(p =>
                     p.Succeeded == true &&
                     p.Message == "This instruction can't be processed: UnrecognisedCommand" &&
-                    p.NetworkReplyToId == command.SourceId),
+                    p.NetworkReplyToId == command.SourcePostId),
                 null),
                 Times.Once);
         }
@@ -49,7 +49,7 @@ namespace ConsensusChessFeatureTests
             It.Is<Post>(p =>
                 p.Succeeded == true &&
                 p.Message == $"New MoveLock game for: {NodeId.Shortcode}" &&
-                p.NetworkReplyToId == command.SourceId),
+                p.NetworkReplyToId == command.SourcePostId),
             null),
             Times.Once);
 
@@ -102,7 +102,7 @@ namespace ConsensusChessFeatureTests
             It.Is<Post>(p =>
                 p.Succeeded == true &&
                 p.Message == "This instruction can't be processed: NotAuthorised" &&
-                p.NetworkReplyToId == command.SourceId),
+                p.NetworkReplyToId == command.SourcePostId),
             null),
             Times.Once);
 
@@ -133,7 +133,7 @@ namespace ConsensusChessFeatureTests
             It.Is<Post>(p =>
                 p.Succeeded == true &&
                 p.Message == "Unrecognised shortcodes: beans-on-toast" &&
-                p.NetworkReplyToId == command.SourceId),
+                p.NetworkReplyToId == command.SourcePostId),
             null),
             Times.Once);
 
