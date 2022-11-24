@@ -1,4 +1,5 @@
 ﻿using System;
+using ConsensusChessShared.DTO;
 using ConsensusChessShared.Exceptions;
 using ConsensusChessShared.Helpers;
 using ConsensusChessShared.Social;
@@ -24,18 +25,20 @@ namespace ConsensusChessShared.Service
         /// <exception cref="CommandRejectionException">An issue occurred whilst executing the command</throws>
         public delegate Task CommandEnactionAsync(SocialCommand origin, IEnumerable<string> words);
 
-        public event Func<SocialCommand, string, CommandRejectionReason, Task> OnFailAsync;
+        public event Func<SocialCommand, string, CommandRejectionReason, Task>? OnFailAsync;
 
         private IEnumerable<string> skips;
         private IEnumerable<string> authorisedAccounts;
         private IDictionary<string, CommandRule> register;
         private ILogger log;
+        private SocialUsername self;
 
-        public CommandProcessor(ILogger log, IEnumerable<string> authorisedAccounts, IEnumerable<string> skips)
+        public CommandProcessor(ILogger log, IEnumerable<string> authorisedAccounts, SocialUsername self, IEnumerable<string> skips)
         {
             this.log = log;
             this.authorisedAccounts = authorisedAccounts;
             this.skips = skips;
+            this.self = self;
             register = new Dictionary<string, CommandRule>();
         }
 
@@ -62,7 +65,14 @@ namespace ConsensusChessShared.Service
         /// <param name="command">The <see cref="SocialCommand"/> to parse</param>
 		public async Task ParseAsync(SocialCommand command)
 		{
+            if (self.Equals(command.SourceUsername))
+            {
+                log.LogDebug("Electing not to parse own message.");
+            }
+
+            log.LogDebug($"Parsing new command from: {command.SourceUsername.Full}");
             log.LogTrace($"Command raw text: {command.RawText}");
+
             var commandWords = CommandHelper.ParseSocialCommand(command.RawText!, skips);
             var commandWord = commandWords.FirstOrDefault()?.ToLower();
 

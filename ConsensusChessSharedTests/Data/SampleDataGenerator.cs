@@ -29,6 +29,9 @@ namespace ConsensusChessSharedTests.Data
                 NetworkServer = "fake.mastodon.server"
             };
 
+        public static SocialUsername FakeSelf =>
+            SocialUsername.From("UnitTest", "Unit test", FakeNetwork);
+
         public static NodeState NodeState =>
             new NodeState()
             {

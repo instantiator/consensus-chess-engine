@@ -64,16 +64,23 @@ namespace ConsensusChessShared.DTO
 
         public override bool Equals(object? obj)
         {
+			if (obj == null) { return false; }
+
             if (obj is string)
             {
                 var str = (string)obj;
-				return str == Username || str == Full || str == AtFull;
+				return str.ToLower().Trim() == Username.ToLower().Trim()
+					|| str.ToLower().Trim() == AtUsername.ToLower().Trim()
+					|| str.ToLower().Trim() == Full.ToLower().Trim()
+					|| str.ToLower().Trim() == AtFull.ToLower().Trim();
             }
+
 			if (obj is SocialUsername)
 			{
 				var username = (SocialUsername)obj;
-				return username.Full == Full;
+				return Full.ToLower().Trim() == username.Full.ToLower().Trim();
 			}
+
 			return false;
         }
 

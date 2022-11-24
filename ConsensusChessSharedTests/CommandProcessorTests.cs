@@ -17,6 +17,7 @@ namespace ConsensusChessSharedTests
         private IEnumerable<string> skips;
         private CommandProcessor cmd;
         private Network fakeNetwork;
+        private SocialUsername fakeSelf;
 
         private List<Tuple<SocialCommand, IEnumerable<string>>> enactions;
         private List<Tuple<SocialCommand, string, CommandRejectionReason?>> fails;
@@ -28,7 +29,8 @@ namespace ConsensusChessSharedTests
             authorisedAccounts = SampleDataGenerator.AuthorisedAccounts;
             skips = SampleDataGenerator.Skips;
             fakeNetwork = SampleDataGenerator.FakeNetwork;
-            cmd = new CommandProcessor(mockLogger.Object, authorisedAccounts, skips);
+            fakeSelf = SampleDataGenerator.FakeSelf;
+            cmd = new CommandProcessor(mockLogger.Object, authorisedAccounts, fakeSelf, skips);
             cmd.OnFailAsync += Cmd_OnFailAsync;
             enactions = new List<Tuple<SocialCommand, IEnumerable<string>>>();
             fails = new List<Tuple<SocialCommand, string, CommandRejectionReason?>>();

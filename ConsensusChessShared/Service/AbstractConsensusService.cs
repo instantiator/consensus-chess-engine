@@ -82,7 +82,7 @@ namespace ConsensusChessShared.Service
 
             var skips = social.CalculateCommandSkips();
             log.LogDebug($"Command prefix skips: {string.Join(", ", skips)}");
-            cmd = new CommandProcessor(log, network.AuthorisedAccountsList, skips);
+            cmd = new CommandProcessor(log, network.AuthorisedAccountsList, social.Username, skips);
             cmd.OnFailAsync += Cmd_OnFailAsync;
             RegisterForCommands(cmd);
             social.OnStateChange += RecordStateChangeAsync;
