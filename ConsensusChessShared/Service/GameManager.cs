@@ -1,6 +1,7 @@
 ﻿using System;
 using Chess;
 using ConsensusChessShared.Constants;
+using ConsensusChessShared.Content;
 using ConsensusChessShared.Database;
 using ConsensusChessShared.DTO;
 using ConsensusChessShared.Exceptions;
@@ -59,24 +60,67 @@ namespace ConsensusChessShared.Service
         /// <summary>
         /// Validates the move, and throws a MoveRejectionException if there's an issue
         /// </summary>
-        /// <param name="submission">the move (ideally in SAN format)</param>
-        /// <returns>The new board position, if the move was valid</returns>
-        /// <exception cref="MoveRejectionException"></exception>
-        public Board ValidateSAN(Board board, Vote vote)
+        /// <param name="board">The board to attempt to apply the vote to</param>
+        /// <param name="vote">The vote to test - uses the MoveText</param>
+        /// <returns>SAN for the move, if valid</returns>
+        /// <exception cref="VoteRejectionException">if the move text was not valid</exception>
+        public string NormaliseAndValidateMoveTextToSAN(Board board, Vote vote)
         {
             try
             {
-                //var move = new Chess.Move(tryMoveSAN);
+                var moveText = vote.MoveText;
+
+                Chess.Move? move =
+                    MoveFormatter.GetChessMoveFromCCF(vote.MoveText) ??
+                    MoveFormatter.GetChessMoveFromSAN(board, vote.MoveText);
+
+                if (move == null)
+                {
+                    throw new MoveFormatException(vote.MoveText, MoveFormatter.Explanation);
+                }
+
                 var chessboard = ChessBoard.LoadFromFen(board.FEN);
-                var ok = chessboard.Move(vote.MoveText);
-                if (!ok) { throw new VoteRejectionException(vote, VoteValidationState.InvalidSAN); }
-                return Board.FromFEN(chessboard.ToFen());
+                var ok = chessboard.IsValidMove(move);
+
+                if (ok)
+                {
+                    chessboard.ParseToSan(move);
+                    return move.San!;
+                }
+                else
+                {
+                    throw new VoteRejectionException(vote, VoteValidationState.InvalidMoveText);
+                }
+            }
+            catch (MoveFormatException e)
+            {
+                throw new VoteRejectionException(
+                    vote,
+                    VoteValidationState.InvalidMoveText,
+                    detail: e.Message,
+                    innerException: e);
             }
             catch (ChessException e)
             {
-                // TODO: better rejection content
-                throw new VoteRejectionException(vote, VoteValidationState.InvalidSAN, detail: $"{e.GetType().Name}: {e.Message}", innerException: e);
+                throw new VoteRejectionException(
+                    vote,
+                    VoteValidationState.InvalidMoveText,
+                    detail: $"{e.GetType().Name}: {e.Message}",
+                    innerException: e);
             }
+        }
+
+        /// <summary>
+        /// Applys SAN to the board - this must have been checked.
+        /// </summary>
+        /// <param name="board"></param>
+        /// <param name="moveSAN">validated SAN</param>
+        /// <returns>A Board with the new position</returns>
+        public Board ApplyValidatedMoveText(Board board, string moveSAN)
+        {
+            var chessboard = ChessBoard.LoadFromFen(board.FEN);
+            var ok = chessboard.Move(moveSAN);
+            return Board.FromFEN(chessboard.ToFen());
         }
 
         /// <summary>
@@ -128,7 +172,7 @@ namespace ConsensusChessShared.Service
             // Assume that the SAN is canonical. See: ICG-66 canonical SAN
             return move.Votes
                 .Where(v => v.ValidationState == VoteValidationState.Valid)
-                .Select(v => v.MoveText)
+                .Select(v => v.MoveSAN!)
                 .Distinct()
                 .ToDictionary(dv => dv, dv => move.Votes.Count(v => v.MoveText == dv));
         }

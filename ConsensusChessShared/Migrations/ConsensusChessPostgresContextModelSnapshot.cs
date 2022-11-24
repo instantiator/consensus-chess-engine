@@ -510,6 +510,10 @@ namespace ConsensusChessShared.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("move_id");
 
+                    b.Property<string>("MoveSAN")
+                        .HasColumnType("text")
+                        .HasColumnName("move_san");
+
                     b.Property<string>("MoveText")
                         .IsRequired()
                         .HasColumnType("text")

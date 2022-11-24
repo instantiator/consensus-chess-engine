@@ -159,7 +159,7 @@ namespace ConsensusChessFeatureTests
             var command = FeatureDataGenerator.GenerateCommand("move e5", NodeNetwork, inReplyTo: boardPost.NetworkPostId);
             await receivers[NodeId.Shortcode].Invoke(command);
 
-            var validation = "InvalidSAN from instantiator@fake.mastodon.server: e5, ChessSanNotFoundException: Given SAN move: e5 has been not found with current board positions.";
+            var validation = "InvalidMoveText from instantiator@fake.mastodon.server: e5, ChessSanNotFoundException: Given SAN move: e5 has been not found with current board positions.";
             NodeSocialMock.Verify(ns => ns.PostAsync(
                 It.Is<Post>(p =>
                     p.Succeeded == true &&
@@ -174,7 +174,7 @@ namespace ConsensusChessFeatureTests
                 Assert.AreEqual(1, move.Votes.Count());
                 var vote = move.Votes.Single();
                 Assert.AreEqual("e5", vote.MoveText);
-                Assert.AreEqual(VoteValidationState.InvalidSAN, vote.ValidationState);
+                Assert.AreEqual(VoteValidationState.InvalidMoveText, vote.ValidationState);
 
                 Assert.IsNotNull(vote.Participant);
                 Assert.AreEqual(0, vote.Participant.Commitments.Count()); // no commitment created until successful vote
@@ -217,7 +217,7 @@ namespace ConsensusChessFeatureTests
             var command = FeatureDataGenerator.GenerateCommand("move e6", NodeNetwork, inReplyTo: boardPost.NetworkPostId);
             await receivers[NodeId.Shortcode].Invoke(command);
 
-            var validation = "InvalidSAN from instantiator@fake.mastodon.server: e6, ChessSanNotFoundException: Given SAN move: e6 has been not found with current board positions.";
+            var validation = "InvalidMoveText from instantiator@fake.mastodon.server: e6, ChessSanNotFoundException: Given SAN move: e6 has been not found with current board positions.";
             NodeSocialMock.Verify(ns => ns.PostAsync(
                 It.Is<Post>(p =>
                     p.Succeeded == true &&
@@ -232,7 +232,7 @@ namespace ConsensusChessFeatureTests
                 Assert.AreEqual(1, move.Votes.Count());
                 var vote = move.Votes.Single();
                 Assert.AreEqual("e6", vote.MoveText);
-                Assert.AreEqual(VoteValidationState.InvalidSAN, vote.ValidationState);
+                Assert.AreEqual(VoteValidationState.InvalidMoveText, vote.ValidationState);
 
                 Assert.IsNotNull(vote.Participant);
                 Assert.AreEqual(0, vote.Participant.Commitments.Count()); // no commitment created until successful vote

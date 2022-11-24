@@ -68,8 +68,8 @@ namespace ConsensusChessNode.Service
         {
             log.LogDebug($"Processing vote from {origin.SourceUsername.Full}, in reply to {origin.InReplyToId?.ToString() ?? "(none)"}: {string.Join(" ", words)}");
 
-            var voteSAN = string.Join(" ", words.Skip(1));
-            log.LogDebug($"Vote SAN: {voteSAN}");
+            var moveText = string.Join(" ", words.Skip(1));
+            log.LogDebug($"Vote SAN: {moveText}");
 
             Participant? participant = null;
             Vote? vote = null;
@@ -82,12 +82,11 @@ namespace ConsensusChessNode.Service
                     // participant and vote
                     log.LogDebug($"Find or create participant...");
                     participant = await dbo.FindOrCreateParticipantAsync(db, origin);
-                    vote = new Vote()
-                    {
-                        MoveText = voteSAN,
-                        Participant = participant,
-                        NetworkMovePostId = origin.SourcePostId,
-                    };
+                    vote = new Vote(
+                        postId: origin.SourcePostId,
+                        raw: moveText,
+                        participant: participant);
+
                     log.LogDebug($"Participant: {JsonConvert.SerializeObject(participant)}");
                     log.LogDebug($"Vote: {JsonConvert.SerializeObject(vote)}");
 
@@ -103,7 +102,7 @@ namespace ConsensusChessNode.Service
                     }
 
                     // check validity of vote SAN
-                    var newBoard = gm.ValidateSAN(game.CurrentBoard, vote); // throws VoteRejectionException
+                    vote.MoveSAN = gm.NormaliseAndValidateMoveTextToSAN(game.CurrentBoard, vote); // throws VoteRejectionException
                     vote.ValidationState = VoteValidationState.Valid;
 
                     // supercede any pre-existing vote
@@ -147,11 +146,8 @@ namespace ConsensusChessNode.Service
                 }
                 catch (GameNotFoundException e)
                 {
-                    var summary = $"No game linked to move post from {e.Command.SourceUsername.Full}: {voteSAN}";
+                    var summary = $"No game linked to move post from {e.Command.SourceUsername.Full}: {moveText}";
                     log.LogWarning(summary);
-
-                    // TODO: remove - this is messy logging to try and catch the issue
-                    log.LogWarning(JsonConvert.SerializeObject(db.Games.ToList()));
 
                     var reply = new PostBuilder(PostType.GameNotFound)
                         .WithGameNotFoundReason(e.Reason)
@@ -162,14 +158,13 @@ namespace ConsensusChessNode.Service
                 }
                 catch (VoteRejectionException e)
                 {
-                    
-                    var summary = $"{e.Reason} from {participant?.Username.Full ?? "unknown"}: {voteSAN}, {e.Detail}";
+                    var summary = $"{e.Reason} from {participant?.Username.Full ?? "unknown"}: {moveText}, {e.Detail}";
                     log.LogWarning(summary);
 
                     var reply = new PostBuilder(PostType.MoveValidation)
                         .WithValidationState(e.Reason)
                         .WithUsername(participant?.Username)
-                        .WithSAN(voteSAN)
+                        .WithMoveText(moveText)
                         .WithDetail(e?.Detail)
                         .InReplyTo(origin)
                         .Build();

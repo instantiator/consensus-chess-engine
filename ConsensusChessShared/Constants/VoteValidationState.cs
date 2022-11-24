@@ -3,9 +3,10 @@ namespace ConsensusChessShared.Constants
 {
 	public enum VoteValidationState
 	{
+		Unchecked,
 		Valid,
 		NoGame,
-		InvalidSAN,
+		InvalidMoveText,
 		OffSide,
 		Superceded
 	}

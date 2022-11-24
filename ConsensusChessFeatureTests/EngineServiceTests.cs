@@ -235,7 +235,7 @@ namespace ConsensusChessFeatureTests
         }
 
         [TestMethod]
-        public async Task GameRolloverNohMoves_resultsIn_Abandon()
+        public async Task GameRolloverNoMoves_resultsIn_Abandon()
         {
             var engine = await StartEngineAsync();
             var node = await StartNodeAsync();

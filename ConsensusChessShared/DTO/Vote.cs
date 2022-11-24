@@ -10,7 +10,23 @@ namespace ConsensusChessShared.DTO
 		public Vote()
 		{
             Created = DateTime.Now.ToUniversalTime();
+			ValidationState = VoteValidationState.Unchecked;
         }
+
+		public Vote(
+			long postId, string raw,
+			Participant participant,
+            string? san = null,
+            VoteValidationState validation = VoteValidationState.Unchecked,
+			Post? validationPost = null) : this()
+		{
+			NetworkMovePostId = postId;
+			MoveText = raw;
+			MoveSAN = san;
+			Participant = participant;
+			ValidationState = validation;
+			ValidationPost = validationPost;
+		}
 
         [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public Guid Id { get; set; }
@@ -21,6 +37,7 @@ namespace ConsensusChessShared.DTO
 		public virtual Participant Participant { get; set; }
 
 		public VoteValidationState ValidationState { get; set; }
+		public string? MoveSAN { get; set; }
 		public virtual Post? ValidationPost { get; set; }
 	}
 }

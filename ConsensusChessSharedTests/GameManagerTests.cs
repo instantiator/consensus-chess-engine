@@ -73,7 +73,8 @@ namespace ConsensusChessSharedTests
         {
             var game = gm.CreateSimpleMoveLockGame("test-game", "Test game", new[] { "mastodon.something.social" }, new[] { "node-0-test" });
             var vote = new Vote() { MoveText = "e4" };
-            var board = gm.ValidateSAN(game.CurrentBoard, vote);
+            var move = gm.NormaliseAndValidateMoveTextToSAN(game.CurrentBoard, vote);
+            var board = gm.ApplyValidatedMoveText(game.CurrentBoard, move);
             Assert.IsNotNull(board);
             Assert.AreEqual("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1", board.FEN);
         }
@@ -83,7 +84,10 @@ namespace ConsensusChessSharedTests
         {
             var game = gm.CreateSimpleMoveLockGame("test-game", "Test game", new[] { "mastodon.something.social" }, new[] { "node-0-test" });
             var vote = new Vote() { MoveText = "e7" };
-            var e = Assert.ThrowsException<VoteRejectionException>(() => gm.ValidateSAN(game.CurrentBoard, vote));
+            var e = Assert.ThrowsException<VoteRejectionException>(() =>
+            {
+                gm.NormaliseAndValidateMoveTextToSAN(game.CurrentBoard, vote);
+            });
             Assert.AreEqual(typeof(ChessSanNotFoundException), e.InnerException!.GetType());
         }
 
@@ -92,7 +96,10 @@ namespace ConsensusChessSharedTests
         {
             var game = gm.CreateSimpleMoveLockGame("test-game", "Test game", new[] { "mastodon.something.social" }, new[] { "node-0-test" });
             var vote = new Vote() { MoveText = "horsey to king 4" };
-            var e = Assert.ThrowsException<VoteRejectionException>(() => gm.ValidateSAN(game.CurrentBoard, vote));
+            var e = Assert.ThrowsException<VoteRejectionException>(() =>
+            {
+                gm.NormaliseAndValidateMoveTextToSAN(game.CurrentBoard, vote);
+            });
             Assert.AreEqual(typeof(ChessArgumentException), e.InnerException!.GetType());
         }
 
@@ -152,6 +159,15 @@ namespace ConsensusChessSharedTests
 
             var ok = gm.ParticipantOnSide(game, participant);
             Assert.IsFalse(ok);
+        }
+
+        [TestMethod]
+        public void NormaliseAndValidateMoveTextToSAN_tests()
+        {
+            var board = new Board();
+
+            Assert.AreEqual("e4", gm.NormaliseAndValidateMoveTextToSAN(board, new Vote() { MoveText = "e2 - e4" }));
+            Assert.AreEqual("e4", gm.NormaliseAndValidateMoveTextToSAN(board, new Vote() { MoveText = "e4" }));
         }
 
     }

@@ -92,9 +92,9 @@ namespace ConsensusChessShared.Content
 			return this;
 		}
 
-        public PostBuilder WithSAN(string SAN)
+        public PostBuilder WithMoveText(string moveText)
 		{
-            WithMapping("SAN", SAN);
+            WithMapping("MoveText", moveText);
             return this;
         }
 
