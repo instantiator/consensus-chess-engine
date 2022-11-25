@@ -24,7 +24,7 @@ namespace ConsensusChessFeatureTests
             EngineSocialMock.Verify(ns => ns.PostAsync(
                 It.Is<Post>(p =>
                     p.Succeeded == true &&
-                    p.Message == "This instruction can't be processed: UnrecognisedCommand" &&
+                    p.Type == PostType.CommandRejection &&
                     p.NetworkReplyToId == command.SourcePostId),
                 null),
                 Times.Once);
@@ -48,7 +48,7 @@ namespace ConsensusChessFeatureTests
             EngineSocialMock.Verify(ns => ns.PostAsync(
             It.Is<Post>(p =>
                 p.Succeeded == true &&
-                p.Message == $"New MoveLock game for: {NodeId.Shortcode}" &&
+                p.Type == PostType.Engine_GameCreationResponse &&
                 p.NetworkReplyToId == command.SourcePostId),
             null),
             Times.Once);
@@ -57,7 +57,7 @@ namespace ConsensusChessFeatureTests
             EngineSocialMock.Verify(ns => ns.PostAsync(
                 It.Is<Post>(p =>
                     p.Succeeded == true &&
-                    p.Message == "New MoveLock game...\nWhite: \nBlack: \nMove duration: 2.00:00:00"),
+                    p.Type == PostType.Engine_GameAnnouncement),
                 null),
                 Times.Once);
 
@@ -78,8 +78,9 @@ namespace ConsensusChessFeatureTests
                 Assert.AreEqual(NodeId.Shortcode, game.BlackPostingNodeShortcodes.Single().Value);
 
                 Assert.AreEqual(Board.INITIAL_FEN, game.Moves.Single().From.FEN);
-
                 Assert.AreEqual(1, game.GamePosts.Count(p => p.Type == PostType.Engine_GameAnnouncement));
+
+                Assert.AreEqual(GameState.InProgress, game.State);
             }
         }
 
@@ -101,7 +102,7 @@ namespace ConsensusChessFeatureTests
             EngineSocialMock.Verify(ns => ns.PostAsync(
             It.Is<Post>(p =>
                 p.Succeeded == true &&
-                p.Message == "This instruction can't be processed: NotAuthorised" &&
+                p.Type == PostType.CommandRejection &&
                 p.NetworkReplyToId == command.SourcePostId),
             null),
             Times.Once);
@@ -132,7 +133,7 @@ namespace ConsensusChessFeatureTests
             EngineSocialMock.Verify(ns => ns.PostAsync(
             It.Is<Post>(p =>
                 p.Succeeded == true &&
-                p.Message == "Unrecognised shortcodes: beans-on-toast" &&
+                p.Type == PostType.CommandRejection &&
                 p.NetworkReplyToId == command.SourcePostId),
             null),
             Times.Once);
@@ -180,7 +181,7 @@ namespace ConsensusChessFeatureTests
             // add some votes
             for (var i = 0; i < 5; i++)
             {
-                var voteCmd = FeatureDataGenerator.GenerateCommand($"move e4", EngineNetwork, false, from: $"voter-{i}", inReplyTo: boardPost1id);
+                var voteCmd = FeatureDataGenerator.GenerateCommand($"move e2 - e4", EngineNetwork, false, from: $"voter-{i}", inReplyTo: boardPost1id);
                 await receivers[NodeId.Shortcode].Invoke(voteCmd);
 
                 using (var db = Dbo.GetDb())
@@ -189,12 +190,13 @@ namespace ConsensusChessFeatureTests
                     Assert.AreEqual(i + 1, game.CurrentMove.Votes.Count());
                     Assert.IsNotNull(game.CurrentMove.Votes.Last().ValidationPost);
                     Assert.AreEqual(VoteValidationState.Valid, game.CurrentMove.Votes.Last().ValidationState);
-                    Assert.AreEqual("e4", game.CurrentMove.Votes.Last().MoveText);
+                    Assert.AreEqual("e2 - e4", game.CurrentMove.Votes.Last().MoveText);
+                    Assert.AreEqual("e4", game.CurrentMove.Votes.Last().MoveSAN);
                 }
             }
             for (var i = 5; i < 8; i++)
             {
-                var voteCmd = FeatureDataGenerator.GenerateCommand($"move e3", EngineNetwork, false, from: $"voter-{i}", inReplyTo: boardPost1id);
+                var voteCmd = FeatureDataGenerator.GenerateCommand($"move e2 - e3", EngineNetwork, false, from: $"voter-{i}", inReplyTo: boardPost1id);
                 await receivers[NodeId.Shortcode].Invoke(voteCmd);
 
                 using (var db = Dbo.GetDb())
@@ -203,7 +205,8 @@ namespace ConsensusChessFeatureTests
                     Assert.AreEqual(i + 1, game.CurrentMove.Votes.Count());
                     Assert.IsNotNull(game.CurrentMove.Votes.Last().ValidationPost);
                     Assert.AreEqual(VoteValidationState.Valid, game.CurrentMove.Votes.Last().ValidationState);
-                    Assert.AreEqual("e3", game.CurrentMove.Votes.Last().MoveText);
+                    Assert.AreEqual("e2 - e3", game.CurrentMove.Votes.Last().MoveText);
+                    Assert.AreEqual("e3", game.CurrentMove.Votes.Last().MoveSAN);
                 }
             }
 
@@ -262,11 +265,10 @@ namespace ConsensusChessFeatureTests
                 await db.SaveChangesAsync();
             }
 
-            // wait until there's a new move
+            // wait until the game abandons
             SpinWait.SpinUntil(() =>
             {
                 using (var db = Dbo.GetDb())
-                    //return db.Games.Single().State == GameState.Abandoned;
                     return db.Games.Single().GamePosts.Any(p => p.Type == PostType.Engine_GameAbandoned);
             });
             using (var db = Dbo.GetDb())
@@ -275,6 +277,89 @@ namespace ConsensusChessFeatureTests
                 Assert.IsNotNull(db.Games.Single().Finished);
                 Assert.AreEqual(1, db.Games.Single().GamePosts.Count(p => p.Type == PostType.Engine_GameAbandoned));
             }
+
+        }
+
+        [TestMethod]
+        public async Task GameRollIntoCheckmate_resultsIn_GameEndedStatus()
+        {
+            var engine = await StartEngineAsync();
+            var node = await StartNodeAsync();
+
+            // create game
+            var newGame = Game.NewGame("game-shortcode", "description",
+                    new[] { NodeNetwork.NetworkServer },
+                    new[] { NodeNetwork.NetworkServer },
+                    new[] { NodeId.Shortcode },
+                    new[] { NodeId.Shortcode },
+                    SideRules.MoveLock);
+
+            newGame.CurrentBoard.FEN = FeatureDataGenerator.FEN_PreFoolsMate;
+
+            using (var db = Dbo.GetDb())
+            {
+                db.Games.Add(newGame);
+                await db.SaveChangesAsync();
+            }
+
+            // get the board post
+            long? boardPost1id;
+            SpinWait.SpinUntil(() =>
+            {
+                using (var db = Dbo.GetDb())
+                    return db.Games.Single().CurrentBoard.BoardPosts.Count() == 1;
+            });
+            using (var db = Dbo.GetDb())
+            {
+                var game = db.Games.Single();
+                boardPost1id = game.CurrentBoard.BoardPosts.Single().NetworkPostId!;
+                Assert.IsNotNull(boardPost1id);
+            }
+
+            // add a vote to enact fools mate
+            var voteCmd = FeatureDataGenerator.GenerateCommand($"move {FeatureDataGenerator.SAN_FoolsMate}", EngineNetwork, false, from: $"voter", inReplyTo: boardPost1id);
+            await receivers[NodeId.Shortcode].Invoke(voteCmd);
+
+            using (var db = Dbo.GetDb())
+            {
+                var game = db.Games.Single();
+                Assert.AreEqual(1, game.CurrentMove.Votes.Count());
+                Assert.IsNotNull(game.CurrentMove.Votes.Last().ValidationPost);
+                Assert.AreEqual(VoteValidationState.Valid, game.CurrentMove.Votes.Last().ValidationState);
+                Assert.AreEqual("Qf7", game.CurrentMove.Votes.Last().MoveText);
+            }
+
+            // modify game to expire shortly
+            using (var db = Dbo.GetDb())
+            {
+                var game = db.Games.Single();
+                game.CurrentMove.Deadline = DateTime.Now.Add(TimeSpan.FromSeconds(1)).ToUniversalTime();
+                await db.SaveChangesAsync();
+            }
+
+            // wait until there's a new move
+            SpinWait.SpinUntil(() =>
+            {
+                using (var db = Dbo.GetDb())
+                    return db.Games.Single().Moves[0].SelectedSAN != null;
+            });
+            using (var db = Dbo.GetDb())
+            {
+                // check the positions and moves
+                Assert.AreEqual(1, db.Games.Single().Moves.Count()); // game end does not create an additional Move
+                Assert.AreEqual(FeatureDataGenerator.FEN_PreFoolsMate, db.Games.Single().Moves[0].From.FEN);
+                Assert.AreEqual(Side.White, db.Games.Single().Moves[0].SideToPlay);
+                Assert.AreEqual(Side.White, db.Games.Single().Moves[0].From.ActiveSide);
+                Assert.AreEqual("Qxf7#", db.Games.Single().Moves[0].SelectedSAN!);
+                Assert.AreEqual(FeatureDataGenerator.FEN_FoolsMate, db.Games.Single().Moves[0].To!.FEN);
+                Assert.AreEqual(Side.Black, db.Games.Single().Moves[0].To!.ActiveSide);
+
+                // check game looks ended
+                Assert.IsNotNull(db.Games.Single().Finished);
+                Assert.AreEqual(1, db.Games.Single().GamePosts.Count(p => p.Type == PostType.Engine_GameEnded));
+                Assert.AreEqual(GameState.BlackKingCheckmated, db.Games.Single().State);
+            }
+
 
         }
 

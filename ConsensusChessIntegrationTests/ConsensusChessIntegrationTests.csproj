@@ -21,8 +21,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Remove="Moq" />
+    <None Remove="Data\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\.editorconfig" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Data\" />
   </ItemGroup>
 </Project>

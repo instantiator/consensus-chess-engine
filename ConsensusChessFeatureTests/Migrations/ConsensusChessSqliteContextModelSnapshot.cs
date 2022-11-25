@@ -435,6 +435,10 @@ namespace ConsensusChessFeatureTests.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("server");
 
+                    b.Property<string>("Shortcode")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("shortcode");
+
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasColumnType("TEXT")

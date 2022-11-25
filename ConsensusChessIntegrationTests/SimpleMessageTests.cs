@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Xml.Linq;
+using ConsensusChessIntegrationTests.Data;
 using ConsensusChessShared.Constants;
 using ConsensusChessShared.DTO;
 using ConsensusChessShared.Helpers;
@@ -15,7 +16,7 @@ namespace ConsensusChessIntegrationTests
         [TestMethod]
         public async Task SendAMessageToEngine_ItIsFavourited()
         {
-            var status = await SendMessageAsync("hello", Mastonet.Visibility.Direct, accounts["engine"]);
+            var status = await SendMessageAsync("hello", Mastonet.Visibility.Direct, contacts[NodeType.Engine]);
             await AssertFavouritedAsync(status);
         }
 
@@ -30,15 +31,22 @@ namespace ConsensusChessIntegrationTests
                 Assert.AreEqual(0, db.Games.Count());
             }
 
+            var nodeShortcodes = new[] { contacts[NodeType.Node].Shortcode! };
+
             // issue a command to start a new game
             WriteLogLine("Posting new game request...");
-            var commandNewGame = await SendMessageAsync("new node-0-test", Mastonet.Visibility.Direct, accounts["engine"]);
+            var commandNewGame = await SendMessageAsync(
+                Messages.NewGameCommand(nodeShortcodes),
+                Mastonet.Visibility.Direct,
+                contacts[NodeType.Engine]);
+
             await AssertFavouritedAsync(commandNewGame);
 
             // check there's 1 reply responding to the new game command
-            WriteLogLine("Checking for reply from engine..");
-            var expectedGameAck = "@instantiator New MoveLock game for: node-0-test";
-            await AssertGetsReplyNotificationAsync(commandNewGame, expectedGameAck);
+            WriteLogLine("Checking for reply from engine...");
+            await AssertGetsReplyNotificationAsync(
+                commandNewGame,
+                Responses.NewGame_reply(SideRules.MoveLock, nodeShortcodes));
 
             // check db for the new game
             WriteLogLine("Checking for game in database...");
@@ -52,29 +60,33 @@ namespace ConsensusChessIntegrationTests
 
                 Assert.AreEqual(SideRules.MoveLock, game.SideRules);
 
-                Assert.AreEqual("node-0-test", game.WhitePostingNodeShortcodes.First());
-                Assert.AreEqual("node-0-test", game.BlackPostingNodeShortcodes.First());
+                Assert.AreEqual(contacts[NodeType.Node].Shortcode, game.WhitePostingNodeShortcodes.First().Value);
+                Assert.AreEqual(contacts[NodeType.Node].Shortcode, game.BlackPostingNodeShortcodes.First().Value);
 
                 Assert.AreEqual(1, game.WhiteParticipantNetworkServers.Count());
                 Assert.AreEqual(1, game.BlackParticipantNetworkServers.Count());
 
-                Assert.AreEqual("botsin.space", game.WhiteParticipantNetworkServers.First());
-                Assert.AreEqual("botsin.space", game.BlackParticipantNetworkServers.First());
+                Assert.AreEqual(contacts[NodeType.Node].Server, game.WhiteParticipantNetworkServers.First().Value);
+                Assert.AreEqual(contacts[NodeType.Node].Server, game.BlackParticipantNetworkServers.First().Value);
             }
 
             // get node and engine accounts
-            var node = await GetAccountAsync(accounts["node"]);
-            var engine = await GetAccountAsync(accounts["engine"]);
+            var nodeAcct = await GetAccountAsync(contacts[NodeType.Node]);
+            var engineAcct = await GetAccountAsync(contacts[NodeType.Engine]);
 
             // check the engine posted the new board
             WriteLogLine($"Checking for new game announcement by engine...");
-            var engineStatuses = await AssertAndGetStatusesAsync(engine, 1,
-                (Status status, string content) => content.Contains("New MoveLock game...") && status.CreatedAt > started);
+            var engineStatuses = await AssertAndGetStatusesAsync(engineAcct, 1,
+                (Status status, string content)
+                    => content.Contains(Responses.NewGame_announcement(SideRules.MoveLock))
+                    && status.CreatedAt > started);
 
             // check the node posted the new board
             WriteLogLine($"Checking for board post by node...");
-            var nodeStatuses = await AssertAndGetStatusesAsync(node, 1,
-                (Status status, string content) => content.Contains("New board.") && status.CreatedAt > started);
+            var nodeStatuses = await AssertAndGetStatusesAsync(nodeAcct, 1,
+                (Status status, string content) =>
+                    content.Contains(Responses.NewBoard())
+                    && status.CreatedAt > started);
 
             WriteLogLine($"Checking for board post in db...");
             using (var db = GetDb())
@@ -87,8 +99,8 @@ namespace ConsensusChessIntegrationTests
 
                 WriteLogLine($"Board post id: {boardPost.NetworkPostId}");
 
-                Assert.AreEqual("botsin.space", boardPost.NetworkServer);
-                Assert.AreEqual("node-0-test", boardPost.NodeShortcode);
+                Assert.AreEqual(contacts[NodeType.Node].Server, boardPost.NetworkServer);
+                Assert.AreEqual(contacts[NodeType.Node].Shortcode, boardPost.NodeShortcode);
                 Assert.IsTrue(boardPost.Message.Contains("New board."));
             }
         }
@@ -99,123 +111,69 @@ namespace ConsensusChessIntegrationTests
             var started = DateTime.Now;
 
             // get node account
-            var node = await GetAccountAsync(accounts["node"]);
+            var node = await GetAccountAsync(contacts[NodeType.Node]);
 
             // init the db with a test game
             using (var db = GetDb())
             {
-                // confirm no games
                 Assert.AreEqual(0, db.Games.Count());
 
                 // create a game
-                var servers = new[] { node.AccountName };
-                var nodes = new[] { "node-0-test" };
-                var game = Game.NewGame("test-game", "A game for integration testing", servers, servers, nodes, nodes, SideRules.MoveLock);
+                var servers = new[] { contacts[NodeType.Node].Server };
+                var nodes = new[] { contacts[NodeType.Node].Shortcode! };
+                var game = Game.NewGame(
+                    "test-game", "A game for integration testing",
+                    servers, servers,
+                    nodes, nodes,
+                    SideRules.MoveLock);
+
                 db.Games.Add(game);
                 await db.SaveChangesAsync();
             }
 
             // wait for the node to post the new board
             var nodeStatuses = await AssertAndGetStatusesAsync(node, 1,
-                (Status status, string content) => content.Contains("New board.") && status.CreatedAt > started);
+                (Status status, string content)
+                    => content.Contains(Responses.NewBoard())
+                    && status.CreatedAt > started);
+
             var boardStatus = nodeStatuses.Single();
 
             // post a move
-            var moveStatus = await SendMessageAsync("move e4", Mastonet.Visibility.Direct, node.AccountName, boardStatus.Id);
+            var moveStatus = await SendMessageAsync(
+                Messages.Move("e2","e4"),
+                Mastonet.Visibility.Direct,
+                contacts[NodeType.Node],
+                boardStatus.Id);
 
             // confirm the reply comes through
-            var verifiedStatus = await AssertGetsReplyNotificationAsync(moveStatus, "@instantiator Move accepted - thank you");
+            var verifiedStatus = await AssertGetsReplyNotificationAsync(moveStatus, Responses.MoveAccepted());
 
             using (var db = GetDb())
             {
-                // confirm no games
                 Assert.AreEqual(1, db.Games.Count());
-
                 var game = db.Games.ToList().Single();
 
                 var votes = game.CurrentMove.Votes;
                 Assert.AreEqual(1, votes.Count());
 
                 var vote = votes.Single();
-                Assert.AreEqual("instantiator@mastodon.social", vote.Participant.Username.Full);
-                Assert.AreEqual("mastodon.social", vote.Participant.Username.Server);
+                Assert.AreEqual(username.Full, vote.Participant.Username.Full);
+                Assert.AreEqual(username.Server, vote.Participant.Username.Server);
                 Assert.AreEqual(VoteValidationState.Valid, vote.ValidationState);
 
                 Assert.IsNotNull(vote.ValidationPost);
                 Assert.IsTrue(vote.ValidationPost!.Succeeded);
                 Assert.IsNotNull(vote.ValidationPost.NetworkPostId);
-                Assert.AreEqual("node-0-test", vote.ValidationPost.NodeShortcode);
+                Assert.AreEqual(contacts[NodeType.Node].Shortcode, vote.ValidationPost.NodeShortcode);
                 Assert.IsTrue(vote.ValidationPost.NetworkReplyToId > 0);
-                Assert.IsTrue(vote.ValidationPost.Message.Contains("Move accepted - thank you"));
+                Assert.IsTrue(vote.ValidationPost.Message.Contains(Responses.MoveAccepted()));
 
                 Assert.IsTrue(vote.NetworkMovePostId > 0);
-                Assert.AreEqual("e4", vote.MoveText);
+                Assert.AreEqual("e2 - e4", vote.MoveText);
+                Assert.AreEqual("e4", vote.MoveSAN);
             }
         }
 
-        [TestMethod]
-        public async Task VoteOnGameTwice_VoteSuperceded()
-        {
-            var started = DateTime.Now;
-
-            // get node account
-            var node = await GetAccountAsync(accounts["node"]);
-
-            // init the db with a test game
-            using (var db = GetDb())
-            {
-                // confirm no games
-                Assert.AreEqual(0, db.Games.Count());
-
-                // create a game
-                var servers = new[] { node.AccountName };
-                var nodes = new[] { "node-0-test" };
-                var game = Game.NewGame("test-game", "A game for integration testing", servers, servers, nodes, nodes, SideRules.MoveLock);
-                db.Games.Add(game);
-                await db.SaveChangesAsync();
-            }
-
-            // wait for the node to post the new board
-            var nodeStatuses = await AssertAndGetStatusesAsync(node, 1,
-                (Status status, string content) => content.Contains("New board.") && status.CreatedAt > started);
-            var boardStatus = nodeStatuses.Single();
-
-            // post a move, wait for favourite and move on (no need to check the reply)
-            var moveStatus = await SendMessageAsync("move e4", Mastonet.Visibility.Direct, node.AccountName, boardStatus.Id);
-            await AssertFavouritedAsync(moveStatus);
-
-            using (var db = GetDb())
-            {
-                var game = db.Games.ToList().Single();
-                var participant = db.Participant.Single(p => p.Username.Full == "instantiator@mastodon.social");
-                var gm = new GameManager(mockLogger.Object);
-                var preexistingVote = gm.GetCurrentValidVote(game.CurrentMove, participant);
-
-                Assert.IsNotNull(preexistingVote);
-                Assert.AreEqual("e4", preexistingVote.MoveText);
-                Assert.AreEqual(VoteValidationState.Valid, preexistingVote.ValidationState);
-            }
-
-            // post a 2nd move
-            var moveStatus2 = await SendMessageAsync("move e3", Mastonet.Visibility.Direct, node.AccountName, boardStatus.Id);
-            await AssertFavouritedAsync(moveStatus2);
-            // confirm the reply comes through
-            var verifiedStatus2 = await AssertGetsReplyNotificationAsync(moveStatus2, "@instantiator Move accepted - thank you");
-
-            // check db, and vote statuses
-            using (var db = GetDb())
-            {
-                // confirm no games
-                Assert.AreEqual(1, db.Games.Count());
-
-                var game = db.Games.ToList().Single();
-
-                var votes = game.CurrentMove.Votes;
-                Assert.AreEqual(2, votes.Count());
-
-                Assert.AreEqual(1, votes.Count(v => v.ValidationState == VoteValidationState.Superceded));
-                Assert.AreEqual(1, votes.Count(v => v.ValidationState == VoteValidationState.Valid));
-            }
-        }
     }
 }

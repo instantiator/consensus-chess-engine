@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Concurrent;
 using System.IO;
+using ConsensusChessShared.Constants;
 using ConsensusChessShared.Database;
 using ConsensusChessShared.DTO;
 using ConsensusChessShared.Helpers;
@@ -22,7 +23,7 @@ namespace ConsensusChessIntegrationTests
 
         protected string logPath;
 
-        public TestContext TestContext { get; set; }
+        public TestContext? TestContext { get; set; }
 
         public const int TIMEOUT_mins = 15;
 
@@ -32,7 +33,7 @@ namespace ConsensusChessIntegrationTests
 
         protected ConcurrentBag<Notification> ReceivedNotifications { get; } = new ConcurrentBag<Notification>();
 
-        protected Dictionary<string, string> accounts;
+        protected Dictionary<NodeType, SocialUsername> contacts;
 
         protected ConsensusChessDbContext GetDb()
             => ConsensusChessPostgresContext.FromEnv(Environment.GetEnvironmentVariables());
@@ -41,7 +42,10 @@ namespace ConsensusChessIntegrationTests
             => Network.FromEnv(Environment.GetEnvironmentVariables());
 
         protected MastodonClient social;
+        protected Account? user;
+        protected SocialUsername username;
         protected TimelineStreaming? stream;
+        protected Network network;
 
         protected AbstractIntegrationTests()
         {
@@ -57,22 +61,33 @@ namespace ConsensusChessIntegrationTests
             }
 
             mockLogger = new Mock<ILogger>();
+            network = GetNetwork();
 
             social = GetMastodonClient();
             var environment = Environment.GetEnvironmentVariables()
                 .Cast<DictionaryEntry>().ToDictionary(x => (string)x.Key, x => (string)x.Value!);
 
-            accounts = new Dictionary<string, string>()
+            var engineSocialUsername = SocialUsername.From(
+                environment["INT_ENGINE_ACCOUNT"],
+                "integration engine",
+                network,
+                environment["INT_ENGINE_SHORTCODE"]);
+
+            var nodeSocialUsername = SocialUsername.From(
+                environment["INT_NODE_ACCOUNT"],
+                "integration node",
+                network,
+                environment["INT_NODE_SHORTCODE"]);
+
+            contacts = new Dictionary<NodeType, SocialUsername>()
             {
-                { "engine", environment["INT_ENGINE_ACCOUNT"] },
-                { "node", environment["INT_NODE_ACCOUNT"] },
+                { NodeType.Engine, engineSocialUsername },
+                { NodeType.Node, nodeSocialUsername },
             };
         }
 
         private MastodonClient GetMastodonClient()
         {
-            var network = GetNetwork();
-
             AppRegistration reg = new AppRegistration()
             {
                 ClientId = network.AppKey,
@@ -89,13 +104,13 @@ namespace ConsensusChessIntegrationTests
             return new MastodonClient(reg, token, http);
         }
 
-        protected async Task<Status> SendMessageAsync(string message, Visibility? visibilityOverride = null, string? directRecipient = null, long? inReplyTo = null)
+        protected async Task<Status> SendMessageAsync(string message, Visibility? visibilityOverride = null, SocialUsername? directRecipient = null, long? inReplyTo = null)
         {
             var visibility =
                 visibilityOverride != null
                 ? visibilityOverride
                 : Visibility.Direct;
-            message = string.IsNullOrWhiteSpace(directRecipient) ? message : $"@{directRecipient} {message}";
+            message = directRecipient == null ? message : $"{directRecipient.AtFull} {message}";
 
             WriteLogLine($"Sending message: {message}\nVisibility: {visibility}, InReplyTo: {inReplyTo?.ToString() ?? "(none)"}");
 
@@ -132,13 +147,19 @@ namespace ConsensusChessIntegrationTests
             List<Status> statuses = new List<Status>();
             do
             {
-                var found = await social.GetAccountStatuses(accountId);
-                var newFound = found.Where(nf => !statuses.Select(s => s.Id).Contains(nf.Id));
-                if (newFound.Count() > 0) { WriteLogLine($"Found:\n{string.Join("\n", "  * " + newFound.Select(nf => nf.Content))}"); }
-                var matched = newFound.Where(s => matcher(s, CommandHelper.CleanupStatus(s.Content)));
-                statuses.AddRange(matched);
-
-                if (matched.Count() > 0) { Console.WriteLine($"Matched {matched.Count()} statuses of: {expect}"); }
+                try
+                {
+                    var found = await social.GetAccountStatuses(accountId);
+                    var newFound = found.Where(nf => !statuses.Select(s => s.Id).Contains(nf.Id));
+                    if (newFound.Count() > 0) { WriteLogLine($"Found:\n{string.Join("\n", "  * " + newFound.Select(nf => nf.Content))}"); }
+                    var matched = newFound.Where(s => matcher(s, CommandHelper.CleanupStatus(s.Content)));
+                    statuses.AddRange(matched);
+                    if (matched.Count() > 0) { WriteLogLine($"Matched {matched.Count()} statuses of: {expect}"); }
+                }
+                catch (Exception e)
+                {
+                    WriteLogLine($"{e.GetType().Name}: {e.Message}\n{e.StackTrace}");
+                }
 
                 if (statuses.Count() < expect)
                     await Task.Delay(TimeSpan.FromSeconds(15));
@@ -150,7 +171,10 @@ namespace ConsensusChessIntegrationTests
         [TestInitialize]
         public async Task TestInit()
         {
-            WriteLogHeader($"{TestContext.TestName}");
+            WriteLogHeader($"{TestContext!.TestName}");
+
+            user = await social.GetCurrentUser();
+            username = SocialUsername.From(user.AccountName, "integration tester", network, "integration-tester");
 
             // crucially, don't delete node_status from the db
             var tables = new[]
@@ -214,24 +238,24 @@ namespace ConsensusChessIntegrationTests
             Assert.AreEqual(notification_favourite.Single().Status!.Id, status.Id);
         }
 
-        protected async Task<Notification> AssertGetsReplyNotificationAsync(Status status, string expectedReply)
+        protected async Task<Notification> AssertGetsReplyNotificationAsync(Status status, string expectedContains)
         {
-            WriteLogLine("Waiting for reply to status...");
+            WriteLogLine($"Waiting for reply to status containing: {expectedContains}");
             var replyNotifications = await AssertAndGetReplyNotificationsAsync(status, 1);
             var replyContent = CommandHelper.RemoveUnwantedTags(replyNotifications.Single().Status!.Content);
-            Assert.AreEqual(expectedReply, replyContent);
+            Assert.IsTrue(replyContent.Contains(expectedContains));
             return replyNotifications.Single();
         }
 
         protected async Task<IEnumerable<Notification>> AssertAndGetReplyNotificationsAsync(Status status, int expected)
         {
-            var notifications_replyNewGame = await AwaitNotificationsAsync(
+            var notifications_reply = await AwaitNotificationsAsync(
                 TimeSpan.FromMinutes(TIMEOUT_mins),
                 (n) => n.Type == "mention" && n.Status != null && n.Status.InReplyToId == status.Id, expected);
 
-            Assert.IsNotNull(notifications_replyNewGame);
-            Assert.AreEqual(expected, notifications_replyNewGame.Count());
-            return notifications_replyNewGame;
+            Assert.IsNotNull(notifications_reply);
+            Assert.AreEqual(expected, notifications_reply.Count());
+            return notifications_reply;
         }
 
         protected async Task<IEnumerable<Status>> AssertAndGetStatusesAsync(Account account, int expected, Func<Status, string, bool> matcher)
@@ -245,11 +269,11 @@ namespace ConsensusChessIntegrationTests
             return statuses;
         }
 
-        protected async Task<Account> GetAccountAsync(string fullHandle)
+        protected async Task<Account> GetAccountAsync(SocialUsername whom)
         {
-            var accountCandidates = await social.SearchAccounts(fullHandle);
+            var accountCandidates = await social.SearchAccounts(whom.Full);
             Assert.AreEqual(1, accountCandidates.Count());
-            Assert.AreEqual(fullHandle, accountCandidates.Single().AccountName);
+            Assert.IsTrue(whom.Equals(accountCandidates.Single().AccountName));
             return accountCandidates.Single();
         }
 

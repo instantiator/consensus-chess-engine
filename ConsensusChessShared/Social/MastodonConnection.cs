@@ -14,13 +14,12 @@ namespace ConsensusChessShared.Social
 
         private MastodonClient client;
         private Account? user;
-
         private TimelineStreaming? stream;
 
         // TODO: revisit the paging limit - may or may not be necessary
         private const int MAX_PAGES = 100;
 
-        public MastodonConnection(ILogger log, Network network) : base(log, network)
+        public MastodonConnection(ILogger log, Network network, string shortcode) : base(log, network, shortcode)
 		{
             AppRegistration reg = new AppRegistration()
             {
@@ -41,7 +40,7 @@ namespace ConsensusChessShared.Social
         protected override async Task InitImplementationAsync()
         {
             user = await client.GetCurrentUser();
-            Username = SocialUsername.From(user.AccountName!, user.DisplayName!, network);
+            Username = SocialUsername.From(user.AccountName!, user.DisplayName!, network, shortcode);
         }
 
         public override SocialUsername? Username { get; set; }
@@ -61,6 +60,7 @@ namespace ConsensusChessShared.Social
             { PostType.Engine_GameAdvance, Visibility.Unlisted },
             { PostType.Engine_GameCreationResponse, Visibility.Unlisted },
             { PostType.Engine_GameAbandoned, Visibility.Unlisted },
+            { PostType.Engine_GameEnded, Visibility.Unlisted },
 
             { PostType.Node_BoardUpdate, Visibility.Unlisted }, // TODO: public when live
 

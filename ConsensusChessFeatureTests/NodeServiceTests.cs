@@ -23,7 +23,7 @@ namespace ConsensusChessFeatureTests
             NodeSocialMock.Verify(ns => ns.PostAsync(
                 It.Is<Post>(p =>
 					p.Succeeded == true &&
-					p.Message == "This instruction can't be processed: UnrecognisedCommand" &&
+                    p.Type == PostType.CommandRejection &&
 					p.NetworkReplyToId == command.SourcePostId),
 				null),
                 Times.Once);
@@ -103,7 +103,7 @@ namespace ConsensusChessFeatureTests
             NodeSocialMock.Verify(ns => ns.PostAsync(
                 It.Is<Post>(p =>
                     p.Succeeded == true &&
-                    p.Message == "Move accepted - thank you" &&
+                    p.Type == PostType.MoveAccepted &&
                     p.NetworkReplyToId == command.SourcePostId),
                 null),
                 Times.Once);
@@ -152,18 +152,16 @@ namespace ConsensusChessFeatureTests
                     return db.Games.Single().CurrentBoard.BoardPosts.Count() == 1;
             });
 
-            var confirmation = $"New board. You have {game.MoveDuration.ToString()} to vote.";
-            SpinWait.SpinUntil(() => postsSent.Count(p => p.Message.StartsWith(confirmation)) == 1);
-            var boardPost = postsSent.Single(p => p.Message.StartsWith(confirmation));
+            SpinWait.SpinUntil(() => postsSent.Count(p => p.Type == PostType.Node_BoardUpdate) == 1);
+            var boardPost = postsSent.Single(p => p.Type == PostType.Node_BoardUpdate);
 
-            var command = FeatureDataGenerator.GenerateCommand("move e5", NodeNetwork, inReplyTo: boardPost.NetworkPostId);
+            var command = FeatureDataGenerator.GenerateCommand("move e2 - e5", NodeNetwork, inReplyTo: boardPost.NetworkPostId);
             await receivers[NodeId.Shortcode].Invoke(command);
 
-            var validation = "InvalidMoveText from instantiator@fake.mastodon.server: e5, ChessSanNotFoundException: Given SAN move: e5 has been not found with current board positions.";
             NodeSocialMock.Verify(ns => ns.PostAsync(
                 It.Is<Post>(p =>
                     p.Succeeded == true &&
-                    p.Message ==  validation &&
+                    p.Type == PostType.MoveValidation &&
                     p.NetworkReplyToId == command.SourcePostId),
                 null),
                 Times.Once);
@@ -173,7 +171,7 @@ namespace ConsensusChessFeatureTests
                 var move = db.Games.Single().CurrentMove;
                 Assert.AreEqual(1, move.Votes.Count());
                 var vote = move.Votes.Single();
-                Assert.AreEqual("e5", vote.MoveText);
+                Assert.AreEqual("e2 - e5", vote.MoveText);
                 Assert.AreEqual(VoteValidationState.InvalidMoveText, vote.ValidationState);
 
                 Assert.IsNotNull(vote.Participant);
@@ -182,7 +180,6 @@ namespace ConsensusChessFeatureTests
                 Assert.IsNotNull(vote.ValidationPost);
                 Assert.IsTrue(vote.ValidationPost.Succeeded);
                 Assert.AreEqual(PostType.MoveValidation, vote.ValidationPost.Type);
-                Assert.AreEqual(validation, vote.ValidationPost.Message);
             }
         }
 
@@ -217,11 +214,10 @@ namespace ConsensusChessFeatureTests
             var command = FeatureDataGenerator.GenerateCommand("move e6", NodeNetwork, inReplyTo: boardPost.NetworkPostId);
             await receivers[NodeId.Shortcode].Invoke(command);
 
-            var validation = "InvalidMoveText from instantiator@fake.mastodon.server: e6, ChessSanNotFoundException: Given SAN move: e6 has been not found with current board positions.";
             NodeSocialMock.Verify(ns => ns.PostAsync(
                 It.Is<Post>(p =>
                     p.Succeeded == true &&
-                    p.Message == validation &&
+                    p.Type == PostType.MoveValidation &&
                     p.NetworkReplyToId == command.SourcePostId),
                 null),
                 Times.Once);
@@ -240,7 +236,6 @@ namespace ConsensusChessFeatureTests
                 Assert.IsNotNull(vote.ValidationPost);
                 Assert.IsTrue(vote.ValidationPost.Succeeded);
                 Assert.AreEqual(PostType.MoveValidation, vote.ValidationPost.Type);
-                Assert.AreEqual(validation, vote.ValidationPost.Message);
             }
         }
 
@@ -268,9 +263,8 @@ namespace ConsensusChessFeatureTests
                     return db.Games.Single().CurrentBoard.BoardPosts.Count() == 1;
             });
 
-            var confirmation = $"New board. You have {game.MoveDuration.ToString()} to vote.";
-            SpinWait.SpinUntil(() => postsSent.Count(p => p.Message.StartsWith(confirmation)) == 1);
-            var boardPost = postsSent.Single(p => p.Message.StartsWith(confirmation));
+            SpinWait.SpinUntil(() => postsSent.Count(p => p.Type == PostType.Node_BoardUpdate) == 1);
+            var boardPost = postsSent.Single(p => p.Type == PostType.Node_BoardUpdate);
 
             using (var db = Dbo.GetDb())
             {
@@ -293,14 +287,13 @@ namespace ConsensusChessFeatureTests
                 Assert.AreEqual(SocialUsername.From("instantiator", "Lewis", NodeNetwork), participant.Username);
             }
 
-            var command = FeatureDataGenerator.GenerateCommand("move e4", NodeNetwork, inReplyTo: boardPost.NetworkPostId);
+            var command = FeatureDataGenerator.GenerateCommand("move e2 - e4", NodeNetwork, inReplyTo: boardPost.NetworkPostId);
             await receivers[NodeId.Shortcode].Invoke(command);
 
-            var validation = "OffSide from instantiator@fake.mastodon.server: e4, ";
             NodeSocialMock.Verify(ns => ns.PostAsync(
                 It.Is<Post>(p =>
                     p.Succeeded == true &&
-                    p.Message == validation &&
+                    p.Type == PostType.MoveValidation &&
                     p.NetworkReplyToId == command.SourcePostId),
                 null),
                 Times.Once);
@@ -310,7 +303,7 @@ namespace ConsensusChessFeatureTests
                 var move = db.Games.Single().CurrentMove;
                 Assert.AreEqual(1, move.Votes.Count());
                 var vote = move.Votes.Single();
-                Assert.AreEqual("e4", vote.MoveText);
+                Assert.AreEqual("e2 - e4", vote.MoveText);
                 Assert.AreEqual(VoteValidationState.OffSide, vote.ValidationState);
 
                 Assert.IsNotNull(vote.Participant);
@@ -319,7 +312,6 @@ namespace ConsensusChessFeatureTests
                 Assert.IsNotNull(vote.ValidationPost);
                 Assert.IsTrue(vote.ValidationPost.Succeeded);
                 Assert.AreEqual(PostType.MoveValidation, vote.ValidationPost.Type);
-                Assert.AreEqual(validation, vote.ValidationPost.Message);
             }
         }
 

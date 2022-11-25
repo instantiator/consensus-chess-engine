@@ -14,6 +14,10 @@ namespace ConsensusChessFeatureTests.Data
 	{
         public static long RollingPostId { get; set; } = 1;
 
+        public static string FEN_PreFoolsMate = "rnbqkbnr/3ppppp/ppp5/8/2B5/4PQ2/PPPP1PPP/RNB1K1NR w KQkq - 0 1";
+        public static string FEN_FoolsMate = "rnbqkbnr/3ppQpp/ppp5/8/2B5/4P3/PPPP1PPP/RNB1K1NR b KQkq - 0 1";
+        public static string SAN_FoolsMate = "Qf7";
+
         public static Dictionary<string, string> NodeEnv =>
             new Dictionary<string, string>()
             {

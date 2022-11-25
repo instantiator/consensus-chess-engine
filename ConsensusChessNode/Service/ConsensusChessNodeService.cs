@@ -69,7 +69,7 @@ namespace ConsensusChessNode.Service
             log.LogDebug($"Processing vote from {origin.SourceUsername.Full}, in reply to {origin.InReplyToId?.ToString() ?? "(none)"}: {string.Join(" ", words)}");
 
             var moveText = string.Join(" ", words.Skip(1));
-            log.LogDebug($"Vote SAN: {moveText}");
+            log.LogDebug($"Vote move text: {moveText}");
 
             Participant? participant = null;
             Vote? vote = null;

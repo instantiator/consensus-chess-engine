@@ -10,6 +10,12 @@ namespace ConsensusChessIntegrationTests;
 public class ConnectionTests : AbstractIntegrationTests
 {
     [TestMethod]
+    public void TestContext_is_NotNull()
+    {
+        Assert.IsNotNull(TestContext);
+    }
+
+    [TestMethod]
     public void CheckDatabaseConnection()
     {
         using (var db = GetDb())
@@ -43,21 +49,21 @@ public class ConnectionTests : AbstractIntegrationTests
         Assert.AreEqual(lines + 1, File.ReadAllLines(logPath).Count());
     }
 
-    [Ignore]
-    [TestMethod]
-    [Obsolete("dotnet test hides output")]
-    public void You_perhaps_CanSeeADebugWriteLine()
-    {
-        Debug.WriteLine("You can see this Debug.WriteLine, right?");
-    }
+    //[Ignore]
+    //[TestMethod]
+    //[Obsolete("dotnet test hides output")]
+    //public void You_perhaps_CanSeeADebugWriteLine()
+    //{
+    //    Debug.WriteLine("You can see this Debug.WriteLine, right?");
+    //}
 
-    [Ignore]
-    [TestMethod]
-    [Obsolete("dotnet test hides output")]
-    public void You_perhaps_CanSeeATraceWriteLine()
-    {
-        Trace.Listeners.Add(new ConsoleTraceListener());
-        Trace.WriteLine("You can see this Trace.WriteLine, right?");
-    }
+    //[Ignore]
+    //[TestMethod]
+    //[Obsolete("dotnet test hides output")]
+    //public void You_perhaps_CanSeeATraceWriteLine()
+    //{
+    //    Trace.Listeners.Add(new ConsoleTraceListener());
+    //    Trace.WriteLine("You can see this Trace.WriteLine, right?");
+    //}
 
 }

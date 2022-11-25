@@ -23,7 +23,7 @@ public class Worker : BackgroundService
         var id = ServiceIdentity.FromEnv(env);
         var dbo = new DbOperator(log, env);
         var network = Network.FromEnv(env);
-        var social = SocialFactory.From(log, network);
+        var social = SocialFactory.From(log, network, id.Shortcode);
 
         service = new ConsensusChessNodeService(log, id, dbo, network, social);
     }

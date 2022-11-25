@@ -108,6 +108,14 @@ namespace ConsensusChessShared.Service
                     detail: $"{e.GetType().Name}: {e.Message}",
                     innerException: e);
             }
+            catch (Exception e)
+            {
+                throw new VoteRejectionException(
+                    vote,
+                    VoteValidationState.InvalidMoveText,
+                    detail: $"{e.GetType().Name}: {e.Message}",
+                    innerException: e);
+            }
         }
 
         /// <summary>
@@ -200,23 +208,38 @@ namespace ConsensusChessShared.Service
 
         public void AdvanceGame(Game game, string move)
         {
-            var newBoard = CreateNextBoard(game.CurrentBoard, move);
+            var newBoard = ApplyValidatedMoveText(game.CurrentBoard, move);
 
             // update game moves list
             game.CurrentMove.To = newBoard;
             game.CurrentMove.SelectedSAN = move;
-            game.Moves.Add(new DTO.Move()
-            {
-                Deadline = DateTime.Now.Add(game.MoveDuration).ToUniversalTime(),
-                From = newBoard
-            });
-        }
 
-        public Board CreateNextBoard(Board board, string SAN)
-        {
-            var chessboard = ChessBoard.LoadFromFen(board.FEN);
-            chessboard.Move(SAN);
-            return Board.FromFEN(chessboard.ToFen());
+            if (newBoard.IsEndGame)
+            {
+                if (newBoard.IsWhiteInCheck)
+                {
+                    game.State = GameState.WhiteKingCheckmated;
+                }
+                else if (newBoard.IsBlackInCheck)
+                {
+                    game.State = GameState.BlackKingCheckmated;
+                }
+                else
+                {
+                    // nobody in check but game over = stalemate (TODO: confirm)
+                    game.State = GameState.Stalemate;
+                }
+                game.Finished = DateTime.Now.ToUniversalTime();
+            }
+            else
+            {
+                // only add the new move if it's not game over
+                game.Moves.Add(new DTO.Move()
+                {
+                    Deadline = DateTime.Now.Add(game.MoveDuration).ToUniversalTime(),
+                    From = newBoard
+                });
+            }
         }
 
         public void AbandonGame(Game game)

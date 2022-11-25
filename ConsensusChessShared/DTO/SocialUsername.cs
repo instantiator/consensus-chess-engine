@@ -12,12 +12,13 @@ namespace ConsensusChessShared.DTO
 			Created = DateTime.Now.ToUniversalTime();
 		}
 
-		private SocialUsername(string username, string network, string display, NetworkType type) : this()
+		private SocialUsername(string username, string network, string display, NetworkType type, string? shortcode) : this()
 		{
 			Username = username;
 			Server = network;
 			DisplayName = display;
 			NetworkType = type;
+			Shortcode = shortcode;
 		}
 
         [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -28,12 +29,13 @@ namespace ConsensusChessShared.DTO
 		public string Username { get; set; }
 		public string Server { get; set; }
 		public string DisplayName { get; set; }
+		public string? Shortcode { get; set; }
 
 		public string Full => $"{Username}@{Server}";
         public string AtFull => $"@{Username}@{Server}";
 		public string AtUsername => $"@{Username}";
 
-        public static SocialUsername From(string input, string display, Network receivingNetwork)
+        public static SocialUsername From(string input, string display, Network receivingNetwork, string? shortcode = null)
 		{
 			string username;
 			string server;
@@ -59,7 +61,7 @@ namespace ConsensusChessShared.DTO
 					throw new ArgumentException($"Username provided had {parts.Count()} parts: {input}");
 			}
 
-			return new SocialUsername(username.ToLower(), server.ToLower(), display, receivingNetwork.Type);
+			return new SocialUsername(username.ToLower(), server.ToLower(), display, receivingNetwork.Type, shortcode);
 		}
 
         public override bool Equals(object? obj)

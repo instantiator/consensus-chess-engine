@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Chess;
 using ConsensusChessShared.Constants;
 
 namespace ConsensusChessShared.DTO
@@ -27,7 +28,11 @@ namespace ConsensusChessShared.DTO
         public string FEN { get; set; }
 		public virtual List<Post> BoardPosts { get; set; }
 
-		public string PiecesFEN => FEN.Split(" ")[0];
+		public bool IsEndGame => ChessBoard.LoadFromFen(FEN).IsEndGame;
+        public bool IsWhiteInCheck => ChessBoard.LoadFromFen(FEN).WhiteKingChecked;
+        public bool IsBlackInCheck => ChessBoard.LoadFromFen(FEN).BlackKingChecked;
+
+        public string PiecesFEN => FEN.Split(" ")[0];
         public Side ActiveSide => FEN.Split(" ")[1] == "w" ? Side.White : Side.Black;
 		public string CastlingFEN => FEN.Split(" ")[2];
 		public string EnPassantSq => FEN.Split(" ")[3];

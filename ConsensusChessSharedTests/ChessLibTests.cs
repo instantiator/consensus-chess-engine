@@ -1,5 +1,6 @@
 ﻿using System;
 using Chess;
+using ConsensusChessSharedTests.Data;
 
 namespace ConsensusChessSharedTests
 {
@@ -46,12 +47,29 @@ namespace ConsensusChessSharedTests
 			Assert.IsTrue(ok);
 			Assert.IsNotNull(move.San);
 			Assert.AreEqual("c4", move.San);
+			Assert.IsNull(san); // TODO: in future versions of the library, hopefully san will not be null
+		}
 
-			// TODO: in future versions of the library, hopefully san will not be null
-			Assert.IsNull(san);
-			Assert.AreNotEqual("c4", san);
-			//var san = board.ParseToSan(move);
-			//Assert.AreEqual("c4", san);
+		[TestMethod]
+		public void CheckmateDetected()
+		{
+			var board = ChessBoard.LoadFromFen(SampleDataGenerator.FEN_PreFoolsMate);
+
+			var boardStr = board.ToAscii();
+			var moves = string.Join("\n", board.Moves().Select(m => m.San));
+
+			Assert.IsFalse(board.IsEndGame);
+			Assert.IsTrue(board.IsValidMove(SampleDataGenerator.SAN_FoolsMate));
+
+			// enact the move
+			board.Move(SampleDataGenerator.SAN_FoolsMate);
+			Assert.AreEqual(SampleDataGenerator.FEN_FoolsMate, board.ToFen());
+			Assert.AreEqual(PieceColor.Black, board.Turn); // turn flips regardless of checkmate
+
+			// end game
+			Assert.IsTrue(board.IsEndGame);
+			Assert.IsTrue(board.BlackKingChecked);
+			Assert.IsFalse(board.WhiteKingChecked);
 		}
 	}
 }

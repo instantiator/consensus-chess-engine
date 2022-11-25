@@ -59,12 +59,33 @@ namespace ConsensusChessEngine.Service
             {
                 log.LogWarning($"Advancing game: {game.Shortcode} with move: {nextSAN}");
                 gm.AdvanceGame(game, nextSAN);
-                var post = new PostBuilder(PostType.Engine_GameAdvance)
-                    .WithGame(game)
-                    .Build();
-                var posted = await social.PostAsync(post);
-                game.GamePosts.Add(posted);
+
                 // TODO: intervention point to detect game endings, see: IGC-12
+
+                Post? post;
+                switch (game.State)
+                {
+                    case GameState.InProgress:
+                        post = new PostBuilder(PostType.Engine_GameAdvance)
+                            .WithGame(game)
+                            .Build();
+                        break;
+                    case GameState.WhiteKingCheckmated:
+                    case GameState.BlackKingCheckmated:
+                    case GameState.Stalemate:
+                        post = new PostBuilder(PostType.Engine_GameEnded)
+                            .WithGame(game)
+                            .Build();
+                        break;
+                    default:
+                        post = null;
+                        break;
+                }
+                if (post != null)
+                {
+                    var posted = await social.PostAsync(post);
+                    game.GamePosts.Add(posted);
+                }
             }
             else
             {
@@ -131,8 +152,7 @@ namespace ConsensusChessEngine.Service
 
                     var reply = new PostBuilder(PostType.Engine_GameCreationResponse)
                         .WithGame(game)
-                        .WithMapping("AllNodes", string.Join(", ", nodeShortcodes))
-                        .InReplyTo(origin.SourcePostId)
+                        .InReplyTo(origin)
                         .Build();
 
                     await social.PostAsync(reply);
@@ -143,9 +163,9 @@ namespace ConsensusChessEngine.Service
                     log.LogWarning($"New game node shortcodes unrecognised: {string.Join(", ",unrecognised)}");
 
                     var summary = $"Unrecognised shortcodes: {string.Join(", ", unrecognised)}";
-                    var reply = new PostBuilder(PostType.CommandResponse)
+                    var reply = new PostBuilder(PostType.CommandRejection)
                         .WithText(summary)
-                        .InReplyTo(origin.SourcePostId)
+                        .InReplyTo(origin)
                         .Build();
                     await social.PostAsync(reply);
                 }

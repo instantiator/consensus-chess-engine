@@ -18,16 +18,18 @@ namespace ConsensusChessShared.Social
 		protected Network network;
 		protected NodeState state;
 		protected bool dryRuns;
+        protected string shortcode;
 
         protected event Func<SocialCommand, Task>? asyncCommandReceivers;
         protected IEnumerable<SocialCommand>? missedCommands;
 
-        public AbstractSocialConnection(ILogger log, Network network)
+        public AbstractSocialConnection(ILogger log, Network network, string shortcode)
 		{
 			this.log = log;
 			this.network = network;
 			this.dryRuns = network.DryRuns;
             this.Ready = false;
+            this.shortcode = shortcode;
 		}
 
 		public async Task InitAsync(NodeState state)

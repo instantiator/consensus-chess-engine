@@ -74,6 +74,7 @@ namespace ConsensusChessSharedTests
             var game = gm.CreateSimpleMoveLockGame("test-game", "Test game", new[] { "mastodon.something.social" }, new[] { "node-0-test" });
             var vote = new Vote() { MoveText = "e4" };
             var move = gm.NormaliseAndValidateMoveTextToSAN(game.CurrentBoard, vote);
+            
             var board = gm.ApplyValidatedMoveText(game.CurrentBoard, move);
             Assert.IsNotNull(board);
             Assert.AreEqual("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1", board.FEN);

@@ -3,6 +3,7 @@ using System;
 using ConsensusChessShared.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ConsensusChessShared.Migrations
 {
     [DbContext(typeof(ConsensusChessPostgresContext))]
-    partial class ConsensusChessPostgresContextModelSnapshot : ModelSnapshot
+    [Migration("20221125215147_SocialUsernameModification")]
+    partial class SocialUsernameModification
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

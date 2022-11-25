@@ -12,27 +12,24 @@ namespace ConsensusChessSharedTests
 	public class SocialConnectionTests
 	{
 
-        private Mock<ILogger> mockLogger;
-        private Network network;
-        private NodeState state;
+        private Mock<ILogger>? mockLogger;
+        private Network? network;
 
         [TestInitialize]
         public void Init()
         {
             mockLogger = new Mock<ILogger>();
             network = Network.FromEnv(SampleDataGenerator.SimpleNetworkEnv);
-            state = SampleDataGenerator.NodeState;
         }
 
         [TestMethod]
         public async Task SocialFactory_creates_MastodonConnection()
 		{
-            var connection = SocialFactory.From(mockLogger.Object, network);
+            var connection = SocialFactory.From(mockLogger!.Object, network!, "some-short-code");
             var mastodonConnection = connection as MastodonConnection;
             Assert.IsNotNull(mastodonConnection);
-            // would ordinarily run InitAsync, requires state, which depends on network
-            // await mastodonConnection.InitAsync(state);
-            // var skips = mastodonConnection.CalculateCommandSkips();
+            Assert.IsFalse(mastodonConnection.Ready);
+            // InitAsync has not been run - save it for integration tests
 		}
 	}
 }

@@ -21,6 +21,7 @@ namespace ConsensusChessShared.Content
 		public PostType Type { get; private set; }
 		public Dictionary<string,object> Mappings { get; private set; }
 		public long? ReplyToId { get; private set; }
+		public string? ToHandle { get; private set; }
 		public string? OverrideTemplate { get; private set; }
 
 		public PostBuilder(PostType type)
@@ -38,7 +39,13 @@ namespace ConsensusChessShared.Content
 		public PostBuilder WithGame(Game game)
 		{
 			WithObject("Game", game);
-			return this;
+			var shortcodes = new List<string>();
+			shortcodes.AddRange(game.WhitePostingNodeShortcodes.Select(ss => ss.Value!));
+            shortcodes.AddRange(game.BlackPostingNodeShortcodes.Select(ss => ss.Value!));
+			WithMapping("AllNodes", string.Join(", ", shortcodes.Distinct()));
+            WithMapping("BlackParticipantNetworkServers", string.Join(", ", game.BlackParticipantNetworkServers.Select(ss => ss.Value)));
+            WithMapping("WhiteParticipantNetworkServers", string.Join(", ", game.WhiteParticipantNetworkServers.Select(ss => ss.Value)));
+            return this;
 		}
 
         public PostBuilder WithObject(Object obj)
@@ -124,12 +131,13 @@ namespace ConsensusChessShared.Content
 
         public PostBuilder InReplyTo(SocialCommand origin)
 		{
-			return InReplyTo(origin.SourcePostId);
+			return InReplyTo(origin.SourcePostId, origin.SourceUsername);
 		}
 
-        public PostBuilder InReplyTo(long? id)
+        private PostBuilder InReplyTo(long? id, SocialUsername user)
 		{
 			ReplyToId = id;
+			ToHandle = user.Full;
 			return this;
 		}
 
@@ -137,6 +145,12 @@ namespace ConsensusChessShared.Content
 		{
 			var templateStr = PostTemplates.TemplateSource[Type];
 			var message = OverrideTemplate ?? Templates.For[Type](Mappings);
+
+			if (ToHandle != null)
+			{
+				message = $"@{ToHandle} {message}";
+			}
+
 			var post = new Post()
 			{
 				Created = DateTime.Now.ToUniversalTime(),

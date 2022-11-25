@@ -4,8 +4,8 @@ namespace ConsensusChessShared.Constants
 	public enum GameState
 	{
 		InProgress,
-		WhiteCheckmate,
-		BlackCheckmate,
+		WhiteKingCheckmated,
+		BlackKingCheckmated,
 		Stalemate,
 		Abandoned
 	}
