@@ -99,7 +99,6 @@ public abstract class AbstractFeatureTest
         InitSocialMock(EngineSocialMock, "engine", EngineNetwork, EngineId.Shortcode);
     }
 
-
     [TestCleanup]
     public void TestClose()
     {

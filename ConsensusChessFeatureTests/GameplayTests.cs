@@ -1,4 +1,5 @@
 ﻿using System;
+using Chess;
 using ConsensusChessFeatureTests.Data;
 using ConsensusChessShared.Constants;
 using ConsensusChessShared.DTO;
@@ -78,11 +79,15 @@ namespace ConsensusChessFeatureTests
             var boardCount = 1;
             foreach (var move in moves)
             {
+                WriteLogLine($"⏳ Waiting for board post: {boardCount}...");
+
                 var boardPost = WaitAndAssert_Posts(
                     shortcode: NodeId.Shortcode,
                     ofType: PostType.Node_BoardUpdate,
                     count: boardCount++)
                         .Last();
+
+                WriteLogLine($"✅ Board post {boardCount} received.");
 
                 var player = whiteToPlay ? "player-white" : "player-black";
 
@@ -91,27 +96,37 @@ namespace ConsensusChessFeatureTests
                     text: $"move {move}",
                     from: player);
 
+                WriteLogLine($"✅ Posted move: {move}");
+                WriteLogLine($"⏳ Waiting for validation response to move: {move}...");
+
                 var validationPost = WaitAndAssert_NodeRepliesTo(
                     command: movePost,
                     ofType: PostType.MoveAccepted);
+
+                WriteLogLine($"✅ Validation post found.");
 
                 await ExpireCurrentMoveShortlyAsync(game);
                 whiteToPlay = !whiteToPlay;
             }
 
+            WriteLogLine($"⏳ Waiting for engine end game post...");
             WaitAndAssert_Post(
                 shortcode: EngineId.Shortcode,
                 ofType: PostType.Engine_GameEnded);
+            WriteLogLine($"✅ Engine end game post received.");
 
+            WriteLogLine($"⏳ Waiting for node end game post...");
             WaitAndAssert_Post(
                 shortcode: NodeId.Shortcode,
                 ofType: PostType.Node_GameEndedUpdate);
+            WriteLogLine($"✅ Node end game post received.");
 
             WaitAndAssert(() =>
             {
                 using (var db = Dbo.GetDb())
                     return db.Games.Single().State == endGameState;
             });
+            WriteLogLine($"✅ Game in state: {endGameState}");
         }
 
         public static IEnumerable<object[]> GetGamesData()

@@ -22,8 +22,7 @@ namespace ConsensusChessFeatureTests.Data
         public static Dictionary<Reenactment, string[]> MOVE_sequences = new Dictionary<Reenactment, string[]>()
         {
             { Reenactment.FoolsMateSAN, new[] { "f3", "e6", "g4", "Qh4" } },
-            { Reenactment.FoolsMateCCF, new[] { "f2 - f3", "e7 - e6", "g2 - g4", "d8 - h4" } }
-
+            { Reenactment.FoolsMateCCF, new[] { "f2 - f3", "e7 - e6", "g2 - g4", "d8 - h4" } },
         };
     }
 }
