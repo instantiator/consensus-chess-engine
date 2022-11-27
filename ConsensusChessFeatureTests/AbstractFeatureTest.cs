@@ -254,7 +254,7 @@ public abstract class AbstractFeatureTest
         Assert.IsTrue(criteria.Invoke(), onFailDescription ?? "Timed out waiting for criteria");
     }
 
-    protected Post WaitAndAssert_NodePostsBoard(Game game)
+    protected Post WaitAndAssert_NodePostsBoard(Game game, int occurrence = 1)
     {
         WaitAndAssert(() =>
         {
@@ -263,11 +263,15 @@ public abstract class AbstractFeatureTest
                     .Single(g => g.Shortcode == game.Shortcode)
                     .CurrentBoard
                     .BoardPosts
-                    .Count() == 1;
+                    .Count() == occurrence;
         });
 
-        WaitAndAssert(() => postsSent.Count(p => p.Type == PostType.Node_BoardUpdate) == 1);
-        return postsSent.Single(p => p.Type == PostType.Node_BoardUpdate);
+        // get the last post
+        return WaitAndAssert_Posts(
+            shortcode: NodeId.Shortcode,
+            ofType: PostType.Node_BoardUpdate)
+            .OrderBy(p => p.Created)
+            .Last();
     }
 
     protected void WaitAndAssert_Moves(Game game, int moves, int made)
@@ -289,27 +293,37 @@ public abstract class AbstractFeatureTest
     }
 
     protected Post WaitAndAssert_NodeRepliesTo(SocialCommand command, PostType? ofType = null)
-        => WaitAndAssert_RepliesTo(command, NodeId.Shortcode, ofType);
+        => WaitAndAssert_Post(command, NodeId.Shortcode, ofType);
 
     protected Post WaitAndAssert_EngineRepliesTo(SocialCommand command, PostType? ofType = null)
-    => WaitAndAssert_RepliesTo(command, EngineId.Shortcode, ofType);
+    => WaitAndAssert_Post(command, EngineId.Shortcode, ofType);
 
-    protected Post WaitAndAssert_RepliesTo(SocialCommand command, string respondentShortcode = null, PostType? ofType = null)
+    protected Post WaitAndAssert_Post(SocialCommand? command = null, string? shortcode = null, PostType? ofType = null, int? count = null)
+        => WaitAndAssert_Posts(command, shortcode, ofType, count).Single();
+
+    protected IEnumerable<Post> WaitAndAssert_Posts(SocialCommand? command = null, string? shortcode = null, PostType? ofType = null, int? count = null)
     {
         WaitAndAssert(() =>
         {
-            return postsSent.Any(post
-                => post.Succeeded
-                && post.NetworkReplyToId == command.SourcePostId
-                && (respondentShortcode == null || post.NodeShortcode == respondentShortcode)
-                && (ofType == null || post.Type == ofType));
-        }, "Node did not reply to command");
+            return count == null
+                ? postsSent.Any(post
+                    => post.Succeeded
+                    && (command == null || post.NetworkReplyToId == command.SourcePostId)
+                    && (shortcode == null || post.NodeShortcode == shortcode)
+                    && (ofType == null || post.Type == ofType))
+                : postsSent.Count(post
+                    => post.Succeeded
+                    && (command == null || post.NetworkReplyToId == command.SourcePostId)
+                    && (shortcode == null || post.NodeShortcode == shortcode)
+                    && (ofType == null || post.Type == ofType)) == count.Value;
+        }, $"{shortcode} did not post as expected");
 
-        return postsSent.Single(post
+        return postsSent.Where(post
             => post.Succeeded
-            && post.NetworkReplyToId == command.SourcePostId
-            && (respondentShortcode == null || post.NodeShortcode == respondentShortcode)
-            && (ofType == null || post.Type == ofType));
+            && (command == null || post.NetworkReplyToId == command.SourcePostId)
+            && (shortcode == null || post.NodeShortcode == shortcode)
+            && (ofType == null || post.Type == ofType))
+            .OrderBy(p => p.Created);
     }
 
     protected async Task<SocialCommand> SendToEngineAsync(string text, bool authorised = true)

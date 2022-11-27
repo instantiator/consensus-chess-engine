@@ -9,7 +9,7 @@ namespace ConsensusChessShared.DTO
 	public class Board : IDTO
 	{
 		// FEN represents white as upper case
-		public static readonly string INITIAL_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+		public const string INITIAL_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 		/// <summary>
 		/// Generates a default board - with all pieces and game state in starting positions.

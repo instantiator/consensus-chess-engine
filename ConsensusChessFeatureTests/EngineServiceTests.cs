@@ -186,7 +186,6 @@ namespace ConsensusChessFeatureTests
         public async Task GameRolloverNoMoves_resultsIn_Abandon()
         {
             var engine = await StartEngineAsync();
-            var node = await StartNodeAsync();
             var game = await StartGameWithDbAsync();
             await ExpireCurrentMoveShortlyAsync(game);
 
