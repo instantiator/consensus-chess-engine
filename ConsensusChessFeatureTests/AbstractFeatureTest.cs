@@ -38,7 +38,7 @@ public abstract class AbstractFeatureTest
     public Mock<ISocialConnection> EngineSocialMock { get; private set; }
 
     protected Dictionary<string, Func<SocialCommand, Task>> receivers;
-    protected List<Post> postsSent;
+    protected ConcurrentBag<Post> postsSent;
 
     protected TimeSpan fastPollOverride = TimeSpan.FromMilliseconds(1);
     protected TimeSpan spinWaitTimeout = TimeSpan.FromSeconds(3);
@@ -56,7 +56,7 @@ public abstract class AbstractFeatureTest
             logPath = Path.Join(path, "feature-tests.log");
         }
         if (File.Exists(logPath)) { File.Delete(logPath); }
-        postsSent = new List<Post>();
+        postsSent = new ConcurrentBag<Post>();
     }
 
     #region Start and finish tests
@@ -77,7 +77,7 @@ public abstract class AbstractFeatureTest
         EngineSocialMock = new Mock<ISocialConnection>();
 
         receivers = new Dictionary<string, Func<SocialCommand, Task>>();
-        postsSent = new List<Post>();
+        postsSent = new ConcurrentBag<Post>();
 
         Dbo = new SqliteDbOperator(NodeLogMock.Object, TestContext!.TestName, DateTime.Now);
 
