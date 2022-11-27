@@ -50,6 +50,7 @@ namespace ConsensusChessFeatureTests
             }
         }
 
+        [Ignore]
         [TestMethod]
 		public async Task FullGame_withValidMoves_FollowsHappyPathToCompletion()
 		{
@@ -59,6 +60,7 @@ namespace ConsensusChessFeatureTests
 
             // game ready
             // TODO: not implemented yet
+            throw new NotImplementedException();
 
         }
 
