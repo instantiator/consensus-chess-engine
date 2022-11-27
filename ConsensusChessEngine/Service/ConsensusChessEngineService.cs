@@ -35,7 +35,6 @@ namespace ConsensusChessEngine.Service
                 foreach (var game in gamesToMove)
                 {
                     await AdvanceGameAsync(game);
-                    //db.Games.Update(game);
                     await db.SaveChangesAsync();
                 }
             }
