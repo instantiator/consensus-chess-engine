@@ -45,7 +45,7 @@ namespace ConsensusChessShared.Social
 
         public override SocialUsername? Username { get; set; }
 
-        public Dictionary<PostType, Visibility> VisibilityMapping = new Dictionary<PostType, Visibility>()
+        public static Dictionary<PostType, Visibility> VisibilityMapping = new Dictionary<PostType, Visibility>()
         {
             { PostType.SocialStatus, Visibility.Private },
 
@@ -63,6 +63,8 @@ namespace ConsensusChessShared.Social
             { PostType.Engine_GameEnded, Visibility.Unlisted },
 
             { PostType.Node_BoardUpdate, Visibility.Unlisted }, // TODO: public when live
+            { PostType.Node_GameAbandonedUpdate, Visibility.Unlisted }, // TODO: public when live
+            { PostType.Node_GameEndedUpdate, Visibility.Unlisted }, // TODO: public when live
 
             { PostType.Unspecified, Visibility.Unlisted },
         };

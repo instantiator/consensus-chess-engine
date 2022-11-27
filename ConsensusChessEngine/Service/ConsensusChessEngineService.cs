@@ -35,7 +35,7 @@ namespace ConsensusChessEngine.Service
                 foreach (var game in gamesToMove)
                 {
                     await AdvanceGameAsync(game);
-                    db.Games.Update(game);
+                    //db.Games.Update(game);
                     await db.SaveChangesAsync();
                 }
             }
@@ -51,7 +51,7 @@ namespace ConsensusChessEngine.Service
                     .OrderByDescending(pair => pair.Value)
                     .Select(pair => $"{pair.Key}: {pair.Value}"));
             log.LogDebug($"Votes for {game.Shortcode}:\n{summary}");
-            // TODO: intervention point to post stats about the game, see: IGC-69
+            // TODO(IGC-69): intervention point to post stats about the game
 
             // determine next move for the game, and apply it
             var nextSAN = gm.NextMoveFor(votes);
@@ -59,8 +59,6 @@ namespace ConsensusChessEngine.Service
             {
                 log.LogWarning($"Advancing game: {game.Shortcode} with move: {nextSAN}");
                 gm.AdvanceGame(game, nextSAN);
-
-                // TODO: intervention point to detect game endings, see: IGC-12
 
                 Post? post;
                 switch (game.State)
@@ -83,8 +81,14 @@ namespace ConsensusChessEngine.Service
                 }
                 if (post != null)
                 {
-                    var posted = await social.PostAsync(post);
-                    game.GamePosts.Add(posted);
+                    if (!game.GamePosts.Any(p
+                        => p.Type == post.Type
+                        && post.NodeShortcode == identity.Shortcode
+                        && p.Succeeded))
+                    {
+                        var posted = await social.PostAsync(post);
+                        game.GamePosts.Add(posted);
+                    }
                 }
             }
             else

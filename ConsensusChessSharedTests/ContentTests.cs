@@ -1,6 +1,7 @@
 ﻿using System;
 using ConsensusChessShared.Constants;
 using ConsensusChessShared.Content;
+using ConsensusChessShared.Social;
 using HandlebarsDotNet.Compiler;
 
 namespace ConsensusChessSharedTests
@@ -19,7 +20,18 @@ namespace ConsensusChessSharedTests
 			}
 		}
 
-		[TestMethod]
+        [TestMethod]
+        public void AllPostTypesHaveMastodonVisibility()
+        {
+            foreach (var type in Enum.GetValues<PostType>())
+            {
+                Assert.IsTrue(
+                    MastodonConnection.VisibilityMapping.ContainsKey(type),
+                    $"PostType.{type} does not have a visibility set for Mastodon.");
+            }
+        }
+
+        [TestMethod]
 		public void PostsWithBrokenSubstitutions_throws_HandlebarsUndefinedBindingException()
         {
 			var post = new PostBuilder(PostType.Engine_GameAnnouncement);

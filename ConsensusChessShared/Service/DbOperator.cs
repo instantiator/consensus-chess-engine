@@ -92,7 +92,9 @@ namespace ConsensusChessShared.Service
         /// <returns>a collection of active games</returns>
         public IEnumerable<Game> GetActiveGamesWithExpiredMoves(ConsensusChessDbContext db)
         {
-            return db.Games.ToList().Where(g => g.CurrentMove.Expired);
+            return db.Games.ToList().Where(game
+                => game.Active
+                && game.CurrentMove.Expired);
         }
 
         /// <summary>

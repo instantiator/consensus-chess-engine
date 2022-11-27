@@ -196,6 +196,13 @@ namespace ConsensusChessFeatureTests
                     return db.Games.Single().GamePosts.Any(p => p.Type == PostType.Engine_GameAbandoned);
             });
 
+            EngineSocialMock.Verify(ns => ns.PostAsync(
+                It.Is<Post>(p =>
+                    p.Succeeded == true &&
+                    p.Type == PostType.Engine_GameAbandoned),
+                null),
+                Times.Once);
+
             using (var db = Dbo.GetDb())
             {
                 Assert.AreEqual(GameState.Abandoned, db.Games.Single().State);
