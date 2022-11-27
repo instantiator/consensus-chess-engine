@@ -23,7 +23,7 @@ public abstract class AbstractFeatureTest
 {
     protected string logPath;
 
-    public TestContext TestContext { get; set; }
+    public TestContext? TestContext { get; set; }
 
     public SqliteDbOperator Dbo { get; private set; }
 
@@ -40,7 +40,8 @@ public abstract class AbstractFeatureTest
     protected Dictionary<string, Func<SocialCommand, Task>> receivers;
     protected List<Post> postsSent;
 
-    protected TimeSpan FastPollOverride = TimeSpan.FromMilliseconds(1);
+    protected TimeSpan fastPollOverride = TimeSpan.FromMilliseconds(1);
+    protected TimeSpan spinWaitTimeout = TimeSpan.FromSeconds(3);
 
     protected AbstractFeatureTest()
     {
@@ -61,7 +62,7 @@ public abstract class AbstractFeatureTest
     [TestInitialize]
     public async Task TestInit()
     {
-        WriteLogHeader($"{TestContext.TestName}");
+        WriteLogHeader($"{TestContext!.TestName}");
 
         NodeLogMock = new Mock<ILogger>();
         NodeNetwork = Network.FromEnv(FeatureDataGenerator.NodeEnv);
@@ -103,7 +104,7 @@ public abstract class AbstractFeatureTest
             Dbo,
             NodeNetwork,
             NodeSocialMock.Object,
-            FastPollOverride);
+            fastPollOverride);
 
     private ConsensusChessEngineService CreateEngine()
         => new ConsensusChessEngineService(
@@ -112,16 +113,16 @@ public abstract class AbstractFeatureTest
             Dbo,
             EngineNetwork,
             EngineSocialMock.Object,
-            FastPollOverride);
+            fastPollOverride);
 
     protected async Task<ConsensusChessNodeService> StartNodeAsync()
     {
         var node = CreateNode();
         var cancel = new CancellationTokenSource();
         var token = cancel.Token;
-        node.StartAsync(token);
+        await node.StartAsync(token);
         SpinWait.SpinUntil(() => File.Exists(AbstractConsensusService.HEALTHCHECK_READY_PATH));
-        node.ExecuteAsync(token);
+        node.ExecuteAsync(token); // don't await - this is a background process
         SpinWait.SpinUntil(() => receivers.ContainsKey(NodeId.Shortcode));
         return node;
     }
@@ -131,11 +132,17 @@ public abstract class AbstractFeatureTest
         var engine = CreateEngine();
         var cancel = new CancellationTokenSource();
         var token = cancel.Token;
-        engine.StartAsync(token);
+        await engine.StartAsync(token);
         SpinWait.SpinUntil(() => File.Exists(AbstractConsensusService.HEALTHCHECK_READY_PATH));
-        engine.ExecuteAsync(token);
+        engine.ExecuteAsync(token); // don't await - this is a background process
         SpinWait.SpinUntil(() => receivers.ContainsKey(EngineId.Shortcode));
         return engine;
+    }
+
+    protected void WaitAndAssert(Func<bool> criteria, string? onFailDescription = null, TimeSpan? timeoutOverride = null)
+    {
+        SpinWait.SpinUntil(criteria, timeoutOverride ?? spinWaitTimeout);
+        Assert.IsTrue(criteria.Invoke(), onFailDescription ?? "Timed out waiting for criteria");
     }
 
     protected void InitSocialMock(Mock<ISocialConnection> mock, string account, Network network, string shortcode)

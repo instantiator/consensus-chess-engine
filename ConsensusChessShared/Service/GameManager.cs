@@ -29,6 +29,14 @@ namespace ConsensusChessShared.Service
                 SideRules.MoveLock);
         }
 
+        public IEnumerable<Game> FindUnpostedEndedGames(DbSet<Game> games, string postingNodeShortcode)
+        {
+            return games.ToList()
+                .Where(g
+                    => g.State != GameState.InProgress
+                    && !g.GamePosts.Any(p => p.NodeShortcode == postingNodeShortcode));
+        }
+
         public Dictionary<Game,Board?> FindUnpostedActiveBoards(DbSet<Game> games, string postingNodeShortcode)
         {
             return games.ToList()

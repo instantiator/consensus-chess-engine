@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using ConsensusChessShared.Constants;
 using ConsensusChessShared.DTO;
 using ConsensusChessShared.Social;
 
@@ -59,6 +60,15 @@ namespace ConsensusChessSharedTests.Data
                 deliveryMedium: "UnitTests",
                 deliveryType: "SimpleCommand");
         }
+
+        public static Game SimpleMoveLockGame()
+            => Game.NewGame(
+                shortcode: NodeState.Shortcode, description: "whatever",
+                whiteSideNetworkServers: new[] { NodeState.Network.NetworkServer },
+                blackSideNetworkServers: new[] { NodeState.Network.NetworkServer },
+                whitePostingNodeShortcodes: new[] { NodeState.Shortcode },
+                blackPostingNodeShortcodes: new[] { NodeState.Shortcode },
+                SideRules.MoveLock);
 
         public static IDictionary SimpleNetworkEnv => new Hashtable()
         {

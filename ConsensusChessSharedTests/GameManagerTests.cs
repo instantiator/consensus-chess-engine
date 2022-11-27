@@ -7,14 +7,15 @@ using ConsensusChessShared.Exceptions;
 using ConsensusChessShared.Service;
 using ConsensusChessShared.Social;
 using ConsensusChessSharedTests.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace ConsensusChessSharedTests
 {
-	[TestClass]
-	public class GameManagerTests
-	{
+    [TestClass]
+    public class GameManagerTests
+    {
 
         private Mock<ILogger> mockLogger;
         private GameManager gm;
@@ -29,7 +30,7 @@ namespace ConsensusChessSharedTests
         [TestMethod]
         public void CreateSimpleMoveLockGame_creates_Game()
         {
-            var game = gm.CreateSimpleMoveLockGame("test-game","Test game", new[] { "mastodon.something.social" }, new[] { "node-0-test" });
+            var game = gm.CreateSimpleMoveLockGame("test-game", "Test game", new[] { "mastodon.something.social" }, new[] { "node-0-test" });
 
             Assert.IsNotNull(game);
             Assert.AreEqual(SideRules.MoveLock, game.SideRules);
@@ -74,7 +75,7 @@ namespace ConsensusChessSharedTests
             var game = gm.CreateSimpleMoveLockGame("test-game", "Test game", new[] { "mastodon.something.social" }, new[] { "node-0-test" });
             var vote = new Vote() { MoveText = "e4" };
             var move = gm.NormaliseAndValidateMoveTextToSAN(game.CurrentBoard, vote);
-            
+
             var board = gm.ApplyValidatedMoveText(game.CurrentBoard, move);
             Assert.IsNotNull(board);
             Assert.AreEqual("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1", board.FEN);
@@ -171,6 +172,119 @@ namespace ConsensusChessSharedTests
             Assert.AreEqual("e4", gm.NormaliseAndValidateMoveTextToSAN(board, new Vote() { MoveText = "e4" }));
         }
 
+        [TestMethod]
+        public void FindUnpostedActiveBoards_GameWithNoPosts_FindsTheGame()
+        {
+            var shortcode = SampleDataGenerator.NodeState.Shortcode;
+            var game = SampleDataGenerator.SimpleMoveLockGame();
+
+            var dbGames = MockDbHelper.GetQueryableMockDbSet<Game>("games");
+            dbGames.Add(game);
+
+            var results = gm.FindUnpostedActiveBoards(dbGames, shortcode);
+
+            Assert.AreEqual(1, results.Count());
+            Assert.AreEqual(game, results.First().Key);
+            Assert.IsNotNull(results.First().Value);
+            Assert.AreEqual(0, results.First().Value!.BoardPosts.Count());
+        }
+
+        [TestMethod]
+        public void FindUnpostedActiveBoards_GameWithSomeOtherPosts_FindsTheGame()
+        {
+            var shortcode = SampleDataGenerator.NodeState.Shortcode;
+            var game = SampleDataGenerator.SimpleMoveLockGame();
+            var post = new Post()
+            {
+                Type = PostType.Node_BoardUpdate,
+                NodeShortcode = "not-the-node-shortcode"
+            };
+            game.CurrentBoard.BoardPosts.Add(post);
+
+            var dbGames = MockDbHelper.GetQueryableMockDbSet<Game>("games");
+            dbGames.Add(game);
+
+            var results = gm.FindUnpostedActiveBoards(dbGames, shortcode);
+
+            Assert.AreEqual(1, results.Count());
+            Assert.AreEqual(game, results.First().Key);
+            Assert.IsNotNull(results.First().Value);
+            Assert.AreEqual(1, results.First().Value!.BoardPosts.Count());
+        }
+
+        [TestMethod]
+        public void FindUnpostedActiveBoards_GameAlreadyPosted_DoesNotFindTheGame()
+        {
+            var shortcode = SampleDataGenerator.NodeState.Shortcode;
+            var game = SampleDataGenerator.SimpleMoveLockGame();
+            var post = new Post()
+            {
+                Type = PostType.Node_BoardUpdate,
+                NodeShortcode = shortcode
+            };
+            game.CurrentBoard.BoardPosts.Add(post);
+
+            var dbGames = MockDbHelper.GetQueryableMockDbSet<Game>("games");
+            dbGames.Add(game);
+
+            var results = gm.FindUnpostedActiveBoards(dbGames, shortcode);
+
+            Assert.AreEqual(0, results.Count());
+        }
+
+        [TestMethod]
+        public void FindUnpostedEndedGames_GameInProgress_DoesNotFindTheGame()
+        {
+            var shortcode = SampleDataGenerator.NodeState.Shortcode;
+            var game = SampleDataGenerator.SimpleMoveLockGame();
+
+            var dbGames = MockDbHelper.GetQueryableMockDbSet<Game>("games");
+            dbGames.Add(game);
+
+            var results = gm.FindUnpostedEndedGames(dbGames, shortcode);
+
+            Assert.AreEqual(0, results.Count());
+        }
+
+        [TestMethod]
+        public void FindUnpostedEndedGames_GameAbandoned_FindsTheGame()
+        {
+            var shortcode = SampleDataGenerator.NodeState.Shortcode;
+            var game = SampleDataGenerator.SimpleMoveLockGame();
+            game.State = GameState.Abandoned;
+
+            var dbGames = MockDbHelper.GetQueryableMockDbSet<Game>("games");
+            dbGames.Add(game);
+
+            var results = gm.FindUnpostedEndedGames(dbGames, shortcode);
+
+            Assert.AreEqual(1, results.Count());
+            Assert.AreEqual(game, results.Single());
+        }
+
+        [TestMethod]
+        public void FindUnpostedEndedGames_GameEnded_FindsTheGame()
+        {
+            var shortcode = SampleDataGenerator.NodeState.Shortcode;
+            var game = SampleDataGenerator.SimpleMoveLockGame();
+
+            var dbGames = MockDbHelper.GetQueryableMockDbSet<Game>("games");
+            dbGames.Add(game);
+
+            game.State = GameState.Stalemate;
+            Assert.AreEqual(1, gm.FindUnpostedEndedGames(dbGames, shortcode).Count());
+            Assert.AreEqual(game, gm.FindUnpostedEndedGames(dbGames, shortcode).Single());
+
+            game.State = GameState.BlackKingCheckmated;
+            Assert.AreEqual(1, gm.FindUnpostedEndedGames(dbGames, shortcode).Count());
+            Assert.AreEqual(game, gm.FindUnpostedEndedGames(dbGames, shortcode).Single());
+
+            game.State = GameState.WhiteKingCheckmated;
+            Assert.AreEqual(1, gm.FindUnpostedEndedGames(dbGames, shortcode).Count());
+            Assert.AreEqual(game, gm.FindUnpostedEndedGames(dbGames, shortcode).Single());
+
+            game.State = GameState.InProgress;
+            Assert.AreEqual(0, gm.FindUnpostedEndedGames(dbGames, shortcode).Count());
+        }
     }
 }
-

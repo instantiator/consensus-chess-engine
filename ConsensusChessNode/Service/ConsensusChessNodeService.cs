@@ -6,6 +6,7 @@ using ConsensusChessShared.DTO;
 using ConsensusChessShared.Exceptions;
 using ConsensusChessShared.Service;
 using ConsensusChessShared.Social;
+using Mastonet.Entities;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 
@@ -27,6 +28,12 @@ namespace ConsensusChessNode.Service
 
         protected override async Task PollAsync(CancellationToken cancellationToken)
         {
+            await CheckAndPostUnpostedBoardsAsync();
+            await CheckAndPostUnpostedEndedGamesAsync();
+        }
+
+        private async Task CheckAndPostUnpostedBoardsAsync()
+        {
             using (var db = dbo.GetDb())
             {
                 // find and post uposted boards from active games
@@ -38,7 +45,6 @@ namespace ConsensusChessNode.Service
                     if (board != null)
                     {
                         log.LogInformation($"Found a new board to post in game: {game.Id}");
-
                         var post = new PostBuilder(PostType.Node_BoardUpdate)
                             .WithGame(game)
                             .WithBoard(board)
@@ -50,11 +56,43 @@ namespace ConsensusChessNode.Service
                         await db.SaveChangesAsync();
                     }
                 }
+            }
+        }
 
-                // TODO: find and post unposted abandoned games
+        private async Task CheckAndPostUnpostedEndedGamesAsync()
+        {
+            using (var db = dbo.GetDb())
+            {
+                // find and post unposted ended/abandoned games
+                var unpostedEndedGames = gm.FindUnpostedEndedGames(db.Games, state.Shortcode);
+                foreach (var game in unpostedEndedGames)
+                {
+                    log.LogDebug($"Game {game.Shortcode} in state {game.State} - posting about it...");
+                    Post post;
+                    switch (game.State)
+                    {
+                        case GameState.Abandoned:
+                            post = new PostBuilder(PostType.Node_GameAbandonedUpdate)
+                                .WithGame(game)
+                                .Build();
+                            break;
+                        case GameState.Stalemate:
+                        case GameState.BlackKingCheckmated:
+                        case GameState.WhiteKingCheckmated:
+                            post = new PostBuilder(PostType.Node_GameEndedUpdate)
+                                .WithGame(game)
+                                .Build();
+                            break;
+                        default:
+                            log.LogWarning($"Should not have attempted to post the end of game in state: {game.State}");
+                            continue;
+                    }
+                    var posted = await social.PostAsync(post);
+                    game.GamePosts.Add(posted);
 
-                // TODO: find and post unposted ended games
-
+                    log.LogDebug("Saving new game post...");
+                    await db.SaveChangesAsync();
+                }
             }
         }
 

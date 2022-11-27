@@ -6,6 +6,7 @@ using ConsensusChessShared.Constants;
 using ConsensusChessShared.DTO;
 using ConsensusChessShared.Exceptions;
 using ConsensusChessShared.Social;
+using HandlebarsDotNet;
 using Mastonet.Entities;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Newtonsoft.Json.Linq;
@@ -16,7 +17,7 @@ namespace ConsensusChessShared.Content
 	{
 		public static string UNKNOWN = "(unknown)";
 
-		private static PostTemplates Templates = new PostTemplates();
+		private static PostTemplates templates = new PostTemplates();
 
 		public PostType Type { get; private set; }
 		public Dictionary<string,object> Mappings { get; private set; }
@@ -143,8 +144,11 @@ namespace ConsensusChessShared.Content
 
 		public Post Build()
 		{
-			var templateStr = PostTemplates.TemplateSource[Type];
-			var message = OverrideTemplate ?? Templates.For[Type](Mappings);
+			var template = OverrideTemplate == null
+				? templates.For[Type]
+				: Handlebars.Compile(OverrideTemplate);
+
+			var message = template(Mappings);
 
 			if (ToHandle != null)
 			{

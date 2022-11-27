@@ -47,7 +47,7 @@ namespace ConsensusChessFeatureTests
 				await db.SaveChangesAsync();
 			}
 
-			SpinWait.SpinUntil(() =>
+			WaitAndAssert(() =>
 			{
 				using (var db = Dbo.GetDb())
 					return db.Games.Single().CurrentBoard.BoardPosts.Count() == 1;
@@ -60,7 +60,7 @@ namespace ConsensusChessFeatureTests
             }
 
             var confirmation = $"New board. You have {game.MoveDuration.ToString()} to vote.";
-            SpinWait.SpinUntil(() => postsSent.Count(p => p.Message.StartsWith(confirmation)) == 1);
+            WaitAndAssert(() => postsSent.Count(p => p.Message.StartsWith(confirmation)) == 1);
             NodeSocialMock.Verify(ns => ns.PostAsync(
                 It.Is<Post>(p =>
                     p.Succeeded == true &&
@@ -87,14 +87,14 @@ namespace ConsensusChessFeatureTests
                 await db.SaveChangesAsync();
             }
 
-            SpinWait.SpinUntil(() =>
+            WaitAndAssert(() =>
             {
                 using (var db = Dbo.GetDb())
                     return db.Games.Single().CurrentBoard.BoardPosts.Count() == 1;
             });
 
             var confirmation = $"New board. You have {game.MoveDuration.ToString()} to vote.";
-            SpinWait.SpinUntil(() => postsSent.Count(p => p.Message.StartsWith(confirmation)) == 1);
+            WaitAndAssert(() => postsSent.Count(p => p.Message.StartsWith(confirmation)) == 1);
             var boardPost = postsSent.Single(p => p.Message.StartsWith(confirmation));
 
             var command = FeatureDataGenerator.GenerateCommand("move e4", NodeNetwork, inReplyTo: boardPost.NetworkPostId);
@@ -146,13 +146,13 @@ namespace ConsensusChessFeatureTests
                 await db.SaveChangesAsync();
             }
 
-            SpinWait.SpinUntil(() =>
+            WaitAndAssert(() =>
             {
                 using (var db = Dbo.GetDb())
                     return db.Games.Single().CurrentBoard.BoardPosts.Count() == 1;
             });
 
-            SpinWait.SpinUntil(() => postsSent.Count(p => p.Type == PostType.Node_BoardUpdate) == 1);
+            WaitAndAssert(() => postsSent.Count(p => p.Type == PostType.Node_BoardUpdate) == 1);
             var boardPost = postsSent.Single(p => p.Type == PostType.Node_BoardUpdate);
 
             var command = FeatureDataGenerator.GenerateCommand("move e2 - e5", NodeNetwork, inReplyTo: boardPost.NetworkPostId);
@@ -201,14 +201,14 @@ namespace ConsensusChessFeatureTests
                 await db.SaveChangesAsync();
             }
 
-            SpinWait.SpinUntil(() =>
+            WaitAndAssert(() =>
             {
                 using (var db = Dbo.GetDb())
                     return db.Games.Single().CurrentBoard.BoardPosts.Count() == 1;
             });
 
             var confirmation = $"New board. You have {game.MoveDuration.ToString()} to vote.";
-            SpinWait.SpinUntil(() => postsSent.Count(p => p.Message.StartsWith(confirmation)) == 1);
+            WaitAndAssert(() => postsSent.Count(p => p.Message.StartsWith(confirmation)) == 1);
             var boardPost = postsSent.Single(p => p.Message.StartsWith(confirmation));
 
             var command = FeatureDataGenerator.GenerateCommand("move e6", NodeNetwork, inReplyTo: boardPost.NetworkPostId);
@@ -257,13 +257,13 @@ namespace ConsensusChessFeatureTests
                 await db.SaveChangesAsync();
             }
 
-            SpinWait.SpinUntil(() =>
+            WaitAndAssert(() =>
             {
                 using (var db = Dbo.GetDb())
                     return db.Games.Single().CurrentBoard.BoardPosts.Count() == 1;
             });
 
-            SpinWait.SpinUntil(() => postsSent.Count(p => p.Type == PostType.Node_BoardUpdate) == 1);
+            WaitAndAssert(() => postsSent.Count(p => p.Type == PostType.Node_BoardUpdate) == 1);
             var boardPost = postsSent.Single(p => p.Type == PostType.Node_BoardUpdate);
 
             using (var db = Dbo.GetDb())

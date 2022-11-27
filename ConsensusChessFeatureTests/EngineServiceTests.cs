@@ -166,7 +166,7 @@ namespace ConsensusChessFeatureTests
 
             // get the board post
             long? boardPost1id;
-            SpinWait.SpinUntil(() =>
+            WaitAndAssert(() =>
             {
                 using (var db = Dbo.GetDb())
                     return db.Games.Single().CurrentBoard.BoardPosts.Count() == 1;
@@ -219,7 +219,7 @@ namespace ConsensusChessFeatureTests
             }
 
             // wait until there's a new move
-            SpinWait.SpinUntil(() =>
+            WaitAndAssert(() =>
             {
                 using (var db = Dbo.GetDb())
                     return db.Games.Single().Moves.Count() == 2;
@@ -266,7 +266,7 @@ namespace ConsensusChessFeatureTests
             }
 
             // wait until the game abandons
-            SpinWait.SpinUntil(() =>
+            WaitAndAssert(() =>
             {
                 using (var db = Dbo.GetDb())
                     return db.Games.Single().GamePosts.Any(p => p.Type == PostType.Engine_GameAbandoned);
@@ -304,7 +304,7 @@ namespace ConsensusChessFeatureTests
 
             // get the board post
             long? boardPost1id;
-            SpinWait.SpinUntil(() =>
+            WaitAndAssert(() =>
             {
                 using (var db = Dbo.GetDb())
                     return db.Games.Single().CurrentBoard.BoardPosts.Count() == 1;
@@ -338,7 +338,7 @@ namespace ConsensusChessFeatureTests
             }
 
             // wait until there's a new move
-            SpinWait.SpinUntil(() =>
+            WaitAndAssert(() =>
             {
                 using (var db = Dbo.GetDb())
                     return db.Games.Single().Moves[0].SelectedSAN != null;

@@ -107,13 +107,19 @@ namespace ConsensusChessShared.Service
             string shortcode;
             do
             {
-                shortcode = new string(Enumerable
-                    .Repeat(SHORTCODE_CHARS, SHORTCODE_LENGTH)
-                    .Select(s => s[random.Next(s.Length)]).ToArray());
+                shortcode = RandomShortcode();
             } while (shortcodes.Contains(shortcode));
             return shortcode;
         }
 
+        public static Random DbOperatorRandom = new Random();
+
+        public static string RandomShortcode()
+        =>
+            new string(Enumerable
+                    .Repeat(SHORTCODE_CHARS, SHORTCODE_LENGTH)
+                    .Select(s => s[DbOperatorRandom.Next(s.Length)]).ToArray());
+        
         public async Task WipeDataAsync(ConsensusChessDbContext db)
         {
             var dbTables = db.Model.GetEntityTypes()
