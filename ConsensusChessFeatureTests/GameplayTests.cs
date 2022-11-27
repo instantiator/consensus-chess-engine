@@ -56,7 +56,7 @@ namespace ConsensusChessFeatureTests
 
         [DataTestMethod]
         [DynamicData(nameof(GetGamesData), DynamicDataSourceType.Method)]
-        public async Task FullGameTests(GameplayTestData.StartingPosition position, GameplayTestData.Reenactment reenactment, PostType engineEndgamePost, PostType nodeEndgamePost)
+        public async Task FullGame(GameplayTestData.StartingPosition position, GameplayTestData.Reenactment reenactment, GameState endGameState)
         {
             var engine = await StartEngineAsync();
             var node = await StartNodeAsync();
@@ -101,11 +101,17 @@ namespace ConsensusChessFeatureTests
 
             WaitAndAssert_Post(
                 shortcode: EngineId.Shortcode,
-                ofType: engineEndgamePost);
+                ofType: PostType.Engine_GameEnded);
 
             WaitAndAssert_Post(
                 shortcode: NodeId.Shortcode,
-                ofType: nodeEndgamePost);
+                ofType: PostType.Node_GameEndedUpdate);
+
+            WaitAndAssert(() =>
+            {
+                using (var db = Dbo.GetDb())
+                    return db.Games.Single().State == endGameState;
+            });
         }
 
         public static IEnumerable<object[]> GetGamesData()
@@ -115,9 +121,14 @@ namespace ConsensusChessFeatureTests
                 new object[]
                 {
                     StartingPosition.Standard,
-                    Reenactment.FoolsMate,
-                    PostType.Engine_GameEnded,
-                    PostType.Node_GameEndedUpdate
+                    Reenactment.FoolsMateSAN,
+                    GameState.WhiteKingCheckmated
+                },
+                new object[]
+                {
+                    StartingPosition.Standard,
+                    Reenactment.FoolsMateCCF,
+                    GameState.WhiteKingCheckmated
                 },
             };
         }
