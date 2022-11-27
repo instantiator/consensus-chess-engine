@@ -16,9 +16,7 @@ namespace ConsensusChessFeatureTests
 		public async Task GarbageIn_GarbageOut()
 		{
 			var node = await StartNodeAsync();
-
-            var command = FeatureDataGenerator.GenerateCommand("hello", NodeNetwork);
-            await receivers[NodeId.Shortcode].Invoke(command);
+            var command = await SendToNodeAsync("hello");
 
             NodeSocialMock.Verify(ns => ns.PostAsync(
                 It.Is<Post>(p =>
@@ -33,38 +31,44 @@ namespace ConsensusChessFeatureTests
 		public async Task NewGame_causes_BoardPost()
 		{
             var node = await StartNodeAsync();
-
-			var game = Game.NewGame("game-shortcode", "description",
-					new[] { NodeNetwork.NetworkServer },
-					new[] { NodeNetwork.NetworkServer },
-					new[] { NodeId.Shortcode },
-					new[] { NodeId.Shortcode },
-					SideRules.MoveLock);
+            var game = await StartGameWithDbAsync();
+            WaitAndAssert_NodePostsBoard(game);
 
             using (var db = Dbo.GetDb())
-			{
-				db.Games.Add(game);
-				await db.SaveChangesAsync();
-			}
-
-			WaitAndAssert(() =>
-			{
-				using (var db = Dbo.GetDb())
-					return db.Games.Single().CurrentBoard.BoardPosts.Count() == 1;
-			});
-			using (var db = Dbo.GetDb())
-			{
-				Assert.AreEqual(1, db.Games.Single().CurrentBoard.BoardPosts.Count());
+            {
+                Assert.AreEqual(1, db.Games.Single().CurrentBoard.BoardPosts.Count());
                 Assert.IsTrue(db.Games.Single().CurrentBoard.BoardPosts.Single().Succeeded);
-				Assert.IsTrue(db.Games.Single().CurrentBoard.BoardPosts.Single().Type == PostType.Node_BoardUpdate);
+                Assert.IsTrue(db.Games.Single().CurrentBoard.BoardPosts.Single().Type == PostType.Node_BoardUpdate);
             }
 
-            var confirmation = $"New board. You have {game.MoveDuration.ToString()} to vote.";
-            WaitAndAssert(() => postsSent.Count(p => p.Message.StartsWith(confirmation)) == 1);
             NodeSocialMock.Verify(ns => ns.PostAsync(
                 It.Is<Post>(p =>
                     p.Succeeded == true &&
-                    p.Message.StartsWith(confirmation)),
+                    p.Type == PostType.Node_BoardUpdate),
+                null),
+                Times.Once);
+        }
+
+        [TestMethod]
+        public async Task AbandonedGame_causes_GameAbandonedPost()
+        {
+            var node = await StartNodeAsync();
+            var game = await StartGameWithDbAsync();
+            WaitAndAssert_NodePostsBoard(game);
+
+            using (var db = Dbo.GetDb())
+            {
+                db.Games.Single().State = GameState.Abandoned;
+                await db.SaveChangesAsync();
+            }
+
+            WaitAndAssert(() =>
+                postsSent.Count(p => p.Type == PostType.Node_GameAbandonedUpdate) == 1);
+
+            NodeSocialMock.Verify(ns => ns.PostAsync(
+                It.Is<Post>(p =>
+                    p.Succeeded == true &&
+                    p.Type == PostType.Node_GameAbandonedUpdate),
                 null),
                 Times.Once);
         }
@@ -73,32 +77,10 @@ namespace ConsensusChessFeatureTests
         public async Task ValidVote_is_AcceptedAndStored()
         {
             var node = await StartNodeAsync();
+            var game = await StartGameWithDbAsync();
+            var boardPost = WaitAndAssert_NodePostsBoard(game);
 
-            var game = Game.NewGame("game-shortcode", "description",
-                    new[] { NodeNetwork.NetworkServer },
-                    new[] { NodeNetwork.NetworkServer },
-                    new[] { NodeId.Shortcode },
-                    new[] { NodeId.Shortcode },
-                    SideRules.MoveLock);
-
-            using (var db = Dbo.GetDb())
-            {
-                db.Games.Add(game);
-                await db.SaveChangesAsync();
-            }
-
-            WaitAndAssert(() =>
-            {
-                using (var db = Dbo.GetDb())
-                    return db.Games.Single().CurrentBoard.BoardPosts.Count() == 1;
-            });
-
-            var confirmation = $"New board. You have {game.MoveDuration.ToString()} to vote.";
-            WaitAndAssert(() => postsSent.Count(p => p.Message.StartsWith(confirmation)) == 1);
-            var boardPost = postsSent.Single(p => p.Message.StartsWith(confirmation));
-
-            var command = FeatureDataGenerator.GenerateCommand("move e4", NodeNetwork, inReplyTo: boardPost.NetworkPostId);
-            await receivers[NodeId.Shortcode].Invoke(command);
+            var command = await ReplyToNodeAsync(boardPost, "move e4");
 
             NodeSocialMock.Verify(ns => ns.PostAsync(
                 It.Is<Post>(p =>
@@ -132,31 +114,10 @@ namespace ConsensusChessFeatureTests
         public async Task InvalidChessVote_is_RejectedAndStored()
         {
             var node = await StartNodeAsync();
+            var game = await StartGameWithDbAsync();
+            var boardPost = WaitAndAssert_NodePostsBoard(game);
 
-            var game = Game.NewGame("game-shortcode", "description",
-                    new[] { NodeNetwork.NetworkServer },
-                    new[] { NodeNetwork.NetworkServer },
-                    new[] { NodeId.Shortcode },
-                    new[] { NodeId.Shortcode },
-                    SideRules.MoveLock);
-
-            using (var db = Dbo.GetDb())
-            {
-                db.Games.Add(game);
-                await db.SaveChangesAsync();
-            }
-
-            WaitAndAssert(() =>
-            {
-                using (var db = Dbo.GetDb())
-                    return db.Games.Single().CurrentBoard.BoardPosts.Count() == 1;
-            });
-
-            WaitAndAssert(() => postsSent.Count(p => p.Type == PostType.Node_BoardUpdate) == 1);
-            var boardPost = postsSent.Single(p => p.Type == PostType.Node_BoardUpdate);
-
-            var command = FeatureDataGenerator.GenerateCommand("move e2 - e5", NodeNetwork, inReplyTo: boardPost.NetworkPostId);
-            await receivers[NodeId.Shortcode].Invoke(command);
+            var command = await ReplyToNodeAsync(boardPost, "move e2 - e5");
 
             NodeSocialMock.Verify(ns => ns.PostAsync(
                 It.Is<Post>(p =>
@@ -187,32 +148,10 @@ namespace ConsensusChessFeatureTests
         public async Task ValidChessVoteForInactiveSide_is_RejectedAndStored()
         {
             var node = await StartNodeAsync();
+            var game = await StartGameWithDbAsync();
+            var boardPost = WaitAndAssert_NodePostsBoard(game);
 
-            var game = Game.NewGame("game-shortcode", "description",
-                    new[] { NodeNetwork.NetworkServer },
-                    new[] { NodeNetwork.NetworkServer },
-                    new[] { NodeId.Shortcode },
-                    new[] { NodeId.Shortcode },
-                    SideRules.MoveLock);
-
-            using (var db = Dbo.GetDb())
-            {
-                db.Games.Add(game);
-                await db.SaveChangesAsync();
-            }
-
-            WaitAndAssert(() =>
-            {
-                using (var db = Dbo.GetDb())
-                    return db.Games.Single().CurrentBoard.BoardPosts.Count() == 1;
-            });
-
-            var confirmation = $"New board. You have {game.MoveDuration.ToString()} to vote.";
-            WaitAndAssert(() => postsSent.Count(p => p.Message.StartsWith(confirmation)) == 1);
-            var boardPost = postsSent.Single(p => p.Message.StartsWith(confirmation));
-
-            var command = FeatureDataGenerator.GenerateCommand("move e6", NodeNetwork, inReplyTo: boardPost.NetworkPostId);
-            await receivers[NodeId.Shortcode].Invoke(command);
+            var command = await ReplyToNodeAsync(boardPost, "move e6");
 
             NodeSocialMock.Verify(ns => ns.PostAsync(
                 It.Is<Post>(p =>
@@ -243,29 +182,10 @@ namespace ConsensusChessFeatureTests
         public async Task ValidVoteFromOpposingSide_is_RejectedAndStored()
         {
             var node = await StartNodeAsync();
+            var game = await StartGameWithDbAsync();
+            var boardPost = WaitAndAssert_NodePostsBoard(game);
 
-            var game = Game.NewGame("game-shortcode", "description",
-                    new[] { NodeNetwork.NetworkServer },
-                    new[] { NodeNetwork.NetworkServer },
-                    new[] { NodeId.Shortcode },
-                    new[] { NodeId.Shortcode },
-                    SideRules.MoveLock);
-
-            using (var db = Dbo.GetDb())
-            {
-                db.Games.Add(game);
-                await db.SaveChangesAsync();
-            }
-
-            WaitAndAssert(() =>
-            {
-                using (var db = Dbo.GetDb())
-                    return db.Games.Single().CurrentBoard.BoardPosts.Count() == 1;
-            });
-
-            WaitAndAssert(() => postsSent.Count(p => p.Type == PostType.Node_BoardUpdate) == 1);
-            var boardPost = postsSent.Single(p => p.Type == PostType.Node_BoardUpdate);
-
+            // create a participant record for the wrong side
             using (var db = Dbo.GetDb())
             {
                 var participant = new Participant(SocialUsername.From("instantiator", "Lewis", NodeNetwork));
@@ -280,6 +200,7 @@ namespace ConsensusChessFeatureTests
                 await db.SaveChangesAsync();
             }
 
+            // check participant record is retrievable
             using (var db = Dbo.GetDb())
             {
                 var participant = db.Participant.Single();
@@ -287,8 +208,7 @@ namespace ConsensusChessFeatureTests
                 Assert.AreEqual(SocialUsername.From("instantiator", "Lewis", NodeNetwork), participant.Username);
             }
 
-            var command = FeatureDataGenerator.GenerateCommand("move e2 - e4", NodeNetwork, inReplyTo: boardPost.NetworkPostId);
-            await receivers[NodeId.Shortcode].Invoke(command);
+            var command = await ReplyToNodeAsync(boardPost, "move e2 - e4");
 
             NodeSocialMock.Verify(ns => ns.PostAsync(
                 It.Is<Post>(p =>
@@ -307,7 +227,7 @@ namespace ConsensusChessFeatureTests
                 Assert.AreEqual(VoteValidationState.OffSide, vote.ValidationState);
 
                 Assert.IsNotNull(vote.Participant);
-                Assert.AreEqual(1, vote.Participant.Commitments.Count()); // no additional commitment created
+                Assert.AreEqual(1, vote.Participant.Commitments.Count(), "There should not be another participant commitment");
 
                 Assert.IsNotNull(vote.ValidationPost);
                 Assert.IsTrue(vote.ValidationPost.Succeeded);

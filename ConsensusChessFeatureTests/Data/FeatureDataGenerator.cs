@@ -75,11 +75,13 @@ namespace ConsensusChessFeatureTests.Data
             };
         }
 
-        public static SocialCommand GenerateCommand(string message, Network network, bool authorised = true, string from = "instantiator", long? inReplyTo = null)
+        public static SocialCommand GenerateCommand(string message, Network network, bool authorised = true, string? from = null, long? inReplyTo = null)
         {
+            var fromUser = from ?? "instantiator";
+
             return new SocialCommand(
                 receivingNetwork: network,
-                username: SocialUsername.From(from, $"Display name for {from}", network),
+                username: SocialUsername.From(fromUser, $"Display name for {fromUser}", network),
                 postId: RollingPostId++,
                 text: message,
                 isForThisNode: true,

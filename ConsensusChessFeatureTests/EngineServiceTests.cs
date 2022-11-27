@@ -41,8 +41,7 @@ namespace ConsensusChessFeatureTests
                 Assert.AreEqual(0, db.Games.Count());
             }
 
-            var command = FeatureDataGenerator.GenerateCommand($"new {NodeId.Shortcode}", EngineNetwork);
-            await receivers[EngineId.Shortcode].Invoke(command);
+            var command = await SendToEngineAsync($"new {NodeId.Shortcode}");
 
             // akcknowledgement
             EngineSocialMock.Verify(ns => ns.PostAsync(
@@ -95,9 +94,7 @@ namespace ConsensusChessFeatureTests
                 Assert.AreEqual(0, db.Games.Count());
             }
 
-            var command = FeatureDataGenerator.GenerateCommand($"new {NodeId.Shortcode}", EngineNetwork, authorised: false);
-
-            await receivers[EngineId.Shortcode].Invoke(command);
+            var command = await SendToEngineAsync($"new {NodeId.Shortcode}", authorised: false);
 
             EngineSocialMock.Verify(ns => ns.PostAsync(
             It.Is<Post>(p =>
@@ -124,11 +121,7 @@ namespace ConsensusChessFeatureTests
                 Assert.AreEqual(0, db.Games.Count());
             }
 
-            var command = FeatureDataGenerator.GenerateCommand($"new beans-on-toast", EngineNetwork);
-
-            await receivers[EngineId.Shortcode].Invoke(command);
-
-            // await Task.Delay(1000);
+            var command = await SendToEngineAsync("new beans-on-toast");
 
             EngineSocialMock.Verify(ns => ns.PostAsync(
             It.Is<Post>(p =>
@@ -149,81 +142,32 @@ namespace ConsensusChessFeatureTests
         {
             var engine = await StartEngineAsync();
             var node = await StartNodeAsync();
+            var game = await StartGameWithDbAsync();
+            var boardPost = WaitAndAssert_NodePostsBoard(game);
 
-            // create game
-            var newGame = Game.NewGame("game-shortcode", "description",
-                    new[] { NodeNetwork.NetworkServer },
-                    new[] { NodeNetwork.NetworkServer },
-                    new[] { NodeId.Shortcode },
-                    new[] { NodeId.Shortcode },
-                    SideRules.MoveLock);
-
-            using (var db = Dbo.GetDb())
-            {
-                db.Games.Add(newGame);
-                await db.SaveChangesAsync();
-            }
-
-            // get the board post
-            long? boardPost1id;
-            WaitAndAssert(() =>
-            {
-                using (var db = Dbo.GetDb())
-                    return db.Games.Single().CurrentBoard.BoardPosts.Count() == 1;
-            });
-            using (var db = Dbo.GetDb())
-            {
-                var game = db.Games.Single();
-                boardPost1id = game.CurrentBoard.BoardPosts.Single().NetworkPostId!;
-                Assert.IsNotNull(boardPost1id);
-            }
-
-            // add some votes
+            // add some votes: 5 for e4, 3 for e3
             for (var i = 0; i < 5; i++)
             {
-                var voteCmd = FeatureDataGenerator.GenerateCommand($"move e2 - e4", EngineNetwork, false, from: $"voter-{i}", inReplyTo: boardPost1id);
-                await receivers[NodeId.Shortcode].Invoke(voteCmd);
-
-                using (var db = Dbo.GetDb())
-                {
-                    var game = db.Games.Single();
-                    Assert.AreEqual(i + 1, game.CurrentMove.Votes.Count());
-                    Assert.IsNotNull(game.CurrentMove.Votes.Last().ValidationPost);
-                    Assert.AreEqual(VoteValidationState.Valid, game.CurrentMove.Votes.Last().ValidationState);
-                    Assert.AreEqual("e2 - e4", game.CurrentMove.Votes.Last().MoveText);
-                    Assert.AreEqual("e4", game.CurrentMove.Votes.Last().MoveSAN);
-                }
+                await ReplyToNodeAsync(boardPost, $"move e2 - e4", from: $"voter-{i}");
             }
             for (var i = 5; i < 8; i++)
             {
-                var voteCmd = FeatureDataGenerator.GenerateCommand($"move e2 - e3", EngineNetwork, false, from: $"voter-{i}", inReplyTo: boardPost1id);
-                await receivers[NodeId.Shortcode].Invoke(voteCmd);
-
-                using (var db = Dbo.GetDb())
-                {
-                    var game = db.Games.Single();
-                    Assert.AreEqual(i + 1, game.CurrentMove.Votes.Count());
-                    Assert.IsNotNull(game.CurrentMove.Votes.Last().ValidationPost);
-                    Assert.AreEqual(VoteValidationState.Valid, game.CurrentMove.Votes.Last().ValidationState);
-                    Assert.AreEqual("e2 - e3", game.CurrentMove.Votes.Last().MoveText);
-                    Assert.AreEqual("e3", game.CurrentMove.Votes.Last().MoveSAN);
-                }
+                await ReplyToNodeAsync(boardPost, $"move e2 - e3", from: $"voter-{i}");
             }
 
-            // modify game to expire shortly
             using (var db = Dbo.GetDb())
             {
-                var game = db.Games.Single();
-                game.CurrentMove.Deadline = DateTime.Now.Add(TimeSpan.FromSeconds(1)).ToUniversalTime();
-                await db.SaveChangesAsync();
+                Assert.AreEqual(8, db.Games.Single().CurrentMove.Votes.Count());
+                Assert.IsTrue(db.Games.Single().CurrentMove.Votes.All(v => v.ValidationPost != null));
+                Assert.IsTrue(db.Games.Single().CurrentMove.Votes.All(v => v.ValidationState == VoteValidationState.Valid));
+                Assert.AreEqual(5, db.Games.Single().CurrentMove.Votes.Count(v => v.MoveText == "e2 - e4"));
+                Assert.AreEqual(5, db.Games.Single().CurrentMove.Votes.Count(v => v.MoveSAN == "e4"));
+                Assert.AreEqual(3, db.Games.Single().CurrentMove.Votes.Count(v => v.MoveText == "e2 - e3"));
+                Assert.AreEqual(3, db.Games.Single().CurrentMove.Votes.Count(v => v.MoveSAN == "e3"));
             }
 
-            // wait until there's a new move
-            WaitAndAssert(() =>
-            {
-                using (var db = Dbo.GetDb())
-                    return db.Games.Single().Moves.Count() == 2;
-            });
+            await ExpireCurrentMoveShortlyAsync(game);
+            WaitAndAssert_Moves(game, moves: 2, made: 1);
             using (var db = Dbo.GetDb())
             {
                 Assert.AreEqual(2, db.Games.Single().Moves.Count());
@@ -234,6 +178,7 @@ namespace ConsensusChessFeatureTests
                 Assert.AreEqual(Side.Black, db.Games.Single().Moves[1].SideToPlay);
                 Assert.IsNotNull(db.Games.Single().Moves[0].SelectedSAN);
                 Assert.AreEqual("e4", db.Games.Single().Moves[0].SelectedSAN!);
+                Assert.AreEqual(GameState.InProgress, db.Games.Single().State);
             }
         }
 
@@ -242,125 +187,21 @@ namespace ConsensusChessFeatureTests
         {
             var engine = await StartEngineAsync();
             var node = await StartNodeAsync();
+            var game = await StartGameWithDbAsync();
+            await ExpireCurrentMoveShortlyAsync(game);
 
-            // create game
-            var newGame = Game.NewGame("game-shortcode", "description",
-                    new[] { NodeNetwork.NetworkServer },
-                    new[] { NodeNetwork.NetworkServer },
-                    new[] { NodeId.Shortcode },
-                    new[] { NodeId.Shortcode },
-                    SideRules.MoveLock);
-
-            using (var db = Dbo.GetDb())
-            {
-                db.Games.Add(newGame);
-                await db.SaveChangesAsync();
-            }
-
-            // modify game to expire shortly
-            using (var db = Dbo.GetDb())
-            {
-                var game = db.Games.Single();
-                game.CurrentMove.Deadline = DateTime.Now.Add(TimeSpan.FromSeconds(1)).ToUniversalTime();
-                await db.SaveChangesAsync();
-            }
-
-            // wait until the game abandons
             WaitAndAssert(() =>
             {
                 using (var db = Dbo.GetDb())
                     return db.Games.Single().GamePosts.Any(p => p.Type == PostType.Engine_GameAbandoned);
             });
+
             using (var db = Dbo.GetDb())
             {
                 Assert.AreEqual(GameState.Abandoned, db.Games.Single().State);
                 Assert.IsNotNull(db.Games.Single().Finished);
                 Assert.AreEqual(1, db.Games.Single().GamePosts.Count(p => p.Type == PostType.Engine_GameAbandoned));
             }
-
-        }
-
-        [TestMethod]
-        public async Task GameRollIntoCheckmate_resultsIn_GameEndedStatus()
-        {
-            var engine = await StartEngineAsync();
-            var node = await StartNodeAsync();
-
-            // create game
-            var newGame = Game.NewGame("game-shortcode", "description",
-                    new[] { NodeNetwork.NetworkServer },
-                    new[] { NodeNetwork.NetworkServer },
-                    new[] { NodeId.Shortcode },
-                    new[] { NodeId.Shortcode },
-                    SideRules.MoveLock);
-
-            newGame.CurrentBoard.FEN = FeatureDataGenerator.FEN_PreFoolsMate;
-
-            using (var db = Dbo.GetDb())
-            {
-                db.Games.Add(newGame);
-                await db.SaveChangesAsync();
-            }
-
-            // get the board post
-            long? boardPost1id;
-            WaitAndAssert(() =>
-            {
-                using (var db = Dbo.GetDb())
-                    return db.Games.Single().CurrentBoard.BoardPosts.Count() == 1;
-            });
-            using (var db = Dbo.GetDb())
-            {
-                var game = db.Games.Single();
-                boardPost1id = game.CurrentBoard.BoardPosts.Single().NetworkPostId!;
-                Assert.IsNotNull(boardPost1id);
-            }
-
-            // add a vote to enact fools mate
-            var voteCmd = FeatureDataGenerator.GenerateCommand($"move {FeatureDataGenerator.SAN_FoolsMate}", EngineNetwork, false, from: $"voter", inReplyTo: boardPost1id);
-            await receivers[NodeId.Shortcode].Invoke(voteCmd);
-
-            using (var db = Dbo.GetDb())
-            {
-                var game = db.Games.Single();
-                Assert.AreEqual(1, game.CurrentMove.Votes.Count());
-                Assert.IsNotNull(game.CurrentMove.Votes.Last().ValidationPost);
-                Assert.AreEqual(VoteValidationState.Valid, game.CurrentMove.Votes.Last().ValidationState);
-                Assert.AreEqual("Qf7", game.CurrentMove.Votes.Last().MoveText);
-            }
-
-            // modify game to expire shortly
-            using (var db = Dbo.GetDb())
-            {
-                var game = db.Games.Single();
-                game.CurrentMove.Deadline = DateTime.Now.Add(TimeSpan.FromSeconds(1)).ToUniversalTime();
-                await db.SaveChangesAsync();
-            }
-
-            // wait until there's a new move
-            WaitAndAssert(() =>
-            {
-                using (var db = Dbo.GetDb())
-                    return db.Games.Single().Moves[0].SelectedSAN != null;
-            });
-            using (var db = Dbo.GetDb())
-            {
-                // check the positions and moves
-                Assert.AreEqual(1, db.Games.Single().Moves.Count()); // game end does not create an additional Move
-                Assert.AreEqual(FeatureDataGenerator.FEN_PreFoolsMate, db.Games.Single().Moves[0].From.FEN);
-                Assert.AreEqual(Side.White, db.Games.Single().Moves[0].SideToPlay);
-                Assert.AreEqual(Side.White, db.Games.Single().Moves[0].From.ActiveSide);
-                Assert.AreEqual("Qxf7#", db.Games.Single().Moves[0].SelectedSAN!);
-                Assert.AreEqual(FeatureDataGenerator.FEN_FoolsMate, db.Games.Single().Moves[0].To!.FEN);
-                Assert.AreEqual(Side.Black, db.Games.Single().Moves[0].To!.ActiveSide);
-
-                // check game looks ended
-                Assert.IsNotNull(db.Games.Single().Finished);
-                Assert.AreEqual(1, db.Games.Single().GamePosts.Count(p => p.Type == PostType.Engine_GameEnded));
-                Assert.AreEqual(GameState.BlackKingCheckmated, db.Games.Single().State);
-            }
-
-
         }
 
     }

@@ -59,6 +59,8 @@ public abstract class AbstractFeatureTest
         postsSent = new List<Post>();
     }
 
+    #region Start and finish tests
+
     [TestInitialize]
     public async Task TestInit()
     {
@@ -96,6 +98,17 @@ public abstract class AbstractFeatureTest
         InitSocialMock(NodeSocialMock, "node", NodeNetwork, NodeId.Shortcode);
         InitSocialMock(EngineSocialMock, "engine", EngineNetwork, EngineId.Shortcode);
     }
+
+
+    [TestCleanup]
+    public void TestClose()
+    {
+        WriteLogLine();
+    }
+
+    #endregion
+
+    #region Init support
 
     private ConsensusChessNodeService CreateNode()
         => new ConsensusChessNodeService(
@@ -139,12 +152,6 @@ public abstract class AbstractFeatureTest
         return engine;
     }
 
-    protected void WaitAndAssert(Func<bool> criteria, string? onFailDescription = null, TimeSpan? timeoutOverride = null)
-    {
-        SpinWait.SpinUntil(criteria, timeoutOverride ?? spinWaitTimeout);
-        Assert.IsTrue(criteria.Invoke(), onFailDescription ?? "Timed out waiting for criteria");
-    }
-
     protected void InitSocialMock(Mock<ISocialConnection> mock, string account, Network network, string shortcode)
     {
         mock.Setup(sc => sc.CalculateCommandSkips())
@@ -156,7 +163,7 @@ public abstract class AbstractFeatureTest
                 $"@{account}@{network.NetworkServer}",
             });
 
-        mock.Setup(sc => sc.Username).Returns(SocialUsername.From(account, "displayname", network));
+        mock.Setup(sc => sc.Username).Returns(SocialUsername.From(account, $"Mx. {account}", network));
 
         Func<Post, bool?, Task<Post>> postFunc =
             (post, dry)
@@ -188,11 +195,9 @@ public abstract class AbstractFeatureTest
             .Verifiable();
     }
 
-    [TestCleanup]
-    public void TestClose()
-    {
-        WriteLogLine();
-    }
+    #endregion Init
+
+    #region Logging
 
     protected void WriteLogHeader(string header)
     {
@@ -209,4 +214,127 @@ public abstract class AbstractFeatureTest
         File.AppendAllLines(logPath, new[] { "" });
     }
 
+    #endregion
+
+    #region Actions
+
+    protected async Task<Game> StartGameWithDbAsync(string? fen = null)
+    {
+        var game = Game.NewGame("game-shortcode", "description",
+                new[] { NodeNetwork.NetworkServer },
+                new[] { NodeNetwork.NetworkServer },
+                new[] { NodeId.Shortcode },
+                new[] { NodeId.Shortcode },
+                SideRules.MoveLock);
+
+        game.CurrentBoard.FEN = fen ?? game.CurrentBoard.FEN;
+
+        using (var db = Dbo.GetDb())
+        {
+            db.Games.Add(game);
+            await db.SaveChangesAsync();
+        }
+
+        return game;
+    }
+
+    protected async Task ExpireCurrentMoveShortlyAsync(Game game, TimeSpan? expiry = null)
+    {
+        using (var db = Dbo.GetDb())
+        {
+            var game1 = db.Games.Single(g => g.Shortcode == game.Shortcode);
+            game1.CurrentMove.Deadline = DateTime.Now.Add(expiry ?? TimeSpan.FromMilliseconds(1)).ToUniversalTime();
+            await db.SaveChangesAsync();
+        }
+    }
+
+    protected void WaitAndAssert(Func<bool> criteria, string? onFailDescription = null, TimeSpan? timeoutOverride = null)
+    {
+        SpinWait.SpinUntil(criteria, timeoutOverride ?? spinWaitTimeout);
+        Assert.IsTrue(criteria.Invoke(), onFailDescription ?? "Timed out waiting for criteria");
+    }
+
+    protected Post WaitAndAssert_NodePostsBoard(Game game)
+    {
+        WaitAndAssert(() =>
+        {
+            using (var db = Dbo.GetDb())
+                return db.Games
+                    .Single(g => g.Shortcode == game.Shortcode)
+                    .CurrentBoard
+                    .BoardPosts
+                    .Count() == 1;
+        });
+
+        WaitAndAssert(() => postsSent.Count(p => p.Type == PostType.Node_BoardUpdate) == 1);
+        return postsSent.Single(p => p.Type == PostType.Node_BoardUpdate);
+    }
+
+    protected void WaitAndAssert_Moves(Game game, int moves, int made)
+    {
+        WaitAndAssert(() =>
+        {
+            using (var db = Dbo.GetDb())
+                return db.Games
+                    .Single(g => g.Shortcode == game.Shortcode)
+                    .Moves.Count() == moves;
+        });
+        WaitAndAssert(() =>
+        {
+            using (var db = Dbo.GetDb())
+                return db.Games
+                    .Single(g => g.Shortcode == game.Shortcode)
+                    .Moves.Count(m => m.SelectedSAN != null) == made;
+        });
+    }
+
+    protected Post WaitAndAssert_NodeRepliesTo(SocialCommand command, PostType? ofType = null)
+        => WaitAndAssert_RepliesTo(command, NodeId.Shortcode, ofType);
+
+    protected Post WaitAndAssert_EngineRepliesTo(SocialCommand command, PostType? ofType = null)
+    => WaitAndAssert_RepliesTo(command, EngineId.Shortcode, ofType);
+
+    protected Post WaitAndAssert_RepliesTo(SocialCommand command, string respondentShortcode = null, PostType? ofType = null)
+    {
+        WaitAndAssert(() =>
+        {
+            return postsSent.Any(post
+                => post.Succeeded
+                && post.NetworkReplyToId == command.SourcePostId
+                && (respondentShortcode == null || post.NodeShortcode == respondentShortcode)
+                && (ofType == null || post.Type == ofType));
+        }, "Node did not reply to command");
+
+        return postsSent.Single(post
+            => post.Succeeded
+            && post.NetworkReplyToId == command.SourcePostId
+            && (respondentShortcode == null || post.NodeShortcode == respondentShortcode)
+            && (ofType == null || post.Type == ofType));
+    }
+
+    protected async Task<SocialCommand> SendToEngineAsync(string text, bool authorised = true)
+    {
+        var message = $"{EngineSocialMock.Object.Username!.AtFull} {text}";
+        var command = FeatureDataGenerator.GenerateCommand(message, EngineNetwork, authorised: authorised);
+        await receivers[EngineId.Shortcode].Invoke(command);
+        return command;
+    }
+
+    protected async Task<SocialCommand> SendToNodeAsync(string text)
+    {
+        var message = $"{NodeSocialMock.Object.Username!.AtFull} {text}";
+        var command = FeatureDataGenerator.GenerateCommand(message, NodeNetwork);
+        await receivers[NodeId.Shortcode].Invoke(command);
+        return command;
+    }
+
+    protected async Task<SocialCommand> ReplyToNodeAsync(Post boardPost, string text, string? from = null)
+    {
+        var message = $"{NodeSocialMock.Object.Username!.AtFull} {text}";
+        var command = FeatureDataGenerator.GenerateCommand(message, NodeNetwork, from: from, inReplyTo: boardPost.NetworkPostId);
+        await receivers[NodeId.Shortcode].Invoke(command);
+        return command;
+    }
+
+    #endregion
 }
