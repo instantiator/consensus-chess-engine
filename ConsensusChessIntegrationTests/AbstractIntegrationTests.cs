@@ -25,7 +25,7 @@ namespace ConsensusChessIntegrationTests
 
         public TestContext? TestContext { get; set; }
 
-        public const int TIMEOUT_mins = 15;
+        public const int TIMEOUT_mins = 20;
 
         protected static readonly HttpClient http = new HttpClient();
 
