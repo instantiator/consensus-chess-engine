@@ -30,7 +30,7 @@ namespace ConsensusChessShared.Social
 			{
 				var rollingPeriodStart = DateTime.Now.Subtract(Period);
 				var hitsInPeriod = History.Where(d => d >= rollingPeriodStart).Order();
-				if (hitsInPeriod.Count() > Permitted)
+				if (hitsInPeriod.Count() >= Permitted)
 				{
 					log.LogWarning("Rate limit exceeded... Introducing a delay.");
 					var mostRecentCluster = History.Skip(Math.Max(0, History.Count() - Permitted)).Order();
