@@ -78,15 +78,26 @@ namespace ConsensusChessFeatureTests
             var boardCount = 1;
             foreach (var move in moves)
             {
-                WriteLogLine($"⏳ Waiting for board post: {boardCount}...");
+                WriteLogLine($"⏳ Waiting for board post #{boardCount}...");
 
                 var boardPost = WaitAndAssert_Posts(
                     shortcode: NodeId.Shortcode,
                     ofType: PostType.Node_BoardUpdate,
-                    count: boardCount++)
+                    count: boardCount)
                         .Last();
 
-                WriteLogLine($"✅ Board post {boardCount} received.");
+                WriteLogLine($"✅ Board post #{boardCount} received.");
+
+                // make sure the database has caught up
+                WaitAndAssert(() =>
+                {
+                    using (var db = Dbo.GetDb())
+                    {
+                        return
+                            db.Games.Single().Moves.Count() == boardCount &&
+                            db.Games.Single().CurrentBoard.BoardPosts.Count() == 1;
+                    }
+                });
 
                 var player = whiteToPlay ? "player-white" : "player-black";
 
@@ -98,14 +109,30 @@ namespace ConsensusChessFeatureTests
                 WriteLogLine($"✅ Posted move: {move}");
                 WriteLogLine($"⏳ Waiting for validation response to move: {move}...");
 
+                // capture the node's response
+
+                // use this code to capture the fine detail of the response
+                // var criteria = () =>
+                // {
+                //     return postsSent.Any(p
+                //         => p.Succeeded && p.NetworkReplyToId == movePost.SourcePostId);
+                // };
+                // SpinWait.SpinUntil(criteria, spinWaitTimeout);
+                // var found = postsSent.Where(p
+                //         => p.Succeeded && p.NetworkReplyToId == movePost.SourcePostId);
+                // Assert.AreEqual(1, found.Count());
+                // WriteLogLine($"➡️ Post found: {found.Single().Type}");
+                // if (found.Single().Type != PostType.MoveAccepted)
+                //     WriteLogLine($"➡️ Message: {found.Single().Message}");
+                // Assert.IsTrue(found.Single().Type == PostType.MoveAccepted);
+
                 var validationPost = WaitAndAssert_NodeRepliesTo(
                     command: movePost,
                     ofType: PostType.MoveAccepted);
 
-                WriteLogLine($"✅ Validation post found.");
-
                 await ExpireCurrentMoveShortlyAsync(game);
                 whiteToPlay = !whiteToPlay;
+                boardCount++;
             }
 
             WriteLogLine($"⏳ Waiting for engine end game post...");
