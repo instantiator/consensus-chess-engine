@@ -10,7 +10,6 @@ namespace ConsensusChessFeatureTests
     [TestClass]
     public class GameplayTests : AbstractFeatureTest
     {
-
         [TestMethod]
         public async Task GameRollsIntoCheckmate_resultsIn_GameEndedStatus()
         {
