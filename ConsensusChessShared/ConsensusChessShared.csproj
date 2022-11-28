@@ -25,6 +25,7 @@
     <None Remove="Content\" />
     <None Remove="Handlebars.Net" />
     <None Remove="Constants\" />
+    <None Remove="System.Drawing.Common" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DTO\" />
@@ -50,5 +51,6 @@
     <PackageReference Include="EFCore.NamingConventions" Version="7.0.0" />
     <PackageReference Include="Gera.Chess" Version="1.0.2" />
     <PackageReference Include="Handlebars.Net" Version="2.1.2" />
+    <PackageReference Include="System.Drawing.Common" Version="7.0.0" />
   </ItemGroup>
 </Project>

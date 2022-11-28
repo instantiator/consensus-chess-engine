@@ -33,7 +33,7 @@ namespace ConsensusChessShared.Content
             { PostType.Engine_GameAbandoned, "Game {{ Game.Shortcode }}: {{ Game.State }}" },
             { PostType.Engine_GameEnded, "Game {{ Game.Shortcode }}: {{ Game.State }}" },
             { PostType.Engine_GameAdvance, "Game advanced: {{ Game.Shortcode }}" },
-            { PostType.Node_BoardUpdate, "New board. You have {{ Game.MoveDuration }} to vote.\n{{ FEN }}" },
+            { PostType.Node_BoardUpdate, "New board. You have {{ Game.MoveDuration }} to vote.\n{{ Board }}" },
             { PostType.Node_GameAbandonedUpdate, "Game abandoned: {{ Game.Shortcode }}" },
             { PostType.Node_GameEndedUpdate, "Game {{ Game.Shortcode }} ended in state: {{ Game.State }}" },
             { PostType.GameNotFound, "This vote can't be processed: {{ GameNotFoundReason }}" },

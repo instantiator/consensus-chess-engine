@@ -10,6 +10,7 @@ using HandlebarsDotNet;
 using Mastonet.Entities;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Newtonsoft.Json.Linq;
+using static ConsensusChessShared.Content.BoardFormatter;
 
 namespace ConsensusChessShared.Content
 {
@@ -31,9 +32,9 @@ namespace ConsensusChessShared.Content
 			Mappings = new Dictionary<string, object>();
 		}
 
-		public PostBuilder WithBoard(Board board)
+		public PostBuilder WithBoard(Board board, BoardFormat format)
 		{
-			WithMapping("FEN", BoardFormatter.FenToPieces(board));
+			WithMapping("Board", BoardFormatter.FenToPieces(board, format));
 			return this;
 		}
 

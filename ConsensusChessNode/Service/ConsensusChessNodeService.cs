@@ -10,6 +10,7 @@ using ConsensusChessShared.Social;
 using Mastonet.Entities;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using static ConsensusChessShared.Content.BoardFormatter;
 
 namespace ConsensusChessNode.Service
 {
@@ -48,7 +49,7 @@ namespace ConsensusChessNode.Service
                         log.LogInformation($"Found a new board to post in game: {game.Id}");
                         var post = new PostBuilder(PostType.Node_BoardUpdate)
                             .WithGame(game)
-                            .WithBoard(board)
+                            .WithBoard(board, BoardFormat.StandardFAN)
                             .Build();
                         var posted = await social.PostAsync(post);
                         board.BoardPosts.Add(posted);
