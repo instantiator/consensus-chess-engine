@@ -23,13 +23,18 @@ namespace ConsensusChessShared.Social
         protected event Func<SocialCommand, Task>? asyncCommandReceivers;
         protected IEnumerable<SocialCommand>? missedCommands;
 
-        public AbstractSocialConnection(ILogger log, Network network, string shortcode)
+        protected RateLimiter? rateLimiter;
+
+        public AbstractSocialConnection(ILogger log, Network network, string shortcode, int? permittedRequests, TimeSpan? rateLimitPeriod)
 		{
 			this.log = log;
 			this.network = network;
 			this.dryRuns = network.DryRuns;
             this.Ready = false;
             this.shortcode = shortcode;
+
+            if (permittedRequests != null && rateLimitPeriod != null)
+                this.rateLimiter = new RateLimiter(log, permittedRequests.Value, rateLimitPeriod.Value);
 		}
 
 		public async Task InitAsync(NodeState state)
@@ -130,7 +135,19 @@ namespace ConsensusChessShared.Social
             return await PostAsync(post, dryRun);
 		}
 
-        public abstract Task<Post> PostAsync(Post post, bool? dryRun);
+        public async Task<Post> PostAsync(Post post, bool? dryRun = null)
+        {
+            await RateLimit();
+            return await PostImplementationAsync(post, dryRun);
+        }
+
+        protected async Task RateLimit()
+        {
+            if (rateLimiter != null)
+                await rateLimiter.RateLimitAsync();
+        }
+
+        protected abstract Task<Post> PostImplementationAsync(Post post, bool? dryRun);
 
         protected async Task ReportStateChangeAsync()
 		{

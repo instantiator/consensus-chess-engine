@@ -19,8 +19,13 @@ namespace ConsensusChessShared.Social
         // TODO: revisit the paging limit - may or may not be necessary
         private const int MAX_PAGES = 100;
 
-        public MastodonConnection(ILogger log, Network network, string shortcode) : base(log, network, shortcode)
+        public static int RATE_LIMIT_PERMITTED_REQUESTS = 300;
+        public static TimeSpan RATE_LIMIT_PERMITTED_PERIOD = TimeSpan.FromSeconds(300);
+
+        public MastodonConnection(ILogger log, Network network, string shortcode)
+            : base(log, network, shortcode, RATE_LIMIT_PERMITTED_REQUESTS, RATE_LIMIT_PERMITTED_PERIOD)
 		{
+            // TODO: AppRegistration and Auth are no longer needed by Mastonet
             AppRegistration reg = new AppRegistration()
             {
                 ClientId = network.AppKey,
@@ -39,6 +44,7 @@ namespace ConsensusChessShared.Social
 
         protected override async Task InitImplementationAsync()
         {
+            await RateLimit();
             user = await client.GetCurrentUser();
             Username = SocialUsername.From(user.AccountName!, user.DisplayName!, network, shortcode);
         }
@@ -69,7 +75,7 @@ namespace ConsensusChessShared.Social
             { PostType.Unspecified, Visibility.Unlisted },
         };
 
-        public override async Task<Post> PostAsync(Post post, bool? dryRun = null)
+        protected override async Task<Post> PostImplementationAsync(Post post, bool? dryRun)
         {
             Visibility visibility = VisibilityMapping[post.Type];
             post.AppName = network.AppName;
@@ -81,6 +87,7 @@ namespace ConsensusChessShared.Social
                 if (!dry)
                 {
                     log.LogDebug($"Posting to network...");
+                    // already rate limited through the public methods
                     var status = await client.PublishStatus(
                         status: post.Message,
                         visibility: visibility,
@@ -104,6 +111,7 @@ namespace ConsensusChessShared.Social
         protected override async Task StartListeningForNotificationsAsync()
         {
             // set up the stream
+            await RateLimit();
             stream = client.GetUserStreaming();
             stream.OnNotification += Stream_OnNotification;
             log.LogDebug("Starting stream");
@@ -145,7 +153,9 @@ namespace ConsensusChessShared.Social
                     MaxId = nextPageMaxId.ToString()
                 };
 
+                await RateLimit();
                 var page = await client.GetNotifications(options: opts);
+
                 list.AddRange(page.Where(pn => !list.Select(n => n.Id).Contains(pn.Id)));
                 nextPageMaxId = page.NextPageMaxId;
                 iterations++;
@@ -166,6 +176,7 @@ namespace ConsensusChessShared.Social
         protected override async Task MarkCommandProcessedAsync(long id)
         {
             log.LogDebug($"Favouriting status: {id}");
+            await RateLimit();
             await client.Favourite(id.ToString());
         }
 
