@@ -14,6 +14,7 @@ _NB. This is a work in progress - the engine is not yet ready to host games._
 * [Config](docs/config.md)
 * [Database](docs/database.md)
 * [Dependencies](docs/dependencies.md)
+* [Rate limits](docs/rate-limits.md)
 * [Testing](docs/testing.md)
 
 ### Blog posts
