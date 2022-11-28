@@ -8,7 +8,7 @@ A new way to play distributed, consensus games across federated social networks.
 
 _NB. This is a work in progress._
 
-~~The engine is not yet ready to host games.~~_ Consensus Chess can launch and manage simple move-lock* games. However, the board rendering, message content,
+~~The engine is not yet ready to host games.~~ Consensus Chess can launch and manage simple move-lock* games. However, the board rendering, message content,
 and accessibility features are still in development. It's not particularly pleasant to look at or use!
 
 _*When a player participates in a game, they are then locked to the side that they move for._
