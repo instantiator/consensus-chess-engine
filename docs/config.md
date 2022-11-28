@@ -78,9 +78,7 @@ NODE_NAME=<something helpful>
 NODE_SHORTCODE=<unique shortcode>
 NETWORK_TYPE=Mastodon
 NETWORK_SERVER=<mastodon server domain>
-NETWORK_APP_NAME=<name of the app>
-NETWORK_APP_KEY=<app key>
-NETWORK_APP_SECRET=<app secret>
+NETWORK_APP_NAME_REMINDER=<name of the app>
 NETWORK_ACCESS_TOKEN=<app access token>
 NETWORK_AUTHORISED_ACCOUNTS=<authorised accounts>
 NETWORK_DRY_RUNS=<true|false>
@@ -110,17 +108,20 @@ Shortcodes are used to refer to participating nodes when setting up games. They 
 * Only 1 network type is supported at the moment: `Mastodon` (capitalisation important, it's matched to an enum)
 * Provide the domain of the mastodon server this node belongs to, eg. `botsin.space`
 
-### `NETWORK_APP_*`, `NETWORK_ACCESS_TOKEN`
+### `NETWORK_ACCESS_TOKEN`
 
 * To connect a node to Mastodon, first register an app inside the developer settings in your account.
-* Provide an app name - this is included in the config to help you track multiple apps in an account.
 * The app will need `read` and `write` permissions.
-* Mastodon will then provide you with an app key, secret and access token, which you can include.
+* Mastodon will then provide you with an access token, which you can include.
+
+### `NETWORK_APP_NAME_REMINDER`
+
+* Provide the app name from your develpoer settings - this is included in the config to help you track/distinguish multiple apps in an account (if, say, you're using the account for multiple services).
 
 ### `NETWORK_AUTHORISED_ACCOUNTS`
 
 * Authorised accounts should contain a comma-separated list of the Mastodon handles for accounts that can issue authorised commands
-  * NB. nodes should include the engine in their authorised accounts, the engine should include you
+  * NB. nodes should include the engine in their authorised accounts, the engine should include you (and any other administrators)
   * eg. `@instantiator@mastodon.social,@icgames@botsin.space`
 
 ### `NETWORK_DRY_RUNS`
@@ -129,5 +130,5 @@ Shortcodes are used to refer to participating nodes when setting up games. They 
 
 ### `INT_ENGINE_ACCOUNT`, `INT_NODE_ACCOUNT`
 
-* These are for the integration tester.
+* These are for the integration tester only - as it needs to know which accounts to poke and prod at.
 * Provide the account name for your integration testing engine and node (eg. `@icgames_engine@botsin.space`, or `@icgames@botsin.space`)
