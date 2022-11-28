@@ -48,22 +48,4 @@ public class ConnectionTests : AbstractIntegrationTests
         Assert.IsTrue(File.Exists(logPath));
         Assert.AreEqual(lines + 1, File.ReadAllLines(logPath).Count());
     }
-
-    //[Ignore]
-    //[TestMethod]
-    //[Obsolete("dotnet test hides output")]
-    //public void You_perhaps_CanSeeADebugWriteLine()
-    //{
-    //    Debug.WriteLine("You can see this Debug.WriteLine, right?");
-    //}
-
-    //[Ignore]
-    //[TestMethod]
-    //[Obsolete("dotnet test hides output")]
-    //public void You_perhaps_CanSeeATraceWriteLine()
-    //{
-    //    Trace.Listeners.Add(new ConsoleTraceListener());
-    //    Trace.WriteLine("You can see this Trace.WriteLine, right?");
-    //}
-
 }

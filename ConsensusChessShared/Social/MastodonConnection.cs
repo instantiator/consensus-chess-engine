@@ -34,7 +34,7 @@ namespace ConsensusChessShared.Social
                 AccessToken = network.AppToken
             };
 
-            client = new MastodonClient(reg, token, http);
+            client = new MastodonClient(reg.Instance, token.AccessToken, http);
         }
 
         protected override async Task InitImplementationAsync()
@@ -81,12 +81,12 @@ namespace ConsensusChessShared.Social
                 if (!dry)
                 {
                     log.LogDebug($"Posting to network...");
-                    var status = await client.PostStatus(
+                    var status = await client.PublishStatus(
                         status: post.Message,
                         visibility: visibility,
-                        replyStatusId: post.NetworkReplyToId);
+                        replyStatusId: post.NetworkReplyToId?.ToString());
 
-                    post.Succeed(status.Id);
+                    post.Succeed(long.Parse(status.Id));
                 }
                 else
                 {
@@ -139,7 +139,13 @@ namespace ConsensusChessShared.Social
 
             do
             {
-                var page = await client.GetNotifications(sinceId: sinceId, maxId: nextPageMaxId);
+                ArrayOptions opts = new ArrayOptions()
+                {
+                    SinceId = sinceId.ToString(),
+                    MaxId = nextPageMaxId.ToString()
+                };
+
+                var page = await client.GetNotifications(options: opts);
                 list.AddRange(page.Where(pn => !list.Select(n => n.Id).Contains(pn.Id)));
                 nextPageMaxId = page.NextPageMaxId;
                 iterations++;
@@ -160,7 +166,7 @@ namespace ConsensusChessShared.Social
         protected override async Task MarkCommandProcessedAsync(long id)
         {
             log.LogDebug($"Favouriting status: {id}");
-            await client.Favourite(id);
+            await client.Favourite(id.ToString());
         }
 
         public override async Task StopListeningForCommandsAsync(Func<SocialCommand, Task> asyncCommandReceiver)
@@ -210,10 +216,12 @@ namespace ConsensusChessShared.Social
                 notification.Account.DisplayName,
                 network);
 
+            var inReplyTo = notification.Status!.InReplyToId;
+
             return new SocialCommand(
                 receivingNetwork: network,
                 username: username,
-                postId: notification.Status!.Id,
+                postId: long.Parse(notification.Status!.Id),
                 text: notification.Status!.Content,
                 isForThisNode: isForMe,
                 isAuthorised: isAuthorised,
@@ -221,7 +229,7 @@ namespace ConsensusChessShared.Social
                 isProcessed: isFavourited,
                 deliveryMedium: typeof(MastodonConnection).Name,
                 deliveryType: notification.Type,
-                inReplyTo: notification.Status!.InReplyToId);
+                inReplyTo: inReplyTo == null ? null : long.Parse(inReplyTo));
         }
     }
 }

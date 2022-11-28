@@ -144,7 +144,7 @@ namespace ConsensusChessIntegrationTests
                 Messages.Move("e2","e4"),
                 Mastonet.Visibility.Direct,
                 contacts[NodeType.Node],
-                boardStatus.Id);
+                long.Parse(boardStatus.Id));
 
             // confirm the reply comes through
             var verifiedStatus = await AssertGetsReplyNotificationAsync(moveStatus, Responses.MoveAccepted());

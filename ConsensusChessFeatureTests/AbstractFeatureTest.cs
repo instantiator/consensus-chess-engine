@@ -21,7 +21,7 @@ namespace ConsensusChessFeatureTests;
 [TestClass]
 public abstract class AbstractFeatureTest
 {
-    protected string logPath;
+    public static string logPath;
 
     public TestContext? TestContext { get; set; }
 
@@ -45,6 +45,12 @@ public abstract class AbstractFeatureTest
 
     protected AbstractFeatureTest()
     {
+        postsSent = new ConcurrentBag<Post>();
+    }
+
+    [AssemblyInitialize]
+    public static void InitLogsOnce(TestContext context)
+    {
         if (Directory.Exists("/logs"))
         {
             logPath = "/logs/feature-tests.log";
@@ -56,7 +62,6 @@ public abstract class AbstractFeatureTest
             logPath = Path.Join(path, "feature-tests.log");
         }
         if (File.Exists(logPath)) { File.Delete(logPath); }
-        postsSent = new ConcurrentBag<Post>();
     }
 
     #region Start and finish tests

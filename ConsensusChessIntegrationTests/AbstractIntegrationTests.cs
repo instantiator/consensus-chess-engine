@@ -101,7 +101,7 @@ namespace ConsensusChessIntegrationTests
                 AccessToken = network.AppToken
             };
 
-            return new MastodonClient(reg, token, http);
+            return new MastodonClient(reg.Instance, token.AccessToken, http);
         }
 
         protected async Task<Status> SendMessageAsync(string message, Visibility? visibilityOverride = null, SocialUsername? directRecipient = null, long? inReplyTo = null)
@@ -114,7 +114,7 @@ namespace ConsensusChessIntegrationTests
 
             WriteLogLine($"Sending message: {message}\nVisibility: {visibility}, InReplyTo: {inReplyTo?.ToString() ?? "(none)"}");
 
-            var status = await social.PostStatus(message, visibility: visibility, replyStatusId: inReplyTo);
+            var status = await social.PublishStatus(message, visibility: visibility, replyStatusId: inReplyTo?.ToString());
             SentMessages.Add(status);
             return status;
         }
@@ -142,14 +142,13 @@ namespace ConsensusChessIntegrationTests
         protected async Task<IEnumerable<Status>> PollForStatusesAsync(TimeSpan timeoutAfter, long accountId, Func<Status, string, bool> matcher, int expect = 1)
         {
             WriteLogLine("Polling for statuses...");
-
             var timeout = DateTime.Now.Add(timeoutAfter);
             List<Status> statuses = new List<Status>();
             do
             {
                 try
                 {
-                    var found = await social.GetAccountStatuses(accountId);
+                    var found = await social.GetAccountStatuses(accountId.ToString());
                     var newFound = found.Where(nf => !statuses.Select(s => s.Id).Contains(nf.Id));
                     if (newFound.Count() > 0) { WriteLogLine($"Found:\n{string.Join("\n", "  * " + newFound.Select(nf => nf.Content))}"); }
                     var matched = newFound.Where(s => matcher(s, CommandHelper.CleanupStatus(s.Content)));
@@ -209,16 +208,23 @@ namespace ConsensusChessIntegrationTests
         [TestCleanup]
         public async Task CleanupAsync()
         {
-            WriteLogLine($"Stopping {TestContext.TestName}");
+            WriteLogLine($"Stopping {TestContext!.TestName}");
 
             // stop listening
-            stream!.Stop();
+            try
+            {
+                stream!.Stop();
+            }
+            catch (Exception e)
+            {
+                WriteLogLine($"{e.GetType().Name}: {e.Message}\n{e.StackTrace}");
+            }
             ReceivedNotifications.Clear();
 
             // delete sent messages
             foreach (var status in SentMessages)
             {
-                // await social.DeleteStatus(status.Id);
+                await social.DeleteStatus(status.Id);
             }
             SentMessages.Clear();
 
@@ -262,7 +268,7 @@ namespace ConsensusChessIntegrationTests
         {
             var statuses = await PollForStatusesAsync(
                 TimeSpan.FromMinutes(TIMEOUT_mins),
-                account.Id,
+                long.Parse(account.Id),
                 matcher,
                 expected);
             Assert.AreEqual(expected, statuses.Count());
