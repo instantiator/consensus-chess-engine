@@ -17,6 +17,13 @@ namespace ConsensusChessShared.Service
             public bool MayRunRetrospectively;
         }
 
+        public struct UnrecognisedCommandRule
+        {
+            public UnrecognisedCommandEnactionAsync Enaction;
+            public bool RequireAuthorised;
+            public bool MayRunRetrospectively;
+        }
+
         /// <summary>
         /// Executes a specific command.
         /// </summary>
@@ -25,11 +32,20 @@ namespace ConsensusChessShared.Service
         /// <exception cref="CommandRejectionException">An issue occurred whilst executing the command</throws>
         public delegate Task CommandEnactionAsync(SocialCommand origin, IEnumerable<string> words);
 
+        /// <summary>
+        /// Accepts (and optionally executes) an arbitrary command, indicating whether it attempted to do so.
+        /// </summary>
+        /// <param name="origin">originating social message</param>
+        /// <returns>True if the command execution was attempted (and succeeded), false if it was not attempted</returns>
+        /// <exception cref="CommandRejectionException">An issue occurred whilst executing the command</throws>
+        public delegate Task<bool> UnrecognisedCommandEnactionAsync(SocialCommand origin);
+
         public event Func<SocialCommand, string, CommandRejectionReason, Task>? OnFailAsync;
 
         private IEnumerable<string> skips;
         private IEnumerable<string> authorisedAccounts;
         private IDictionary<string, CommandRule> register;
+        private List<UnrecognisedCommandRule> unregister;
         private ILogger log;
         private SocialUsername self;
 
@@ -40,6 +56,7 @@ namespace ConsensusChessShared.Service
             this.skips = skips;
             this.self = self;
             register = new Dictionary<string, CommandRule>();
+            unregister = new List<UnrecognisedCommandRule>();
         }
 
         /// <summary>
@@ -52,6 +69,22 @@ namespace ConsensusChessShared.Service
         public void Register(string commandWord, bool requireAuthorised, bool runsRetrospectively, CommandEnactionAsync enaction)
         {
             register.Add(commandWord.ToLower(), new CommandRule()
+            {
+                Enaction = enaction,
+                RequireAuthorised = requireAuthorised,
+                MayRunRetrospectively = runsRetrospectively
+            });
+        }
+
+        /// <summary>
+        /// Register a <see cref="UnrecognisedCommandEnactionAsync"/> for exection.
+        /// </summary>
+        /// <param name="requireAuthorised">set True if only commands from authorised users should be passed through</param>
+        /// <param name="runsRetrospectively">set True to run this if it was found to have been sent before the service most recently started</param>
+        /// <param name="enaction"><see cref="CommandEnactionAsync"/> to invoke</param>
+        public void RegisterUnrecognised(bool requireAuthorised, bool runsRetrospectively, UnrecognisedCommandEnactionAsync enaction)
+        {
+            unregister.Add(new UnrecognisedCommandRule()
             {
                 Enaction = enaction,
                 RequireAuthorised = requireAuthorised,
@@ -80,10 +113,18 @@ namespace ConsensusChessShared.Service
             {
                 if (string.IsNullOrWhiteSpace(commandWord))
                 {
-                    throw new CommandRejectionException(
-                        command,
-                        commandWords,
-                        CommandRejectionReason.NoCommandWords);
+                    var accepted = await ParseUnrecognisedCommandAsync(command);
+                    if (accepted == 0)
+                    {
+                        throw new CommandRejectionException(
+                            command,
+                            commandWords,
+                            CommandRejectionReason.NoCommandWords);
+                    }
+                    else
+                    {
+                        return; // no need to continue: commandWord was blank
+                    }
                 }
 
                 if (register.ContainsKey(commandWord))
@@ -119,11 +160,16 @@ namespace ConsensusChessShared.Service
                 }
                 else
                 {
-                    log.LogDebug($"Rejecting unrecognised command: {commandWord} from: {command.SourceUsername.Full}");
-                    throw new CommandRejectionException(
-                        command,
-                        commandWords,
-                        CommandRejectionReason.UnrecognisedCommand);
+                    // command word not recognised
+                    var accepted = await ParseUnrecognisedCommandAsync(command);
+                    if (accepted == 0)
+                    {
+                        log.LogDebug($"Rejecting unrecognised command: {commandWord} from: {command.SourceUsername.Full}");
+                        throw new CommandRejectionException(
+                            command,
+                            commandWords,
+                            CommandRejectionReason.UnrecognisedCommand);
+                    }
                 }
             }
             catch (CommandRejectionException e)
@@ -142,6 +188,28 @@ namespace ConsensusChessShared.Service
                     await OnFailAsync.Invoke(command, "Unexpected error.", CommandRejectionReason.UnexpectedException);
                 }
             }
+        }
+
+        private async Task<int> ParseUnrecognisedCommandAsync(SocialCommand command)
+        {
+            var accepted = 0;
+            foreach (var executor in unregister)
+            {
+                try
+                {
+                    var ok = await executor.Enaction.Invoke(command);
+                    if (ok)
+                    {
+                        log.LogInformation($"Command executed: {command.RawText} from: {command.SourceUsername.Full}");
+                        accepted++;
+                    }
+                }
+                catch (Exception e)
+                {
+                    log.LogError(e, $"Unexpected exception parsing command: {command.RawText}");
+                }
+            }
+            return accepted;
         }
 
     }

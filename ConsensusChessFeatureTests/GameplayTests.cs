@@ -56,7 +56,7 @@ namespace ConsensusChessFeatureTests
 
         [DataTestMethod]
         [DynamicData(nameof(GetGamesData), DynamicDataSourceType.Method)]
-        public async Task FullGame(GameplayTestData.StartingPosition position, GameplayTestData.Reenactment reenactment, GameState endGameState)
+        public async Task FullGame(GameplayTestData.StartingPosition position, GameplayTestData.Reenactment reenactment, Prefix prefixRule, GameState endGameState)
         {
             var engine = await StartEngineAsync();
             var node = await StartNodeAsync();
@@ -101,9 +101,13 @@ namespace ConsensusChessFeatureTests
 
                 var player = whiteToPlay ? "player-white" : "player-black";
 
+                var prefix = prefixRule == Prefix.NoPrefix
+                    ? string.Empty
+                    : $"{prefixRule.ToString()} ";
+
                 var movePost = await ReplyToNodeAsync(
                     boardPost: boardPost,
-                    text: $"move {move}",
+                    text: $"{prefix}{move}",
                     from: player);
 
                 WriteLogLine($"✅ Posted move: {move}");
@@ -163,12 +167,28 @@ namespace ConsensusChessFeatureTests
                 {
                     StartingPosition.Standard,
                     Reenactment.FoolsMateSAN,
+                    Prefix.NoPrefix,
                     GameState.WhiteKingCheckmated
                 },
                 new object[]
                 {
                     StartingPosition.Standard,
                     Reenactment.FoolsMateCCF,
+                    Prefix.NoPrefix,
+                    GameState.WhiteKingCheckmated
+                },
+                new object[]
+                {
+                    StartingPosition.Standard,
+                    Reenactment.FoolsMateSAN,
+                    Prefix.Move,
+                    GameState.WhiteKingCheckmated
+                },
+                new object[]
+                {
+                    StartingPosition.Standard,
+                    Reenactment.FoolsMateCCF,
+                    Prefix.Move,
                     GameState.WhiteKingCheckmated
                 },
             };

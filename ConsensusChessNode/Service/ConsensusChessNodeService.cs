@@ -4,6 +4,7 @@ using ConsensusChessShared.Constants;
 using ConsensusChessShared.Content;
 using ConsensusChessShared.DTO;
 using ConsensusChessShared.Exceptions;
+using ConsensusChessShared.Helpers;
 using ConsensusChessShared.Service;
 using ConsensusChessShared.Social;
 using Mastonet.Entities;
@@ -100,6 +101,26 @@ namespace ConsensusChessNode.Service
         {
             processor.Register("shutdown", requireAuthorised: true, runsRetrospectively: false, ShutdownAsync);
             processor.Register("move", requireAuthorised: false, runsRetrospectively: true, ProcessVoteAsync);
+            processor.RegisterUnrecognised(requireAuthorised: false, runsRetrospectively: true, AcceptUnrecognisedCommandAsync);
+        }
+
+        private async Task<bool> AcceptUnrecognisedCommandAsync(SocialCommand origin)
+        {
+            var skips = social.CalculateCommandSkips();
+            var words = CommandHelper.ParseSocialCommand(origin.RawText, skips);
+            var reconstructed = string.Join(" ", words);
+
+            using (var db = dbo.GetDb())
+            {
+                var game = dbo.GetActiveGameForCurrentBoardResponse(db, origin);
+                if (game != null)
+                {
+                    var ok = MoveFormatter.LooksLikeMoveText(game.CurrentBoard, reconstructed);
+                    if (ok) await ProcessVoteAsync(origin, reconstructed);
+                    return ok;
+                }
+                return false;
+            }
         }
 
         private async Task ProcessVoteAsync(SocialCommand origin, IEnumerable<string> words)
@@ -108,7 +129,11 @@ namespace ConsensusChessNode.Service
 
             var moveText = string.Join(" ", words.Skip(1));
             log.LogDebug($"Vote move text: {moveText}");
+            await ProcessVoteAsync(origin, moveText);
+        }
 
+        private async Task ProcessVoteAsync(SocialCommand origin, string moveText)
+        {
             Participant? participant = null;
             Vote? vote = null;
             Game? game = null;

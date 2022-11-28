@@ -14,6 +14,12 @@ namespace ConsensusChessFeatureTests.Data
             FoolsMateCCF
         }
 
+        public enum Prefix
+        {
+            NoPrefix,
+            Move
+        }
+
         public static Dictionary<StartingPosition, string> FEN_positions = new Dictionary<StartingPosition, string>()
         {
             { StartingPosition.Standard, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" }

@@ -74,7 +74,7 @@ namespace ConsensusChessFeatureTests
         }
 
         [TestMethod]
-        public async Task ValidVote_is_AcceptedAndStored()
+        public async Task ValidVoteSAN_is_AcceptedAndStored()
         {
             var node = await StartNodeAsync();
             var game = await StartGameWithDbAsync();
@@ -96,6 +96,7 @@ namespace ConsensusChessFeatureTests
                 Assert.AreEqual(1, move.Votes.Count());
                 var vote = move.Votes.Single();
                 Assert.AreEqual("e4", vote.MoveText);
+                Assert.AreEqual("e4", vote.MoveSAN);
                 Assert.AreEqual(VoteValidationState.Valid, vote.ValidationState);
 
                 Assert.IsNotNull(vote.Participant);
@@ -107,6 +108,90 @@ namespace ConsensusChessFeatureTests
                 Assert.IsNotNull(vote.ValidationPost);
                 Assert.IsTrue(vote.ValidationPost.Succeeded);
                 Assert.AreEqual(PostType.MoveAccepted, vote.ValidationPost.Type);
+            }
+        }
+
+        [TestMethod]
+        public async Task ValidVoteCCF_is_AcceptedAndStored()
+        {
+            var node = await StartNodeAsync();
+            var game = await StartGameWithDbAsync();
+            var boardPost = WaitAndAssert_NodePostsBoard(game);
+
+            var command = await ReplyToNodeAsync(boardPost, "move e2 - e4");
+
+            NodeSocialMock.Verify(ns => ns.PostAsync(
+                It.Is<Post>(p =>
+                    p.Succeeded == true &&
+                    p.Type == PostType.MoveAccepted &&
+                    p.NetworkReplyToId == command.SourcePostId),
+                null),
+                Times.Once);
+
+            using (var db = Dbo.GetDb())
+            {
+                var move = db.Games.Single().CurrentMove;
+                Assert.AreEqual(1, move.Votes.Count());
+                var vote = move.Votes.Single();
+                Assert.AreEqual("e2 - e4", vote.MoveText);
+                Assert.AreEqual("e4", vote.MoveSAN);
+                Assert.AreEqual(VoteValidationState.Valid, vote.ValidationState);
+            }
+        }
+
+        [TestMethod]
+        public async Task ValidVoteCCF_WithoutPrefix_is_AcceptedAndStored()
+        {
+            var node = await StartNodeAsync();
+            var game = await StartGameWithDbAsync();
+            var boardPost = WaitAndAssert_NodePostsBoard(game);
+
+            var command = await ReplyToNodeAsync(boardPost, "e2 - e4");
+
+            NodeSocialMock.Verify(ns => ns.PostAsync(
+                It.Is<Post>(p =>
+                    p.Succeeded == true &&
+                    p.Type == PostType.MoveAccepted &&
+                    p.NetworkReplyToId == command.SourcePostId),
+                null),
+                Times.Once);
+
+            using (var db = Dbo.GetDb())
+            {
+                var move = db.Games.Single().CurrentMove;
+                Assert.AreEqual(1, move.Votes.Count());
+                var vote = move.Votes.Single();
+                Assert.AreEqual("e2 - e4", vote.MoveText);
+                Assert.AreEqual("e4", vote.MoveSAN);
+                Assert.AreEqual(VoteValidationState.Valid, vote.ValidationState);
+            }
+        }
+
+        [TestMethod]
+        public async Task ValidVoteSAN_WithoutPrefix_is_AcceptedAndStored()
+        {
+            var node = await StartNodeAsync();
+            var game = await StartGameWithDbAsync();
+            var boardPost = WaitAndAssert_NodePostsBoard(game);
+
+            var command = await ReplyToNodeAsync(boardPost, "e4");
+
+            NodeSocialMock.Verify(ns => ns.PostAsync(
+                It.Is<Post>(p =>
+                    p.Succeeded == true &&
+                    p.Type == PostType.MoveAccepted &&
+                    p.NetworkReplyToId == command.SourcePostId),
+                null),
+                Times.Once);
+
+            using (var db = Dbo.GetDb())
+            {
+                var move = db.Games.Single().CurrentMove;
+                Assert.AreEqual(1, move.Votes.Count());
+                var vote = move.Votes.Single();
+                Assert.AreEqual("e4", vote.MoveText);
+                Assert.AreEqual("e4", vote.MoveSAN);
+                Assert.AreEqual(VoteValidationState.Valid, vote.ValidationState);
             }
         }
 
