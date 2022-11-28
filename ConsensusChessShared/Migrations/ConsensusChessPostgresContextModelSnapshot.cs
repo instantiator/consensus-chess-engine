@@ -214,20 +214,10 @@ namespace ConsensusChessShared.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<string>("AppKey")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("app_key");
-
                     b.Property<string>("AppName")
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("app_name");
-
-                    b.Property<string>("AppSecret")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("app_secret");
 
                     b.Property<string>("AppToken")
                         .IsRequired()

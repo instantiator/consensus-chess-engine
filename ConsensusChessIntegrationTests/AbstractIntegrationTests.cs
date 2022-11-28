@@ -88,20 +88,7 @@ namespace ConsensusChessIntegrationTests
 
         private MastodonClient GetMastodonClient()
         {
-            AppRegistration reg = new AppRegistration()
-            {
-                ClientId = network.AppKey,
-                ClientSecret = network.AppSecret,
-                Instance = network.NetworkServer,
-                Scope = Scope.Read | Scope.Write
-            };
-
-            Auth token = new Auth()
-            {
-                AccessToken = network.AppToken
-            };
-
-            return new MastodonClient(reg.Instance, token.AccessToken, http);
+            return new MastodonClient(network.NetworkServer, network.AppToken, http);
         }
 
         protected async Task<Status> SendMessageAsync(string message, Visibility? visibilityOverride = null, SocialUsername? directRecipient = null, long? inReplyTo = null)

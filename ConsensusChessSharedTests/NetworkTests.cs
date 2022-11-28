@@ -16,8 +16,6 @@ namespace ConsensusChessSharedTests
 			Assert.AreEqual(NetworkType.Mastodon, network.Type);
 			Assert.AreEqual("some.kind.of.mastodon", network.NetworkServer);
 			Assert.AreEqual("app-name",network.AppName);
-            Assert.AreEqual("app-key",network.AppKey);
-            Assert.AreEqual("app-secret",network.AppSecret);
             Assert.AreEqual("access-token",network.AppToken);
             Assert.AreEqual("instantiator@mastodon.social,icgames@botsin.space", network.AuthorisedAccounts);
             Assert.AreEqual(2, network.AuthorisedAccountsList.Count());

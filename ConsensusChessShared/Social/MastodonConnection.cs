@@ -25,21 +25,7 @@ namespace ConsensusChessShared.Social
         public MastodonConnection(ILogger log, Network network, string shortcode)
             : base(log, network, shortcode, RATE_LIMIT_PERMITTED_REQUESTS, RATE_LIMIT_PERMITTED_PERIOD)
 		{
-            // TODO: AppRegistration and Auth are no longer needed by Mastonet
-            AppRegistration reg = new AppRegistration()
-            {
-                ClientId = network.AppKey,
-                ClientSecret = network.AppSecret,
-                Instance = network.NetworkServer,
-                Scope = Scope.Read | Scope.Write
-            };
-
-            Auth token = new Auth()
-            {
-                AccessToken = network.AppToken
-            };
-
-            client = new MastodonClient(reg.Instance, token.AccessToken, http);
+            client = new MastodonClient(network.NetworkServer, network.AppToken, http);
         }
 
         protected override async Task InitImplementationAsync()
