@@ -42,6 +42,7 @@
     <None Remove="Images\PixelChess\W_Queen.png" />
     <None Remove="Images\PixelChess\W_Rook.png" />
     <None Remove="SkiaSharp" />
+    <None Remove="SkiaSharp.NativeAssets.Linux.NoDependencies" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DTO\" />
@@ -70,6 +71,7 @@
     <PackageReference Include="Gera.Chess" Version="1.0.2" />
     <PackageReference Include="Handlebars.Net" Version="2.1.2" />
     <PackageReference Include="SkiaSharp" Version="2.88.3" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="2.88.3" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Images\PixelChess\B_Bishop.png" />
