@@ -2,7 +2,7 @@
 
 A new way to play distributed, consensus games across federated social networks.
 
-![Consensus diagram showing arrangement of services](docs/images/consensus-diagram.png "Consensus diagram showing arrangement of services")
+![a board rendered using the pixel chess asset pack](docs/images/pixelchess-board.png "a board rendered using the pixel chess asset pack")
 
 ## Project status
 
