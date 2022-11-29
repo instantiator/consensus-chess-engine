@@ -23,7 +23,7 @@ _*When a player participates in a game, they are then locked to the side that th
 * [Rate limits](docs/rate-limits.md)
 * [Testing](docs/testing.md)
 
-## Attribution
+### Attribution
 
 * [Credits](docs/credits.md)
 * [Dependencies](docs/dependencies.md)
