@@ -4,6 +4,7 @@ using System.Reflection;
 using ConsensusChessShared.Content;
 using ConsensusChessShared.DTO;
 using SkiaSharp;
+using static ConsensusChessShared.Content.BoardGraphicsData;
 using static ConsensusChessShared.Content.BoardRenderer;
 
 namespace ConsensusChessSharedTests
@@ -34,8 +35,10 @@ namespace ConsensusChessSharedTests
             using (var bmp = renderer.RenderBoard(BoardStyle.PixelChess))
             {
                 Assert.IsNotNull(bmp);
-                Assert.AreEqual(16 * 8, bmp.Width);
-                Assert.AreEqual(32 * 8, bmp.Height);
+
+                var backgroundData = BoardGraphicsData.Backgrounds[BoardStyle.PixelChess];
+                Assert.AreEqual(backgroundData.Width * backgroundData.ScaleX, bmp.Width);
+                Assert.AreEqual(backgroundData.Height * backgroundData.ScaleY, bmp.Height);
 
                 SKData data = SKImage.FromBitmap(bmp).Encode(SKEncodedImageFormat.Png, 100);
                 using (var stream = File.OpenWrite("/tmp/image.png"))

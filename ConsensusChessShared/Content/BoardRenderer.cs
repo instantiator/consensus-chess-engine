@@ -10,11 +10,6 @@ namespace ConsensusChessShared.Content
 {
     public class BoardRenderer
     {
-        public enum BoardStyle
-        {
-            PixelChess,
-        }
-
         private Board board;
         private ChessBoard chessboard;
 
@@ -26,38 +21,60 @@ namespace ConsensusChessShared.Content
 
         public SKBitmap RenderBoard(BoardStyle style)
         {
-            var width = 16 * 8;
-            var height = 32 * 8;
+            var backgroundData = BoardGraphicsData.Backgrounds[style];
 
-            var imageInfo = new SKImageInfo(width, height);
-            var bmp = new SKBitmap(imageInfo);
-            var canvas = new SKCanvas(bmp);
-            canvas.Clear(SKColors.White);
-
-            for (short row = 0; row < 8; row++)
+            var imageInfo = new SKImageInfo(backgroundData.Width, backgroundData.Height);
+            using (var bmp = new SKBitmap(imageInfo))
             {
-                for (short col = 0; col < 8; col++)
+                var canvas = new SKCanvas(bmp);
+                canvas.Clear(SKColors.Transparent);
+
+                using (var backgroundBmp = GetImage(backgroundData.Resource))
+                    canvas.DrawBitmap(backgroundBmp, 0, 0);
+
+                // render rows backwards so that closer pieces overlay further pieces
+                for (short row = 7; row > -1; row--)
                 {
-                    var pc = chessboard[new Position(col, row)]?.ToFenChar();
-
-                    if (pc != null)
+                    for (short col = 0; col < 8; col++)
                     {
-                        var pieceData = BoardGraphicsData.Pieces[style][pc.Value];
-                        var piece = GetImage(pieceData);
-                        var x = col * 16;
-                        var y = row * 32;
-                        canvas.DrawBitmap(piece, new SKPoint(x, y));
-                    }
-                } // col
-            } // row
+                        var pc = chessboard[new Position(col, row)]?.ToFenChar();
+                        if (pc != null)
+                        {
+                            var pieceData = BoardGraphicsData.Pieces[style][pc.Value];
+                            var piece = GetImage(pieceData.Resource);
+                            var renderRow = 7 - row;
+                            var x = backgroundData.GridStartX + (col * backgroundData.GridCellWidth) + pieceData.OffsetX;
+                            var y = backgroundData.GridStartY + (renderRow * backgroundData.GridCellHeight) - pieceData.Height + pieceData.OffsetY;
+                            canvas.DrawBitmap(piece, new SKPoint(x, y));
+                        }
+                    } // col
+                } // row
 
-            return bmp;
+                // rescale
+                canvas.Flush();
+                return Enlarge(bmp, backgroundData.ScaleX, backgroundData.ScaleY);
+            }
         }
 
-        private SKBitmap GetImage(PieceData data)
+        public static SKBitmap Enlarge(SKBitmap source, int scaleX, int scaleY)
+        {
+            var width = source.Width * scaleX;
+            var height = source.Height * scaleY;
+
+            SKBitmap rescaled = new SKBitmap(width, height);
+            SKCanvas canvas = new SKCanvas(rescaled);
+            canvas.SetMatrix(SKMatrix.CreateScale(scaleX, scaleY));
+            canvas.DrawBitmap(source, new SKPoint());
+            canvas.ResetMatrix();
+            canvas.Flush();
+
+            return rescaled;
+        }
+
+        public static SKBitmap GetImage(string resource)
         {
             Assembly assembly = Assembly.GetAssembly(typeof(BoardRenderer))!;
-            Stream stream = assembly.GetManifestResourceStream(data.Resource)!;
+            Stream stream = assembly.GetManifestResourceStream(resource)!;
             return SKBitmap.Decode(stream);
         }
     }

@@ -20,9 +20,13 @@ _*When a player participates in a game, they are then locked to the side that th
 * [Commands](docs/commands.md)
 * [Config](docs/config.md)
 * [Database](docs/database.md)
-* [Dependencies](docs/dependencies.md)
 * [Rate limits](docs/rate-limits.md)
 * [Testing](docs/testing.md)
+
+## Attribution
+
+* [Credits](docs/credits.md)
+* [Dependencies](docs/dependencies.md)
 
 ### Blog posts
 

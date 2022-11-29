@@ -8,7 +8,7 @@ namespace ConsensusChessShared.DTO
 {
 	public class Board : IDTO
 	{
-		// FEN represents white as upper case
+		// FEN represents white as upper case, starts with rank 8, ends with rank 1
 		public const string INITIAL_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 		/// <summary>
