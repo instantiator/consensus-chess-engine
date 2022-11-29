@@ -47,10 +47,7 @@ namespace ConsensusChessNode.Service
                     if (board != null)
                     {
                         log.LogInformation($"Found a new board to post in game: {game.Id}");
-                        var post = new PostBuilder(PostType.Node_BoardUpdate)
-                            .WithGame(game)
-                            .WithBoard(board, BoardFormat.StandardFAN)
-                            .Build();
+                        var post = PostBuilder.Node_BoardUpdate(game, board, BoardFormat.StandardFAN).Build();
                         var posted = await social.PostAsync(post);
                         board.BoardPosts.Add(posted);
 
@@ -74,16 +71,12 @@ namespace ConsensusChessNode.Service
                     switch (game.State)
                     {
                         case GameState.Abandoned:
-                            post = new PostBuilder(PostType.Node_GameAbandonedUpdate)
-                                .WithGame(game)
-                                .Build();
+                            post = PostBuilder.Node_GameAbandonedUpdate(game).Build();
                             break;
                         case GameState.Stalemate:
                         case GameState.BlackKingCheckmated:
                         case GameState.WhiteKingCheckmated:
-                            post = new PostBuilder(PostType.Node_GameEndedUpdate)
-                                .WithGame(game)
-                                .Build();
+                            post = PostBuilder.Node_GameEndedUpdate(game).Build();
                             break;
                         default:
                             log.LogWarning($"Should not have attempted to post the end of game in state: {game.State}");
@@ -113,7 +106,7 @@ namespace ConsensusChessNode.Service
 
             using (var db = dbo.GetDb())
             {
-                var game = dbo.GetActiveGameForCurrentBoardResponse(db, origin);
+                var game = dbo.GetActiveGameForCurrentBoardResponse(db, identity.Shortcode, origin);
                 if (game != null)
                 {
                     var ok = MoveFormatter.LooksLikeMoveText(game.CurrentBoard, reconstructed);
@@ -156,7 +149,7 @@ namespace ConsensusChessNode.Service
 
                     // check the game
                     log.LogDebug("Establishing game for the post.");
-                    game = dbo.GetActiveGameForCurrentBoardResponse(db, origin); // throws GameNotFoundException
+                    game = dbo.GetActiveGameForCurrentBoardResponse(db, identity.Shortcode, origin); // throws GameNotFoundException
 
                     // establish wether this participant is permitted to vote on this move
                     var mayVote = gm.ParticipantOnSide(game, participant);
@@ -200,7 +193,7 @@ namespace ConsensusChessNode.Service
                     await db.SaveChangesAsync();
 
                     // post validation response, and attach to vote
-                    var reply = new PostBuilder(PostType.MoveAccepted)
+                    var reply = PostBuilder.MoveAccepted(game, game.CurrentSide, vote)
                         .InReplyTo(origin)
                         .Build();
 
@@ -213,11 +206,9 @@ namespace ConsensusChessNode.Service
                     var summary = $"No game linked to move post from {e.Command.SourceUsername.Full}: {moveText}";
                     log.LogWarning(summary);
 
-                    var reply = new PostBuilder(PostType.GameNotFound)
-                        .WithGameNotFoundReason(e.Reason)
+                    var reply = PostBuilder.GameNotFound(e.Reason)
                         .InReplyTo(origin)
                         .Build();
-
                     await social.PostAsync(reply);
                 }
                 catch (VoteRejectionException e)
@@ -225,11 +216,7 @@ namespace ConsensusChessNode.Service
                     var summary = $"{e.Reason} from {participant?.Username.Full ?? "unknown"}: {moveText}, {e.Detail}";
                     log.LogWarning(summary);
 
-                    var reply = new PostBuilder(PostType.MoveValidation)
-                        .WithValidationState(e.Reason)
-                        .WithUsername(participant?.Username)
-                        .WithMoveText(moveText)
-                        .WithDetail(e?.Detail)
+                    var reply = PostBuilder.MoveValidation(e.Reason, participant!.Username, moveText, e?.Detail)
                         .InReplyTo(origin)
                         .Build();
 

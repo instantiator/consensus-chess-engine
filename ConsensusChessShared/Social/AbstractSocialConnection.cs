@@ -125,16 +125,6 @@ namespace ConsensusChessShared.Social
             }
         }
 
-        public async Task<Post> PostAsync(string text, PostType type = PostType.Unspecified, bool? dryRun = null)
-		{
-			log.LogInformation($"Posting: {text}");
-            var post = new PostBuilder(type)
-                .WithText(text)
-                .Build();
-
-            return await PostAsync(post, dryRun);
-		}
-
         public async Task<Post> PostAsync(Post post, bool? dryRun = null)
         {
             await RateLimit();

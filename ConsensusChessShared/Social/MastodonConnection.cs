@@ -64,32 +64,29 @@ namespace ConsensusChessShared.Social
         protected override async Task<Post> PostImplementationAsync(Post post, bool? dryRun)
         {
             Visibility visibility = VisibilityMapping[post.Type];
-            post.AppName = network.AppName;
-            post.NetworkServer = network.NetworkServer;
-            post.NodeShortcode = state.Shortcode;
             var dry = dryRun ?? dryRuns;
             try
             {
                 if (!dry)
                 {
-                    log.LogDebug($"Posting to network...");
                     // already rate limited through the public methods
+                    log.LogDebug($"Posting to network...");
                     var status = await client.PublishStatus(
-                        status: post.Message,
+                        status: post.Message!,
                         visibility: visibility,
                         replyStatusId: post.NetworkReplyToId?.ToString());
 
-                    post.Succeed(long.Parse(status.Id));
+                    post.Succeed(state.Shortcode, network.AppName, network.NetworkServer, long.Parse(status.Id));
                 }
                 else
                 {
                     log.LogWarning($"Dry run.");
-                    post.Succeed(null);
+                    post.Succeed(state.Shortcode, network.AppName, network.NetworkServer, null);
                 }
             }
             catch (Exception e)
             {
-                post.Fail(e: e);
+                post.Fail(state.Shortcode, network.AppName, network.NetworkServer, e: e);
             }
             return post;
         }

@@ -31,7 +31,7 @@ namespace ConsensusChessEngine.Service
             IEnumerable<Game> gamesToMove;
             using (var db = dbo.GetDb())
             {
-                gamesToMove = dbo.GetActiveGamesWithExpiredMoves(db);
+                gamesToMove = dbo.GetActiveGamesWithExpiredMoves(db, null);
                 foreach (var game in gamesToMove)
                 {
                     await AdvanceGameAsync(game);
@@ -63,16 +63,12 @@ namespace ConsensusChessEngine.Service
                 switch (game.State)
                 {
                     case GameState.InProgress:
-                        post = new PostBuilder(PostType.Engine_GameAdvance)
-                            .WithGame(game)
-                            .Build();
+                        post = PostBuilder.Engine_GameAdvance(game).Build();
                         break;
                     case GameState.WhiteKingCheckmated:
                     case GameState.BlackKingCheckmated:
                     case GameState.Stalemate:
-                        post = new PostBuilder(PostType.Engine_GameEnded)
-                            .WithGame(game)
-                            .Build();
+                        post = PostBuilder.Engine_GameEnded(game).Build();
                         break;
                     default:
                         post = null;
@@ -95,9 +91,7 @@ namespace ConsensusChessEngine.Service
                 log.LogWarning($"0 votes found for game: {game.Shortcode}");
                 log.LogInformation($"Deactivating game: {game.Shortcode}");
                 gm.AbandonGame(game);
-                var post = new PostBuilder(PostType.Engine_GameAbandoned)
-                    .WithGame(game)
-                    .Build();
+                var post = PostBuilder.Engine_GameAbandoned(game).Build();
                 var posted = await social.PostAsync(post);
                 game.GamePosts.Add(posted);
             }
@@ -144,20 +138,13 @@ namespace ConsensusChessEngine.Service
                     var summary = $"New {game.SideRules} game for: {string.Join(", ", nodeShortcodes)}";
                     log.LogInformation(summary);
 
-                    var post = new PostBuilder(PostType.Engine_GameAnnouncement)
-                        .WithGame(game)
-                        .Build();
-
+                    var post = PostBuilder.Engine_GameAnnouncement(game).Build();
                     await social.PostAsync(post);
                     game.GamePosts.Add(post);
                     db.Update(game);
                     await db.SaveChangesAsync();
 
-                    var reply = new PostBuilder(PostType.Engine_GameCreationResponse)
-                        .WithGame(game)
-                        .InReplyTo(origin)
-                        .Build();
-
+                    var reply = PostBuilder.Engine_GameCreationResponse(game).InReplyTo(origin).Build();
                     await social.PostAsync(reply);
                 }
                 else
@@ -166,8 +153,7 @@ namespace ConsensusChessEngine.Service
                     log.LogWarning($"New game node shortcodes unrecognised: {string.Join(", ",unrecognised)}");
 
                     var summary = $"Unrecognised shortcodes: {string.Join(", ", unrecognised)}";
-                    var reply = new PostBuilder(PostType.CommandRejection)
-                        .WithText(summary)
+                    var reply = PostBuilder.CommandRejection(CommandRejectionReason.CommandMalformed, unrecognised)
                         .InReplyTo(origin)
                         .Build();
                     await social.PostAsync(reply);

@@ -34,7 +34,7 @@ namespace ConsensusChessSharedTests
         [TestMethod]
 		public void PostsWithBrokenSubstitutions_throws_HandlebarsUndefinedBindingException()
         {
-			var post = new PostBuilder(PostType.Engine_GameAnnouncement);
+			var post = PostBuilder.Create(PostType.Engine_GameAnnouncement);
 			Assert.ThrowsException<HandlebarsUndefinedBindingException>(() => post.Build());
 		}
 

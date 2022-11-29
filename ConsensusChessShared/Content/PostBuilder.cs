@@ -14,7 +14,7 @@ using static ConsensusChessShared.Content.BoardFormatter;
 
 namespace ConsensusChessShared.Content
 {
-	public class PostBuilder
+	public partial class PostBuilder
 	{
 		public static string UNKNOWN = "(unknown)";
 
@@ -26,7 +26,7 @@ namespace ConsensusChessShared.Content
 		public string? ToHandle { get; private set; }
 		public string? OverrideTemplate { get; private set; }
 
-		public PostBuilder(PostType type)
+		private PostBuilder(PostType type)
 		{
 			Type = type;
 			Mappings = new Dictionary<string, object>();
@@ -49,6 +49,19 @@ namespace ConsensusChessShared.Content
             WithMapping("WhiteParticipantNetworkServers", string.Join(", ", game.WhiteParticipantNetworkServers.Select(ss => ss.Value)));
             return this;
 		}
+
+		public PostBuilder WithSide(Side side)
+		{
+			WithObject("Side", side);
+			return this;
+		}
+
+		public PostBuilder WithOptionalItems(IEnumerable<string>? items)
+        {
+			WithMapping("Items", string.Join(", ", items ?? new string[0]));
+			WithMapping("ItemsSummary", items == null ? "" : $"References: {string.Join(", ", items)}");
+			return this;
+        }
 
         public PostBuilder WithObject(Object obj)
 		{
@@ -101,9 +114,23 @@ namespace ConsensusChessShared.Content
 			return this;
 		}
 
+		public PostBuilder WithVote(Vote vote)
+		{
+			WithObject("Vote", vote);
+			WithMoveText(vote.MoveText);
+			WithSAN(vote.MoveSAN!);
+			return this;
+		}
+
         public PostBuilder WithMoveText(string moveText)
 		{
             WithMapping("MoveText", moveText);
+            return this;
+        }
+
+        public PostBuilder WithSAN(string san)
+        {
+            WithMapping("SAN", san);
             return this;
         }
 

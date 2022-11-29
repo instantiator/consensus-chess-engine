@@ -37,7 +37,7 @@ namespace ConsensusChessShared.Content
             { PostType.Node_GameAbandonedUpdate, "Game abandoned: {{ Game.Shortcode }}" },
             { PostType.Node_GameEndedUpdate, "Game {{ Game.Shortcode }} ended in state: {{ Game.State }}" },
             { PostType.GameNotFound, "This vote can't be processed: {{ GameNotFoundReason }}" },
-            { PostType.CommandRejection, "This instruction can't be processed: {{ CommandRejectionReason }}" },
+            { PostType.CommandRejection, "This instruction can't be processed: {{ CommandRejectionReason }} {{ ItemsSummary }}" },
             { PostType.MoveAccepted, "Move accepted - thank you" },
             { PostType.MoveValidation, "{{ ValidationState }} from {{ Username.Full }}: {{ MoveText }}, {{ Detail }}" },
             { PostType.Unspecified, "{{ Text }}" },

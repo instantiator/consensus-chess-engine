@@ -18,16 +18,17 @@ namespace ConsensusChessShared.DTO
         public Guid Id { get; set; }
         public DateTime Created { get; set; }
 
+        // filled during preparation
         public PostType Type { get; set; }
-		public string NetworkServer { get; set; }
-		public string AppName { get; set; }
-		public string NodeShortcode { get; set; }
-		public string Message { get; set; }
+		public string? Message { get; set; }
 		public virtual List<Media> MediaPng { get; set; }
 
+        // filled during send
+		public string? NetworkServer { get; set; }
+		public string? AppName { get; set; }
+		public string? NodeShortcode { get; set; }
         public long? NetworkPostId { get; set; }
         public long? NetworkReplyToId { get; set; }
-
         public DateTime? Attempted { get; set; }
         public bool Succeeded { get; set; }
         public string? ErrorMessage { get; set; }
@@ -36,15 +37,23 @@ namespace ConsensusChessShared.DTO
         [NotMapped]
         public Exception? Exception { get; set; }
 
-        public void Succeed(long? networkPostId)
+        public void Succeed(string shortcode, string appname, string networkserver, long? networkPostId)
         {
-            NetworkPostId = networkPostId;
+            NodeShortcode = shortcode;
+            AppName = appname;
+            NetworkServer = networkserver;
+
             Attempted = DateTime.Now.ToUniversalTime();
+            NetworkPostId = networkPostId;
             Succeeded = true;
         }
 
-        public void Fail(string? message = null, Exception? e = null)
+        public void Fail(string shortcode, string appname, string networkserver, string? message = null, Exception? e = null)
         {
+            NodeShortcode = shortcode;
+            AppName = appname;
+            NetworkServer = networkserver;
+
             Attempted = DateTime.Now.ToUniversalTime();
             ErrorMessage = message ?? e?.Message ?? "Unspecified error";
             Exception = e;

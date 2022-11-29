@@ -185,14 +185,6 @@ public abstract class AbstractFeatureTest
             .Callback((Post post, bool? hush) => Task.FromResult(storePost(post, hush)))
             .Verifiable();
 
-        Func<string, PostType, bool, Task<Post>> postTextFunc =
-            (msg, type, dry)
-                => Task.FromResult(FeatureDataGenerator.GeneratePost(shortcode, NodeNetwork, msg, type));
-
-        mock.Setup(sc => sc.PostAsync(It.IsAny<string>(), It.IsAny<PostType>(), It.IsAny<bool?>()))
-            .Returns(postTextFunc)
-            .Verifiable();
-
         mock.Setup(sc => sc.StartListeningForCommandsAsync(It.IsAny<Func<SocialCommand, Task>>(), It.IsAny<bool>()))
             .Callback<Func<SocialCommand, Task>, bool>((r, b) => receivers.Add(shortcode, r))
             .Returns(Task.CompletedTask)

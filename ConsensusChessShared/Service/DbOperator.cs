@@ -36,8 +36,6 @@ namespace ConsensusChessShared.Service
             db.Database.Migrate();
         }
 
-
-
         /// <summary>
         /// Determines the participant that created the post - or creates said participant.
         /// </summary>
@@ -60,12 +58,15 @@ namespace ConsensusChessShared.Service
         /// Retrieves the game with the board post that this vote is in response to - or throws an exception.
         /// </summary>
         /// <param name="db"></param>
+        /// <param name="shortcode">shortcode for the current node</param>
         /// <param name="cmd">the social command to check</param>
         /// <returns>the game that this social command refers to</returns>
         /// <exception cref="GameNotFoundException">if the post is not in reply to a current board in any game</exception>
-        public Game GetActiveGameForCurrentBoardResponse(ConsensusChessDbContext db, SocialCommand cmd)
+        public Game GetActiveGameForCurrentBoardResponse(ConsensusChessDbContext db, string shortcode, SocialCommand cmd)
         {
             // check if this is in reply to any boardpost from any game
+            var gamesForNode = GetActiveGamesForNode(db, shortcode);
+
             var game = db.Games.ToList().SingleOrDefault(g =>
                 g.Moves.Any(m =>
                     m.From.BoardPosts.Any(bp =>
@@ -79,22 +80,30 @@ namespace ConsensusChessShared.Service
             if (currentBoard == null)
                 throw new GameNotFoundException(cmd, GameNotFoundReason.BoardReferenceExpired);
 
-            if (!game.Active)
-                throw new GameNotFoundException(cmd, GameNotFoundReason.GameInactive);
-
             return game;
         }
 
         /// <summary>
-        /// Identifies currently active games with current move expired.
+        /// Returns the active games that the specified node should care about.
+        /// </summary>
+        /// <param name="shortcode">node shortcode (or null to match any)</param>
+        /// <returns></returns>
+        public IEnumerable<Game> GetActiveGamesForNode(ConsensusChessDbContext db, string? shortcode)
+        {
+            return db.Games.ToList()
+                .Where(g => g.Active)
+                .Where(g => shortcode == null || g.CurrentParticipantNetworkServers.Any(ss => ss.Value == shortcode));
+        }
+
+        /// <summary>
+        /// Identifies currently active games with current move expired, for the current node.
         /// </summary>
         /// <param name="db"></param>
+        /// <param name="shortcode">shortcode</param>
         /// <returns>a collection of active games</returns>
-        public IEnumerable<Game> GetActiveGamesWithExpiredMoves(ConsensusChessDbContext db)
+        public IEnumerable<Game> GetActiveGamesWithExpiredMoves(ConsensusChessDbContext db, string? shortcode)
         {
-            return db.Games.ToList().Where(game
-                => game.Active
-                && game.CurrentMove.Expired);
+            return GetActiveGamesForNode(db, shortcode).Where(game => game.CurrentMove.Expired);
         }
 
         /// <summary>

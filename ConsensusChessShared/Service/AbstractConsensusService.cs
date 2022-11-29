@@ -93,11 +93,7 @@ namespace ConsensusChessShared.Service
 
         private async Task Cmd_OnFailAsync(SocialCommand origin, string message, CommandRejectionReason reason)
         {
-            var post = new PostBuilder(PostType.CommandRejection)
-                .WithRejectionReason(reason)
-                .InReplyTo(origin)
-                .Build();
-
+            var post = PostBuilder.CommandRejection(reason).InReplyTo(origin).Build();
             await social.PostAsync(post);
         }
 
@@ -145,10 +141,7 @@ namespace ConsensusChessShared.Service
                 running = true;
 
                 // post readiness
-                var post = new PostBuilder(PostType.SocialStatus)
-                    .WithNodeState(state)
-                    .WithSocialStatus(SocialStatus.Started)
-                    .Build();
+                var post = PostBuilder.SocialStatus(state, SocialStatus.Started).Build();
                 var posted = await social.PostAsync(post);
                 await RecordStatePostAsync(posted);
 
@@ -201,10 +194,7 @@ namespace ConsensusChessShared.Service
             EraseHealthIndicators();
             log.LogInformation("StopAsync at: {time}", DateTimeOffset.Now);
             await social.StopListeningForCommandsAsync(cmd!.ParseAsync);
-            var post = new PostBuilder(PostType.SocialStatus)
-                .WithNodeState(state)
-                .WithSocialStatus(SocialStatus.Stopped)
-                .Build();
+            var post = PostBuilder.SocialStatus(state, SocialStatus.Stopped).Build();
             var posted = await social.PostAsync(post);
             await RecordStatePostAsync(posted);
 
