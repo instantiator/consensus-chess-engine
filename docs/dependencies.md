@@ -13,3 +13,4 @@ The Consensus Chess engine is built on the shoulders of giants.
 | [Entity Framework Core](https://github.com/dotnet/efcore) | [.NET Foundation](https://github.com/dotnet) | Database ORM layer | [MIT](https://github.com/dotnet/efcore/blob/main/LICENSE.txt) |
 | [Npgsql](https://github.com/npgsql/npgsql) | [npgsql](https://github.com/npgsql) | Database ORM adapter | [PostgreSQL](https://github.com/npgsql/npgsql/blob/main/LICENSE) |
 | [Handlebars.Net](https://github.com/Handlebars-Net/Handlebars.Net) | [Handlebars.Net](https://github.com/Handlebars-Net) | Templating engine | [MIT](https://github.com/Handlebars-Net/Handlebars.Net/blob/master/LICENSE) |
+| [SkiaSharp](https://github.com/mono/SkiaSharp) | [Google Skia](https://skia.org/), [Mono Project](https://github.com/mono) | Graphics rendering | [MIT](https://github.com/mono/SkiaSharp/blob/main/LICENSE.md) |
