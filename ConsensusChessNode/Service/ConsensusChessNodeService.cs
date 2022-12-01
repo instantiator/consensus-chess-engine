@@ -48,7 +48,7 @@ namespace ConsensusChessNode.Service
                     if (board != null)
                     {
                         log.LogInformation($"Found a new board to post in game: {game.Id}");
-                        var post = PostBuilder.Node_BoardUpdate(game, board, BoardFormat.StandardFAN, BoardStyle.PixelChess).Build();
+                        var post = PostBuilder.Node_BoardUpdate(game, board, BoardFormat.Words_en, BoardStyle.PixelChess).Build();
                         var posted = await social.PostAsync(post);
                         board.BoardPosts.Add(posted);
 
