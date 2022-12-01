@@ -101,7 +101,7 @@ namespace ConsensusChessIntegrationTests
 
                 Assert.AreEqual(contacts[NodeType.Node].Server, boardPost.NetworkServer);
                 Assert.AreEqual(contacts[NodeType.Node].Shortcode, boardPost.NodeShortcode);
-                Assert.IsTrue(boardPost.Message.Contains("New board."));
+                Assert.IsTrue(boardPost.Message!.Contains(Responses.NewBoard()));
             }
         }
 
