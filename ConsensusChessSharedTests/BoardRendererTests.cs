@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Reflection;
 using ConsensusChessShared.Content;
 using ConsensusChessShared.DTO;
+using ConsensusChessSharedTests.Data;
 using SkiaSharp;
 using static ConsensusChessShared.Content.BoardGraphicsData;
 using static ConsensusChessShared.Content.BoardRenderer;
@@ -32,6 +33,25 @@ namespace ConsensusChessSharedTests
         public void CanRenderBoard()
         {
             var renderer = new BoardRenderer(new Board());
+            using (var bmp = renderer.RenderBoard(BoardStyle.PixelChess))
+            {
+                Assert.IsNotNull(bmp);
+
+                var backgroundData = BoardGraphicsData.Compositions[BoardStyle.PixelChess];
+                Assert.AreEqual(backgroundData.Width * backgroundData.ScaleX, bmp.Width);
+                Assert.AreEqual(backgroundData.Height * backgroundData.ScaleY, bmp.Height);
+
+                SKData data = SKImage.FromBitmap(bmp).Encode(SKEncodedImageFormat.Png, 100);
+                using (var stream = File.OpenWrite("/tmp/image.png"))
+                    data.SaveTo(stream);
+            }
+        }
+
+        [TestMethod]
+        public void CanRenderBoardWithCheck()
+        {
+            var board = Board.FromFEN(SampleDataGenerator.FEN_FoolsMate);
+            var renderer = new BoardRenderer(board);
             using (var bmp = renderer.RenderBoard(BoardStyle.PixelChess))
             {
                 Assert.IsNotNull(bmp);

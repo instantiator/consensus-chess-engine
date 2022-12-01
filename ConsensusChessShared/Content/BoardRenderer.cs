@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Net.NetworkInformation;
 using System.Reflection;
 using Chess;
 using ConsensusChessShared.DTO;
@@ -44,6 +45,15 @@ namespace ConsensusChessShared.Content
                             var renderRow = 7 - row;
                             var x = composition.GridStartX + (col * composition.GridCellWidth) + pieceData.OffsetX;
                             var y = composition.GridStartY + (renderRow * composition.GridCellHeight) - pieceData.Height + pieceData.OffsetY;
+
+                            // draw the shadow and then the image
+                            SKPaint? paint =
+                                pc == 'k' && chessboard.BlackKingChecked || pc == 'K' && chessboard.WhiteKingChecked
+                                ? CreateCheckGlowPaint()
+                                : null;
+                            if (paint != null)
+                                canvas.DrawBitmap(piece, new SKPoint(x, y), paint);
+
                             canvas.DrawBitmap(piece, new SKPoint(x, y));
                         }
                     } // col
@@ -55,7 +65,18 @@ namespace ConsensusChessShared.Content
             }
         }
 
-        public static SKBitmap Enlarge(SKBitmap source, int scaleX, int scaleY)
+        public SKPaint CreateCheckGlowPaint()
+        {
+            var paint = new SKPaint();
+            paint.ImageFilter =
+                SKImageFilter.CreateDropShadowOnly(
+                    dx: 0.0f, dy: 0.0f,
+                    sigmaX: 8.0f, sigmaY: 8.0f,
+                    SKColors.Red);
+            return paint;
+        }
+
+    public static SKBitmap Enlarge(SKBitmap source, int scaleX, int scaleY)
         {
             var width = source.Width * scaleX;
             var height = source.Height * scaleY;
