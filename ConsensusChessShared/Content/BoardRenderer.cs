@@ -46,7 +46,7 @@ namespace ConsensusChessShared.Content
                             var x = composition.GridStartX + (col * composition.GridCellWidth) + pieceData.OffsetX;
                             var y = composition.GridStartY + (renderRow * composition.GridCellHeight) - pieceData.Height + pieceData.OffsetY;
 
-                            // draw the shadow and then the image
+                            // draw the glow if required
                             SKPaint? paint =
                                 pc == 'k' && chessboard.BlackKingChecked || pc == 'K' && chessboard.WhiteKingChecked
                                 ? CreateCheckGlowPaint()
@@ -54,6 +54,7 @@ namespace ConsensusChessShared.Content
                             if (paint != null)
                                 canvas.DrawBitmap(piece, new SKPoint(x, y), paint);
 
+                            // draw the piece
                             canvas.DrawBitmap(piece, new SKPoint(x, y));
                         }
                     } // col
