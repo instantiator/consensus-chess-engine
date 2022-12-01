@@ -4,7 +4,11 @@ namespace ConsensusChessShared.Constants
 	public enum DescriptionType
 	{
 		Post,
-		Alt
+		PostWithCheck,
+		PostWithCheckmate,
+		Alt,
+		AltWithCheck,
+		AltWithCheckmate
 	}
 }
 

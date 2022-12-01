@@ -42,7 +42,7 @@ namespace ConsensusChessShared.Content
 			WithObject("Board", board);
 			WithObject("BoardFormat", textFormat);
 			WithMapping("BoardText", BoardFormatter.FenToPieces(board, textFormat));
-			WithMapping("BoardDescription", BoardFormatter.DescribeBoard(board, DescriptionType.Post, textFormat));
+			WithMapping("BoardDescription", BoardFormatter.DescribeBoard(board, false, textFormat));
 			return this;
 		}
 
@@ -56,7 +56,7 @@ namespace ConsensusChessShared.Content
 			WithMedia(new Media(
 				filename: "board.png",
 				data: bmp.ToPngBytes(),
-				alt: BoardFormatter.DescribeBoard(board, DescriptionType.Alt, altFormat)));
+				alt: BoardFormatter.DescribeBoard(board, true, altFormat)));
 			return this;
 		}
 

@@ -31,6 +31,7 @@ namespace ConsensusChessShared.DTO
 		public bool IsEndGame => ChessBoard.LoadFromFen(FEN).IsEndGame;
         public bool IsWhiteInCheck => ChessBoard.LoadFromFen(FEN).WhiteKingChecked;
         public bool IsBlackInCheck => ChessBoard.LoadFromFen(FEN).BlackKingChecked;
+		public bool IsCheckmate => ChessBoard.LoadFromFen(FEN).EndGame?.EndgameType == EndgameType.Checkmate;
 
         public string PiecesFEN => FEN.Split(" ")[0];
         public Side ActiveSide => FEN.Split(" ")[1] == "w" ? Side.White : Side.Black;

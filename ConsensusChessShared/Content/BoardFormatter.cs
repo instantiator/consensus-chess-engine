@@ -12,6 +12,7 @@ namespace ConsensusChessShared.Content
 	{
         public enum BoardFormat
         {
+            None,
             StandardFEN,
             StandardFAN,
             Words_en,
@@ -20,12 +21,33 @@ namespace ConsensusChessShared.Content
 
         private static BoardTemplates templates = new BoardTemplates();
 
-        public static string DescribeBoard(Board board, DescriptionType description, BoardFormat format)
+        public static string DescribeBoard(Board board, bool isAlt, BoardFormat format)
         {
             var layout = FenToPieces(board, format);
             var data = new Dictionary<string, object>();
             data.Add("Board", board);
             data.Add("BoardLayout", layout);
+
+            var check = board.IsWhiteInCheck || board.IsBlackInCheck;
+            var checkmate = board.IsCheckmate;
+            if (check)
+                data.Add("Checked", board.IsWhiteInCheck
+                    ? Side.White.ToString().ToLower()
+                    : Side.Black.ToString().ToLower());
+
+            var description =
+                isAlt
+                    ? checkmate
+                        ? DescriptionType.AltWithCheckmate
+                        : check
+                            ? DescriptionType.AltWithCheck
+                            : DescriptionType.Alt
+                    : checkmate
+                        ? DescriptionType.PostWithCheckmate
+                        : check
+                            ? DescriptionType.PostWithCheck
+                            : DescriptionType.Post;
+
             return templates.For[description](data);
         }
 
@@ -33,6 +55,9 @@ namespace ConsensusChessShared.Content
 		{
             switch (format)
             {
+                case BoardFormat.None:
+                    return string.Empty;
+
                 case BoardFormat.ASCII:
                     return ChessBoard.LoadFromFen(board.FEN).ToAscii();
 

@@ -12,7 +12,7 @@ namespace ConsensusChessIntegrationTests.Data
 			=> $"New {rules.ToString()} game started.";
 
 		public static string NewBoard()
-			=> "New board.";
+			=> "New board";
 
 		public static string MoveAccepted()
 			=> "Move accepted - thank you";
