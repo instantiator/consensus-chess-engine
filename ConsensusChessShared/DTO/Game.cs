@@ -18,10 +18,37 @@ public class Game : IDTO
         WhitePostingNodeShortcodes = new List<StoredString>();
     }
 
+    public Game(
+        string shortcode, string title, string description,
+        IEnumerable<string>? whiteSideNetworkServers, IEnumerable<string>? blackSideNetworkServers,
+        IEnumerable<string> whitePostingNodeShortcodes, IEnumerable<string> blackPostingNodeShortcodes,
+        SideRules sideRules)
+        : this()
+    {
+        Shortcode = shortcode;
+        Title = title;
+        Description = description;
+        ScheduledStart = DateTime.Now.ToUniversalTime();
+        MoveDuration = DEFAULT_MOVE_DURATION;
+        State = GameState.InProgress;
+        GamePosts = new List<Post>();
+        Moves = new List<Move>()
+        {
+            Move.CreateStartingMove(DEFAULT_MOVE_DURATION)
+        };
+        SideRules = sideRules;
+        BlackPostingNodeShortcodes.AddRange(blackPostingNodeShortcodes.Select(s => (StoredString)s));
+        WhitePostingNodeShortcodes.AddRange(whitePostingNodeShortcodes.Select(s => (StoredString)s));
+        BlackParticipantNetworkServers.AddRange(blackSideNetworkServers?.Select(s => (StoredString)s) ?? new List<StoredString>());
+        WhiteParticipantNetworkServers.AddRange(whiteSideNetworkServers?.Select(s => (StoredString)s) ?? new List<StoredString>());
+    }
+
+
     [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public Guid Id { get; set; }
     public DateTime Created { get; set; }
     public string Shortcode { get; set; }
+    public string Title { get; set; }
     public string Description { get; set; }
 
     public DateTime ScheduledStart { get; set; }
@@ -52,29 +79,4 @@ public class Game : IDTO
             ? WhiteParticipantNetworkServers
             : BlackParticipantNetworkServers;
 
-    public static Game NewGame(string shortcode, string description,
-        IEnumerable<string>? whiteSideNetworkServers, IEnumerable<string>? blackSideNetworkServers,
-        IEnumerable<string> whitePostingNodeShortcodes, IEnumerable<string> blackPostingNodeShortcodes,
-        SideRules sideRules)
-    {
-        var game = new Game()
-        {
-            Shortcode = shortcode,
-            Description = description,
-            ScheduledStart = DateTime.Now.ToUniversalTime(),
-            MoveDuration = DEFAULT_MOVE_DURATION,
-            State = GameState.InProgress,
-            GamePosts = new List<Post>(),
-            Moves = new List<Move>()
-            {
-                Move.CreateStartingMove(DEFAULT_MOVE_DURATION)
-            },
-            SideRules = sideRules,
-        };
-        game.BlackPostingNodeShortcodes.AddRange(blackPostingNodeShortcodes.Select(s => (StoredString)s));
-        game.WhitePostingNodeShortcodes.AddRange(whitePostingNodeShortcodes.Select(s => (StoredString)s));
-        game.BlackParticipantNetworkServers.AddRange(blackSideNetworkServers?.Select(s => (StoredString)s) ?? new List<StoredString>());
-        game.WhiteParticipantNetworkServers.AddRange(whiteSideNetworkServers?.Select(s => (StoredString)s) ?? new List<StoredString>());
-        return game;
-    }
 }

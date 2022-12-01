@@ -127,16 +127,32 @@ namespace ConsensusChessShared.Social
 
         public async Task<Post> PostAsync(Post post, bool? dryRun = null)
         {
-            await RateLimit();
-            return await PostImplementationAsync(post, dryRun);
+            int mediaUploads = 0, uploadFailures = 0;
+            foreach (var media in post.Media)
+            {
+                await RateLimitAsync();
+                var ok = await UploadMediaImplementationAsync(media, dryRun);
+                if (ok) { mediaUploads++; } else { uploadFailures++; }
+            }
+
+            if (mediaUploads > 0)
+                log.LogInformation($"{mediaUploads} successful media uploads.");
+            if (uploadFailures > 0)
+                log.LogError($"{uploadFailures} failed media uploads.");
+
+            await RateLimitAsync();
+            var posted = await PostImplementationAsync(post, dryRun);
+
+            return posted;
         }
 
-        protected async Task RateLimit()
+        protected async Task RateLimitAsync()
         {
             if (rateLimiter != null)
                 await rateLimiter.RateLimitAsync();
         }
 
+        protected abstract Task<bool> UploadMediaImplementationAsync(Media media, bool? dryRun);
         protected abstract Task<Post> PostImplementationAsync(Post post, bool? dryRun);
 
         protected async Task ReportStateChangeAsync()

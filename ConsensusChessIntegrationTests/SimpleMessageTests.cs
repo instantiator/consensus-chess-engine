@@ -121,8 +121,8 @@ namespace ConsensusChessIntegrationTests
                 // create a game
                 var servers = new[] { contacts[NodeType.Node].Server };
                 var nodes = new[] { contacts[NodeType.Node].Shortcode! };
-                var game = Game.NewGame(
-                    "test-game", "A game for integration testing",
+                var game = new Game(
+                    "test-game", "Int Game", "A game for integration testing",
                     servers, servers,
                     nodes, nodes,
                     SideRules.MoveLock);

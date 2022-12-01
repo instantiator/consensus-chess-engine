@@ -30,7 +30,7 @@ namespace ConsensusChessSharedTests
         [TestMethod]
         public void CreateSimpleMoveLockGame_creates_Game()
         {
-            var game = gm.CreateSimpleMoveLockGame("test-game", "Test game", new[] { "mastodon.something.social" }, new[] { "node-0-test" });
+            var game = gm.CreateSimpleMoveLockGame("test-game", "Test Game", "a test game", new[] { "mastodon.something.social" }, new[] { "node-0-test" });
 
             Assert.IsNotNull(game);
             Assert.AreEqual(SideRules.MoveLock, game.SideRules);
@@ -63,7 +63,7 @@ namespace ConsensusChessSharedTests
         [TestMethod]
         public void UnpostedBoardOrNull_finds_firstBoard()
         {
-            var game = gm.CreateSimpleMoveLockGame("test-game", "Test game", new[] { "network.server" }, new[] { "node-0-test" });
+            var game = gm.CreateSimpleMoveLockGame("test-game", "Test Game", "a test game", new[] { "network.server" }, new[] { "node-0-test" });
             var board = gm.UnpostedBoardOrNull(game, "node-0-test");
             Assert.IsNotNull(board);
             Assert.AreSame(game.CurrentBoard, board);
@@ -72,7 +72,7 @@ namespace ConsensusChessSharedTests
         [TestMethod]
         public void ValidateSAN_validates_GoodVoteSAN()
         {
-            var game = gm.CreateSimpleMoveLockGame("test-game", "Test game", new[] { "mastodon.something.social" }, new[] { "node-0-test" });
+            var game = gm.CreateSimpleMoveLockGame("test-game", "Test Game", "a test game", new[] { "mastodon.something.social" }, new[] { "node-0-test" });
             var vote = new Vote() { MoveText = "e4" };
             var move = gm.NormaliseAndValidateMoveTextToSAN(game.CurrentBoard, vote);
 
@@ -84,7 +84,7 @@ namespace ConsensusChessSharedTests
         [TestMethod]
         public void ValidateSAN_invalidates_IllegalVoteSAN()
         {
-            var game = gm.CreateSimpleMoveLockGame("test-game", "Test game", new[] { "mastodon.something.social" }, new[] { "node-0-test" });
+            var game = gm.CreateSimpleMoveLockGame("test-game", "Test Game", "a test game", new[] { "mastodon.something.social" }, new[] { "node-0-test" });
             var vote = new Vote() { MoveText = "e7" };
             var e = Assert.ThrowsException<VoteRejectionException>(() =>
             {
@@ -96,7 +96,7 @@ namespace ConsensusChessSharedTests
         [TestMethod]
         public void ValidateSAN_invalidates_GarbageVote()
         {
-            var game = gm.CreateSimpleMoveLockGame("test-game", "Test game", new[] { "mastodon.something.social" }, new[] { "node-0-test" });
+            var game = gm.CreateSimpleMoveLockGame("test-game", "Test Game", "a test game", new[] { "mastodon.something.social" }, new[] { "node-0-test" });
             var vote = new Vote() { MoveText = "horsey to king 4" };
             var e = Assert.ThrowsException<VoteRejectionException>(() =>
             {
@@ -114,7 +114,7 @@ namespace ConsensusChessSharedTests
             };
 
             // no need to specify networks for move lock game
-            var game = gm.CreateSimpleMoveLockGame("test-game", "Test game", null, new[] { "node-0-test" });
+            var game = gm.CreateSimpleMoveLockGame("test-game", "Test Game", "a test game", null, new[] { "node-0-test" });
             var cmd = SampleDataGenerator.SimpleCommand(message: "anything", sender: "somebody@mastodon.somewhere");
             var participant = Participant.From(cmd);
             var ok = gm.ParticipantOnSide(game, participant);
@@ -129,7 +129,7 @@ namespace ConsensusChessSharedTests
                 NetworkServer = "mastodon.something.social"
             };
 
-            var game = gm.CreateSimpleMoveLockGame("test-game", "Test game", null, new[] { "node-0-test" });
+            var game = gm.CreateSimpleMoveLockGame("test-game", "Test Game", "a test game", null, new[] { "node-0-test" });
             var cmd = SampleDataGenerator.SimpleCommand(message: "anything", sender: "somebody@mastodon.somewhere");
             var participant = Participant.From(cmd);
             participant.Commitments.Add(new Commitment()
@@ -149,7 +149,7 @@ namespace ConsensusChessSharedTests
             {
                 NetworkServer = "mastodon.somethingelse.social"
             };
-            var game = gm.CreateSimpleMoveLockGame("test-game", "Test game", null, new[] { "node-0-test" });
+            var game = gm.CreateSimpleMoveLockGame("test-game", "Test Game", "a test game", null, new[] { "node-0-test" });
 
             var cmd = SampleDataGenerator.SimpleCommand(message: "anything", sender: "somebody@mastodon.somewhere");
             var participant = Participant.From(cmd);

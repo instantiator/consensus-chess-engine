@@ -21,15 +21,14 @@ namespace ConsensusChessShared.Content
 
         public SKBitmap RenderBoard(BoardStyle style)
         {
-            var backgroundData = BoardGraphicsData.Backgrounds[style];
-
-            var imageInfo = new SKImageInfo(backgroundData.Width, backgroundData.Height);
+            var composition = BoardGraphicsData.Compositions[style];
+            var imageInfo = new SKImageInfo(composition.Width, composition.Height);
             using (var bmp = new SKBitmap(imageInfo))
             {
                 var canvas = new SKCanvas(bmp);
                 canvas.Clear(SKColors.Transparent);
 
-                using (var backgroundBmp = GetImage(backgroundData.Resource))
+                using (var backgroundBmp = GetImage(composition.Resource))
                     canvas.DrawBitmap(backgroundBmp, 0, 0);
 
                 // render rows backwards so that closer pieces overlay further pieces
@@ -40,11 +39,11 @@ namespace ConsensusChessShared.Content
                         var pc = chessboard[new Position(col, row)]?.ToFenChar();
                         if (pc != null)
                         {
-                            var pieceData = BoardGraphicsData.Pieces[style][pc.Value];
+                            var pieceData = composition.Pieces[pc.Value];
                             var piece = GetImage(pieceData.Resource);
                             var renderRow = 7 - row;
-                            var x = backgroundData.GridStartX + (col * backgroundData.GridCellWidth) + pieceData.OffsetX;
-                            var y = backgroundData.GridStartY + (renderRow * backgroundData.GridCellHeight) - pieceData.Height + pieceData.OffsetY;
+                            var x = composition.GridStartX + (col * composition.GridCellWidth) + pieceData.OffsetX;
+                            var y = composition.GridStartY + (renderRow * composition.GridCellHeight) - pieceData.Height + pieceData.OffsetY;
                             canvas.DrawBitmap(piece, new SKPoint(x, y));
                         }
                     } // col
@@ -52,7 +51,7 @@ namespace ConsensusChessShared.Content
 
                 // rescale
                 canvas.Flush();
-                return Enlarge(bmp, backgroundData.ScaleX, backgroundData.ScaleY);
+                return Enlarge(bmp, composition.ScaleX, composition.ScaleY);
             }
         }
 

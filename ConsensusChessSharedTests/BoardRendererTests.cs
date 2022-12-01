@@ -36,7 +36,7 @@ namespace ConsensusChessSharedTests
             {
                 Assert.IsNotNull(bmp);
 
-                var backgroundData = BoardGraphicsData.Backgrounds[BoardStyle.PixelChess];
+                var backgroundData = BoardGraphicsData.Compositions[BoardStyle.PixelChess];
                 Assert.AreEqual(backgroundData.Width * backgroundData.ScaleX, bmp.Width);
                 Assert.AreEqual(backgroundData.Height * backgroundData.ScaleY, bmp.Height);
 

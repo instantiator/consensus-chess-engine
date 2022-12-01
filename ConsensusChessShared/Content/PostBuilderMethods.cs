@@ -4,6 +4,7 @@ using ConsensusChessShared.DTO;
 using ConsensusChessShared.Exceptions;
 using ConsensusChessShared.Social;
 using static ConsensusChessShared.Content.BoardFormatter;
+using static ConsensusChessShared.Content.BoardGraphicsData;
 
 namespace ConsensusChessShared.Content
 {
@@ -41,10 +42,11 @@ namespace ConsensusChessShared.Content
             => new PostBuilder(PostType.Engine_GameAdvance)
                 .WithGame(game);
 
-        public static PostBuilder Node_BoardUpdate(Game game, Board board, BoardFormat format)
+        public static PostBuilder Node_BoardUpdate(Game game, Board board, BoardFormat format, BoardStyle style)
             => new PostBuilder(PostType.Node_BoardUpdate)
                 .WithGame(game)
-                .WithBoard(board, format);
+                .WithBoard(board, format)
+                .AndBoardGraphic(style, format);
 
         public static PostBuilder Node_GameAbandonedUpdate(Game game)
             => new PostBuilder(PostType.Node_GameAbandonedUpdate)

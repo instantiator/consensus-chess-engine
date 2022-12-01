@@ -10,7 +10,7 @@ namespace ConsensusChessShared.DTO
     {
 		public Post()
 		{
-			MediaPng = new List<Media>();
+			Media = new List<Media>();
             Created = DateTime.Now.ToUniversalTime();
         }
 
@@ -21,7 +21,7 @@ namespace ConsensusChessShared.DTO
         // filled during preparation
         public PostType Type { get; set; }
 		public string? Message { get; set; }
-		public virtual List<Media> MediaPng { get; set; }
+		public virtual List<Media> Media { get; set; }
 
         // filled during send
 		public string? NetworkServer { get; set; }

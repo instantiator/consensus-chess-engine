@@ -216,7 +216,7 @@ public abstract class AbstractFeatureTest
 
     protected async Task<Game> StartGameWithDbAsync(string? fen = null)
     {
-        var game = Game.NewGame("game-shortcode", "description",
+        var game = new Game("game-shortcode", "title", "description",
                 new[] { NodeNetwork.NetworkServer },
                 new[] { NodeNetwork.NetworkServer },
                 new[] { NodeId.Shortcode },

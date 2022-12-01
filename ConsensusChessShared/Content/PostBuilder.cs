@@ -5,12 +5,14 @@ using System.Security.Principal;
 using ConsensusChessShared.Constants;
 using ConsensusChessShared.DTO;
 using ConsensusChessShared.Exceptions;
+using ConsensusChessShared.Helpers;
 using ConsensusChessShared.Social;
 using HandlebarsDotNet;
 using Mastonet.Entities;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Newtonsoft.Json.Linq;
 using static ConsensusChessShared.Content.BoardFormatter;
+using static ConsensusChessShared.Content.BoardGraphicsData;
 
 namespace ConsensusChessShared.Content
 {
@@ -26,24 +28,51 @@ namespace ConsensusChessShared.Content
 		public string? ToHandle { get; private set; }
 		public string? OverrideTemplate { get; private set; }
 
+		public List<Media> Media { get; private set; }
+
 		private PostBuilder(PostType type)
 		{
 			Type = type;
 			Mappings = new Dictionary<string, object>();
+			Media = new List<Media>();
 		}
 
-		public PostBuilder WithBoard(Board board, BoardFormat format)
+		public PostBuilder WithBoard(Board board, BoardFormat textFormat)
 		{
-			WithMapping("Board", BoardFormatter.FenToPieces(board, format));
+			WithObject("Board", board);
+			WithObject("BoardFormat", textFormat);
+			WithMapping("BoardText", BoardFormatter.FenToPieces(board, textFormat));
+			WithMapping("BoardDescription", BoardFormatter.DescribeBoard(board, DescriptionType.Post, textFormat));
 			return this;
 		}
 
-		public PostBuilder WithGame(Game game)
+		public PostBuilder AndBoardGraphic(BoardStyle  style, BoardFormat altFormat)
+		{
+			if (!Mappings.ContainsKey("Board")) throw new ArgumentNullException("Board");
+            WithObject("BoardStyle", style);
+			var board = (Board)Mappings["Board"];
+			var renderer = new BoardRenderer(board);
+			var bmp = renderer.RenderBoard(style);
+			WithMedia(new Media(
+				filename: "board.png",
+				data: bmp.ToPngBytes(),
+				alt: BoardFormatter.DescribeBoard(board, DescriptionType.Alt, altFormat)));
+			return this;
+		}
+
+		public PostBuilder WithMedia(Media media)
+		{
+			Media.Add(media);
+			return this;
+		}
+
+        public PostBuilder WithGame(Game game)
 		{
 			WithObject("Game", game);
 			var shortcodes = new List<string>();
 			shortcodes.AddRange(game.WhitePostingNodeShortcodes.Select(ss => ss.Value!));
             shortcodes.AddRange(game.BlackPostingNodeShortcodes.Select(ss => ss.Value!));
+			WithMapping("FormattedGameMoveDuration", $"{game.MoveDuration.Days} days, {game.MoveDuration.Hours} hours");
 			WithMapping("AllNodes", string.Join(", ", shortcodes.Distinct()));
             WithMapping("BlackParticipantNetworkServers", string.Join(", ", game.BlackParticipantNetworkServers.Select(ss => ss.Value)));
             WithMapping("WhiteParticipantNetworkServers", string.Join(", ", game.WhiteParticipantNetworkServers.Select(ss => ss.Value)));
@@ -136,7 +165,7 @@ namespace ConsensusChessShared.Content
 
         public PostBuilder WithObject(string name, Object obj)
 		{
-            Mappings.Add(name, obj);
+			Mappings.Add(name, obj);
             return this;
         }
 
@@ -189,6 +218,7 @@ namespace ConsensusChessShared.Content
 				Message = message,
 				NetworkReplyToId = ReplyToId,
 				Type = Type,
+				Media = Media
 			};
 			return post;
 		}

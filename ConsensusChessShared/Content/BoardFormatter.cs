@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using Chess;
+using ConsensusChessShared.Constants;
 using ConsensusChessShared.DTO;
 using Mastonet.Entities;
 
@@ -16,28 +17,39 @@ namespace ConsensusChessShared.Content
             ASCII
         }
 
-        public static string FenToPieces(Board board, BoardFormat style)
+        private static BoardTemplates templates = new BoardTemplates();
+
+        public static string DescribeBoard(Board board, DescriptionType description, BoardFormat format)
+        {
+            var layout = FenToPieces(board, format);
+            var data = new Dictionary<string, object>();
+            data.Add("Board", board);
+            data.Add("BoardLayout", layout);
+            return templates.For[description](data);
+        }
+
+        public static string FenToPieces(Board board, BoardFormat format)
 		{
-            switch (style)
+            switch (format)
             {
                 case BoardFormat.ASCII:
                     return ChessBoard.LoadFromFen(board.FEN).ToAscii();
 
                 case BoardFormat.Words_en:
-                    return $"{MapPieces(board.PiecesFEN, style)}end.";
+                    return $"{MapPieces(board.PiecesFEN, format)}end.";
 
                 default:
-                    return MapPieces(board.PiecesFEN, style);
+                    return MapPieces(board.PiecesFEN, format);
             }
         }
 
-        public static string MapPieces(string fen, BoardFormat style)
+        public static string MapPieces(string fen, BoardFormat format)
         {
             StringBuilder sb = new StringBuilder();
             int position = 0;
             while (position < fen.Count())
             {
-                var mapping = Mappings[style]
+                var mapping = Mappings[format]
                     .FirstOrDefault(mapping => fen.Substring(position).StartsWith(mapping.Key));
 
                 var found = !default(KeyValuePair<string, string>).Equals(mapping);

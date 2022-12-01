@@ -129,7 +129,7 @@ namespace ConsensusChessEngine.Service
                 if (nodesOk)
                 {
                     var shortcode = dbo.GenerateUniqueGameShortcode(db);
-                    var game = gm.CreateSimpleMoveLockGame(shortcode, "simple move-lock game",
+                    var game = gm.CreateSimpleMoveLockGame(shortcode, "Simple MoveLock", "a simple move-lock game",
                         participantNetworkServers: participantNetworks.Select(n => n.NetworkServer),
                         postingNodeShortcodes: nodeShortcodes);
                     db.Games.Add(game);

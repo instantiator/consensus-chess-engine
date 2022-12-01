@@ -117,6 +117,11 @@ namespace ConsensusChessFeatureTests.Migrations
                         .HasColumnType("INTEGER")
                         .HasColumnName("state");
 
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("title");
+
                     b.HasKey("Id")
                         .HasName("pk_games");
 
@@ -144,9 +149,22 @@ namespace ConsensusChessFeatureTests.Migrations
                         .HasColumnType("BLOB")
                         .HasColumnName("data");
 
+                    b.Property<string>("Filename")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("filename");
+
                     b.Property<Guid?>("PostId")
                         .HasColumnType("TEXT")
                         .HasColumnName("post_id");
+
+                    b.Property<string>("PreviewUrl")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("preview_url");
+
+                    b.Property<string>("SocialId")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("social_id");
 
                     b.HasKey("Id")
                         .HasName("pk_media");
@@ -322,7 +340,6 @@ namespace ConsensusChessFeatureTests.Migrations
                         .HasColumnName("id");
 
                     b.Property<string>("AppName")
-                        .IsRequired()
                         .HasColumnType("TEXT")
                         .HasColumnName("app_name");
 
@@ -351,7 +368,6 @@ namespace ConsensusChessFeatureTests.Migrations
                         .HasColumnName("game_id");
 
                     b.Property<string>("Message")
-                        .IsRequired()
                         .HasColumnType("TEXT")
                         .HasColumnName("message");
 
@@ -364,12 +380,10 @@ namespace ConsensusChessFeatureTests.Migrations
                         .HasColumnName("network_reply_to_id");
 
                     b.Property<string>("NetworkServer")
-                        .IsRequired()
                         .HasColumnType("TEXT")
                         .HasColumnName("network_server");
 
                     b.Property<string>("NodeShortcode")
-                        .IsRequired()
                         .HasColumnType("TEXT")
                         .HasColumnName("node_shortcode");
 
@@ -551,7 +565,7 @@ namespace ConsensusChessFeatureTests.Migrations
             modelBuilder.Entity("ConsensusChessShared.DTO.Media", b =>
                 {
                     b.HasOne("ConsensusChessShared.DTO.Post", null)
-                        .WithMany("MediaPng")
+                        .WithMany("Media")
                         .HasForeignKey("PostId")
                         .HasConstraintName("fk_media_post_post_id");
                 });
@@ -706,7 +720,7 @@ namespace ConsensusChessFeatureTests.Migrations
 
             modelBuilder.Entity("ConsensusChessShared.DTO.Post", b =>
                 {
-                    b.Navigation("MediaPng");
+                    b.Navigation("Media");
                 });
 #pragma warning restore 612, 618
         }

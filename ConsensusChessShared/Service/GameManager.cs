@@ -20,10 +20,13 @@ namespace ConsensusChessShared.Service
             this.log = log;
         }
 
-        public Game CreateSimpleMoveLockGame(string gameShortcode, string gameDescription, IEnumerable<string>? participantNetworkServers, IEnumerable<string> postingNodeShortcodes)
+        public Game CreateSimpleMoveLockGame(
+            string shortcode, string title, string description,
+            IEnumerable<string>? participantNetworkServers,
+            IEnumerable<string> postingNodeShortcodes)
         {
-            return Game.NewGame(
-                gameShortcode, gameDescription,
+            return new Game(
+                shortcode, title, description,
                 participantNetworkServers, participantNetworkServers,
                 postingNodeShortcodes, postingNodeShortcodes,
                 SideRules.MoveLock);

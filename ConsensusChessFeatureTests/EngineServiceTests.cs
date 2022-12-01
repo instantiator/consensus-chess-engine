@@ -43,7 +43,7 @@ namespace ConsensusChessFeatureTests
 
             var command = await SendToEngineAsync($"new {NodeId.Shortcode}");
 
-            // akcknowledgement
+            // acknowledgement
             EngineSocialMock.Verify(ns => ns.PostAsync(
             It.Is<Post>(p =>
                 p.Succeeded == true &&

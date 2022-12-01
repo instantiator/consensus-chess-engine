@@ -30,7 +30,7 @@ namespace ConsensusChessShared.Social
 
         protected override async Task InitImplementationAsync()
         {
-            await RateLimit();
+            await RateLimitAsync();
             user = await client.GetCurrentUser();
             Username = SocialUsername.From(user.AccountName!, user.DisplayName!, network, shortcode);
         }
@@ -61,26 +61,61 @@ namespace ConsensusChessShared.Social
             { PostType.Unspecified, Visibility.Unlisted },
         };
 
+        protected override async Task<bool> UploadMediaImplementationAsync(Media media, bool? dryRun)
+        {
+            // already rate limited through the public method
+            var dry = dryRun ?? dryRuns;
+            try
+            {
+                if (!dry)
+                {
+                    log.LogDebug($"Uploading {media.Filename} to network...");
+                    var stream = new MemoryStream(media.Data);
+                    var attachment = await client.UploadMedia(stream, media.Filename, media.Alt);
+                    media.SocialId = attachment.Id;
+                    media.PreviewUrl = attachment.PreviewUrl;
+                }
+                else
+                {
+                    log.LogWarning($"Dry run of upload {media.Filename} to network.");
+                    media.SocialId = Guid.NewGuid().ToString();
+                    media.PreviewUrl = "http://placekitten.com/200/300";
+                }
+                return true;
+            }
+            catch (Exception e)
+            {
+                log.LogError(e, $"Unable to upload media: {media.Filename}");
+                return false;
+            }
+
+        }
+
         protected override async Task<Post> PostImplementationAsync(Post post, bool? dryRun)
         {
+            // already rate limited through the public method
             Visibility visibility = VisibilityMapping[post.Type];
             var dry = dryRun ?? dryRuns;
             try
             {
                 if (!dry)
                 {
-                    // already rate limited through the public methods
+                    var mediaIds = post.Media.Count() > 0
+                        ? post.Media.Where(m => m.SocialId != null).Select(m => m.SocialId!)
+                        : null;
+
                     log.LogDebug($"Posting to network...");
                     var status = await client.PublishStatus(
                         status: post.Message!,
                         visibility: visibility,
+                        mediaIds: mediaIds,
                         replyStatusId: post.NetworkReplyToId?.ToString());
 
                     post.Succeed(state.Shortcode, network.AppName, network.NetworkServer, long.Parse(status.Id));
                 }
                 else
                 {
-                    log.LogWarning($"Dry run.");
+                    log.LogWarning($"Dry run of post to network.");
                     post.Succeed(state.Shortcode, network.AppName, network.NetworkServer, null);
                 }
             }
@@ -94,7 +129,7 @@ namespace ConsensusChessShared.Social
         protected override async Task StartListeningForNotificationsAsync()
         {
             // set up the stream
-            await RateLimit();
+            await RateLimitAsync();
             stream = client.GetUserStreaming();
             stream.OnNotification += Stream_OnNotification;
             log.LogDebug("Starting stream");
@@ -136,7 +171,7 @@ namespace ConsensusChessShared.Social
                     MaxId = nextPageMaxId.ToString()
                 };
 
-                await RateLimit();
+                await RateLimitAsync();
                 var page = await client.GetNotifications(options: opts);
 
                 list.AddRange(page.Where(pn => !list.Select(n => n.Id).Contains(pn.Id)));
@@ -159,7 +194,7 @@ namespace ConsensusChessShared.Social
         protected override async Task MarkCommandProcessedAsync(long id)
         {
             log.LogDebug($"Favouriting status: {id}");
-            await RateLimit();
+            await RateLimitAsync();
             await client.Favourite(id.ToString());
         }
 

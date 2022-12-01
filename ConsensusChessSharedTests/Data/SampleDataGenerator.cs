@@ -62,8 +62,8 @@ namespace ConsensusChessSharedTests.Data
         }
 
         public static Game SimpleMoveLockGame()
-            => Game.NewGame(
-                shortcode: NodeState.Shortcode, description: "whatever",
+            => new Game(
+                shortcode: NodeState.Shortcode, title: "Simple MoveLock", description: "a simple movelock game",
                 whiteSideNetworkServers: new[] { NodeState.Network.NetworkServer },
                 blackSideNetworkServers: new[] { NodeState.Network.NetworkServer },
                 whitePostingNodeShortcodes: new[] { NodeState.Shortcode },

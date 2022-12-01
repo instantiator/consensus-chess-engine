@@ -21,6 +21,17 @@ namespace ConsensusChessSharedTests
 		}
 
         [TestMethod]
+        public void AllBoardDescriptionTypesHaveTemplates()
+        {
+            foreach (var type in Enum.GetValues<DescriptionType>())
+            {
+                Assert.IsTrue(
+                    BoardTemplates.TemplateSource.ContainsKey(type),
+                    $"DescriptionType.{type} does not have a template.");
+            }
+        }
+
+        [TestMethod]
         public void AllPostTypesHaveMastodonVisibility()
         {
             foreach (var type in Enum.GetValues<PostType>())
