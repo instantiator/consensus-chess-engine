@@ -85,7 +85,7 @@ namespace ConsensusChessIntegrationTests
             WriteLogLine($"Checking for board post by node...");
             var nodeStatuses = await AssertAndGetStatusesAsync(nodeAcct, 1,
                 (Status status, string content) =>
-                    content.Contains(Responses.NewBoard())
+                    content.ToLower().Contains(Responses.NewBoard())
                     && status.CreatedAt > started);
 
             WriteLogLine($"Checking for board post in db...");
@@ -101,7 +101,7 @@ namespace ConsensusChessIntegrationTests
 
                 Assert.AreEqual(contacts[NodeType.Node].Server, boardPost.NetworkServer);
                 Assert.AreEqual(contacts[NodeType.Node].Shortcode, boardPost.NodeShortcode);
-                Assert.IsTrue(boardPost.Message!.Contains(Responses.NewBoard()));
+                Assert.IsTrue(boardPost.Message!.ToLower().Contains(Responses.NewBoard()));
             }
         }
 
@@ -134,7 +134,7 @@ namespace ConsensusChessIntegrationTests
             // wait for the node to post the new board
             var nodeStatuses = await AssertAndGetStatusesAsync(node, 1,
                 (Status status, string content)
-                    => content.Contains(Responses.NewBoard())
+                    => content.ToLower().Contains(Responses.NewBoard())
                     && status.CreatedAt > started);
 
             var boardStatus = nodeStatuses.Single();

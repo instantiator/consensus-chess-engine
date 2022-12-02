@@ -50,13 +50,15 @@ namespace ConsensusChessShared.Social
 
             { PostType.Engine_GameAnnouncement, Visibility.Unlisted },
             { PostType.Engine_GameAdvance, Visibility.Unlisted },
-            { PostType.Engine_GameCreationResponse, Visibility.Unlisted },
+            { PostType.Engine_GameCreationResponse, Visibility.Direct },
             { PostType.Engine_GameAbandoned, Visibility.Unlisted },
             { PostType.Engine_GameEnded, Visibility.Unlisted },
 
-            { PostType.Node_BoardUpdate, Visibility.Unlisted }, // TODO: public when live
+            { PostType.Node_BoardUpdate, Visibility.Unlisted },         // TODO: public when live
+            { PostType.Node_BoardReminder, Visibility.Unlisted },       // TODO: public when live
+            { PostType.Node_VotingInstructions, Visibility.Unlisted },  // unlisted because this is a reply-to-self post
             { PostType.Node_GameAbandonedUpdate, Visibility.Unlisted }, // TODO: public when live
-            { PostType.Node_GameEndedUpdate, Visibility.Unlisted }, // TODO: public when live
+            { PostType.Node_GameEndedUpdate, Visibility.Unlisted },     // TODO: public when live
 
             { PostType.Unspecified, Visibility.Unlisted },
         };

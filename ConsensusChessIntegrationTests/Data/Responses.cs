@@ -6,16 +6,16 @@ namespace ConsensusChessIntegrationTests.Data
 	public class Responses
 	{
 		public static string NewGame_reply(SideRules rules, IEnumerable<string> shortcodes)
-			=> $"New {rules.ToString()} game for: {string.Join(", ", shortcodes.Distinct())}";
+			=> $"new {rules.ToString()} game for: {string.Join(", ", shortcodes.Distinct())}";
 
 		public static string NewGame_announcement(SideRules rules)
-			=> $"New {rules.ToString()} game started.";
+			=> $"new {rules.ToString()} game started.";
 
 		public static string NewBoard()
-			=> "New board";
+			=> "new board";
 
 		public static string MoveAccepted()
-			=> "Move accepted - thank you";
+			=> "move accepted";
     }
 }
 

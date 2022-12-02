@@ -35,6 +35,7 @@ namespace ConsensusChessShared.Content
 			Type = type;
 			Mappings = new Dictionary<string, object>();
 			Media = new List<Media>();
+			WithMapping("AdminContact", "@instantiator@mastodon.social"); // TODO: config
 		}
 
 		public PostBuilder WithBoard(Board board, BoardFormat textFormat)
@@ -205,7 +206,7 @@ namespace ConsensusChessShared.Content
 				? templates.For[Type]
 				: Handlebars.Compile(OverrideTemplate);
 
-			var message = template(Mappings);
+			var message = template(Mappings).RestoreUnicode();
 
 			if (ToHandle != null)
 			{

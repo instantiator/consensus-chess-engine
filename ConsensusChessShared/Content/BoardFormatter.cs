@@ -48,7 +48,7 @@ namespace ConsensusChessShared.Content
                             ? DescriptionType.PostWithCheck
                             : DescriptionType.Post;
 
-            return templates.For[description](data);
+            return templates.For[description](data).RestoreUnicode();
         }
 
         public static string FenToPieces(Board board, BoardFormat format)
