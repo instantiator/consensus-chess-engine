@@ -28,23 +28,31 @@ namespace ConsensusChessFeatureTests
         }
 
         [TestMethod]
-		public async Task NewGame_causes_BoardPost()
+		public async Task NewGame_causes_BoardPostAndInstructions()
 		{
             var node = await StartNodeAsync();
             var game = await StartGameWithDbAsync();
-            WaitAndAssert_NodePostsBoard(game);
+            WaitAndAssert_NodePostsBoard(game, NodeId.Shortcode);
 
             using (var db = Dbo.GetDb())
             {
-                Assert.AreEqual(1, db.Games.Single().CurrentBoard.BoardPosts.Count());
-                Assert.IsTrue(db.Games.Single().CurrentBoard.BoardPosts.Single().Succeeded);
-                Assert.IsTrue(db.Games.Single().CurrentBoard.BoardPosts.Single().Type == PostType.Node_BoardUpdate);
+                Assert.AreEqual(2, db.Games.Single().CurrentBoard.BoardPosts.Count());
+                Assert.IsTrue(db.Games.Single().CurrentBoard.BoardPosts.All(bp => bp.Succeeded));
+                Assert.IsTrue(db.Games.Single().CurrentBoard.BoardPosts.Count(bp => bp.Type == PostType.Node_BoardUpdate) == 1);
+                Assert.IsTrue(db.Games.Single().CurrentBoard.BoardPosts.Count(bp => bp.Type == PostType.Node_VotingInstructions) == 1);
             }
 
             NodeSocialMock.Verify(ns => ns.PostAsync(
                 It.Is<Post>(p =>
                     p.Succeeded == true &&
                     p.Type == PostType.Node_BoardUpdate),
+                null),
+                Times.Once);
+
+            NodeSocialMock.Verify(ns => ns.PostAsync(
+                It.Is<Post>(p =>
+                    p.Succeeded == true &&
+                    p.Type == PostType.Node_VotingInstructions),
                 null),
                 Times.Once);
         }
@@ -54,7 +62,7 @@ namespace ConsensusChessFeatureTests
         {
             var node = await StartNodeAsync();
             var game = await StartGameWithDbAsync();
-            WaitAndAssert_NodePostsBoard(game);
+            WaitAndAssert_NodePostsBoard(game, NodeId.Shortcode);
 
             using (var db = Dbo.GetDb())
             {
@@ -78,7 +86,7 @@ namespace ConsensusChessFeatureTests
         {
             var node = await StartNodeAsync();
             var game = await StartGameWithDbAsync();
-            var boardPost = WaitAndAssert_NodePostsBoard(game);
+            var boardPost = WaitAndAssert_NodePostsBoard(game, NodeId.Shortcode);
 
             var command = await ReplyToNodeAsync(boardPost, "move e4");
 
@@ -116,7 +124,7 @@ namespace ConsensusChessFeatureTests
         {
             var node = await StartNodeAsync();
             var game = await StartGameWithDbAsync();
-            var boardPost = WaitAndAssert_NodePostsBoard(game);
+            var boardPost = WaitAndAssert_NodePostsBoard(game, NodeId.Shortcode);
 
             var command = await ReplyToNodeAsync(boardPost, "move e2 - e4");
 
@@ -144,7 +152,7 @@ namespace ConsensusChessFeatureTests
         {
             var node = await StartNodeAsync();
             var game = await StartGameWithDbAsync();
-            var boardPost = WaitAndAssert_NodePostsBoard(game);
+            var boardPost = WaitAndAssert_NodePostsBoard(game, NodeId.Shortcode);
 
             var command = await ReplyToNodeAsync(boardPost, "e2 - e4");
 
@@ -172,7 +180,7 @@ namespace ConsensusChessFeatureTests
         {
             var node = await StartNodeAsync();
             var game = await StartGameWithDbAsync();
-            var boardPost = WaitAndAssert_NodePostsBoard(game);
+            var boardPost = WaitAndAssert_NodePostsBoard(game, NodeId.Shortcode);
 
             var command = await ReplyToNodeAsync(boardPost, "e4");
 
@@ -200,7 +208,7 @@ namespace ConsensusChessFeatureTests
         {
             var node = await StartNodeAsync();
             var game = await StartGameWithDbAsync();
-            var boardPost = WaitAndAssert_NodePostsBoard(game);
+            var boardPost = WaitAndAssert_NodePostsBoard(game, NodeId.Shortcode);
 
             var command = await ReplyToNodeAsync(boardPost, "move e2 - e5");
 
@@ -234,7 +242,7 @@ namespace ConsensusChessFeatureTests
         {
             var node = await StartNodeAsync();
             var game = await StartGameWithDbAsync();
-            var boardPost = WaitAndAssert_NodePostsBoard(game);
+            var boardPost = WaitAndAssert_NodePostsBoard(game, NodeId.Shortcode);
 
             var command = await ReplyToNodeAsync(boardPost, "move e6");
 
@@ -268,7 +276,7 @@ namespace ConsensusChessFeatureTests
         {
             var node = await StartNodeAsync();
             var game = await StartGameWithDbAsync();
-            var boardPost = WaitAndAssert_NodePostsBoard(game);
+            var boardPost = WaitAndAssert_NodePostsBoard(game, NodeId.Shortcode);
 
             // create a participant record for the wrong side
             using (var db = Dbo.GetDb())

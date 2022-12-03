@@ -61,10 +61,10 @@ namespace ConsensusChessSharedTests
         }
 
         [TestMethod]
-        public void UnpostedBoardOrNull_finds_firstBoard()
+        public void CurrentBoardWithoutPost_finds_firstBoard()
         {
             var game = gm.CreateSimpleMoveLockGame("test-game", "Test Game", "a test game", new[] { "network.server" }, new[] { "node-0-test" });
-            var board = gm.UnpostedBoardOrNull(game, "node-0-test");
+            var board = gm.CurrentBoardWithoutPost(game, "node-0-test", PostType.Node_BoardUpdate);
             Assert.IsNotNull(board);
             Assert.AreSame(game.CurrentBoard, board);
         }
@@ -181,7 +181,7 @@ namespace ConsensusChessSharedTests
             var dbGames = MockDbHelper.GetQueryableMockDbSet<Game>("games");
             dbGames.Add(game);
 
-            var results = gm.FindUnpostedActiveBoards(dbGames, shortcode);
+            var results = gm.FindUnpostedActiveGameBoards(dbGames, shortcode, PostType.Node_BoardUpdate);
 
             Assert.AreEqual(1, results.Count());
             Assert.AreEqual(game, results.First().Key);
@@ -204,7 +204,7 @@ namespace ConsensusChessSharedTests
             var dbGames = MockDbHelper.GetQueryableMockDbSet<Game>("games");
             dbGames.Add(game);
 
-            var results = gm.FindUnpostedActiveBoards(dbGames, shortcode);
+            var results = gm.FindUnpostedActiveGameBoards(dbGames, shortcode, PostType.Node_BoardUpdate);
 
             Assert.AreEqual(1, results.Count());
             Assert.AreEqual(game, results.First().Key);
@@ -227,7 +227,7 @@ namespace ConsensusChessSharedTests
             var dbGames = MockDbHelper.GetQueryableMockDbSet<Game>("games");
             dbGames.Add(game);
 
-            var results = gm.FindUnpostedActiveBoards(dbGames, shortcode);
+            var results = gm.FindUnpostedActiveGameBoards(dbGames, shortcode, PostType.Node_BoardUpdate);
 
             Assert.AreEqual(0, results.Count());
         }

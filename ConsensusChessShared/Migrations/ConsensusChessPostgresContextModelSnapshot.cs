@@ -104,6 +104,10 @@ namespace ConsensusChessShared.Migrations
                         .HasColumnType("interval")
                         .HasColumnName("move_duration");
 
+                    b.Property<TimeSpan>("MoveReminder")
+                        .HasColumnType("interval")
+                        .HasColumnName("move_reminder");
+
                     b.Property<DateTime>("ScheduledStart")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("scheduled_start");

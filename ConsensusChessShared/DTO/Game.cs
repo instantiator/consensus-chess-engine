@@ -7,6 +7,7 @@ namespace ConsensusChessShared.DTO;
 public class Game : IDTO
 {
     public static readonly TimeSpan DEFAULT_MOVE_DURATION = TimeSpan.FromDays(2);
+    public static readonly TimeSpan DEFAULT_MOVE_REMINDER = TimeSpan.FromHours(2);
 
     public Game()
     {
@@ -30,6 +31,7 @@ public class Game : IDTO
         Description = description;
         ScheduledStart = DateTime.Now.ToUniversalTime();
         MoveDuration = DEFAULT_MOVE_DURATION;
+        MoveReminder = DEFAULT_MOVE_REMINDER;
         State = GameState.InProgress;
         GamePosts = new List<Post>();
         Moves = new List<Move>()
@@ -54,6 +56,7 @@ public class Game : IDTO
     public DateTime ScheduledStart { get; set; }
     public DateTime? Finished { get; set; }
     public TimeSpan MoveDuration { get; set; }
+    public TimeSpan MoveReminder { get; set; }
     public virtual List<Move> Moves { get; set; }
 
     public SideRules SideRules { get; set; }

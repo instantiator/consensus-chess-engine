@@ -193,10 +193,15 @@ namespace ConsensusChessShared.Content
 			return InReplyTo(origin.SourcePostId, origin.SourceUsername);
 		}
 
-        private PostBuilder InReplyTo(long? id, SocialUsername user)
+        public PostBuilder InReplyTo(Post post)
+        {
+            return InReplyTo(post.NetworkPostId, null);
+        }
+
+        private PostBuilder InReplyTo(long? id, SocialUsername? user)
 		{
 			ReplyToId = id;
-			ToHandle = user.Full;
+			ToHandle = user?.Full;
 			return this;
 		}
 

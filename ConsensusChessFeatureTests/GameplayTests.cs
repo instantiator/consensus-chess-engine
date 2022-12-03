@@ -16,7 +16,7 @@ namespace ConsensusChessFeatureTests
             var engine = await StartEngineAsync();
             var node = await StartNodeAsync();
             var game = await StartGameWithDbAsync(fen: FeatureDataGenerator.FEN_PreSimpleCheckmate);
-            var boardPost = WaitAndAssert_NodePostsBoard(game);
+            var boardPost = WaitAndAssert_NodePostsBoard(game, NodeId.Shortcode);
 
             // add a vote to enact fools mate
             var voteCommand = await ReplyToNodeAsync(boardPost, $"move {FeatureDataGenerator.SAN_SimpleCheckmate}");
@@ -86,6 +86,12 @@ namespace ConsensusChessFeatureTests
                     count: boardCount)
                         .Last();
 
+                var votingInfoPost = WaitAndAssert_Posts(
+                    shortcode: NodeId.Shortcode,
+                    ofType: PostType.Node_VotingInstructions,
+                    count: boardCount)
+                        .Last();
+
                 WriteLogLine($"✅ Board post #{boardCount} received.");
 
                 // make sure the database has caught up
@@ -95,7 +101,7 @@ namespace ConsensusChessFeatureTests
                     {
                         return
                             db.Games.Single().Moves.Count() == boardCount &&
-                            db.Games.Single().CurrentBoard.BoardPosts.Count() == 1;
+                            db.Games.Single().CurrentBoard.BoardPosts.Count() == 2;
                     }
                 });
 

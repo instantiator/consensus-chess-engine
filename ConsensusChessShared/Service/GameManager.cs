@@ -32,22 +32,24 @@ namespace ConsensusChessShared.Service
                 SideRules.MoveLock);
         }
 
-        public IEnumerable<Game> FindUnpostedEndedGames(DbSet<Game> games, string postingNodeShortcode)
+        public IEnumerable<Game> FindUnpostedEndedGames(DbSet<Game> games, string postingNodeShortcode, params PostType[] types)
         {
             return games.ToList()
                 .Where(g
                     => g.State != GameState.InProgress
-                    && !g.GamePosts.Any(p => p.NodeShortcode == postingNodeShortcode));
+                    && !g.GamePosts.Any(post
+                        => postingNodeShortcode == null
+                        || (post.NodeShortcode == postingNodeShortcode && types.Contains(post.Type))));
         }
 
-        public Dictionary<Game,Board?> FindUnpostedActiveBoards(DbSet<Game> games, string postingNodeShortcode)
+        public Dictionary<Game,Board> FindUnpostedActiveGameBoards(DbSet<Game> games, string postingNodeShortcode, params PostType[] types)
         {
             return games.ToList()
-                .Where(g => g.Active && UnpostedBoardOrNull(g, postingNodeShortcode) != null)
-                .ToDictionary(g => g, g => UnpostedBoardOrNull(g, postingNodeShortcode));
+                .Where(g => g.Active && CurrentBoardWithoutPost(g, postingNodeShortcode, types) != null)
+                .ToDictionary(g => g, g => CurrentBoardWithoutPost(g, postingNodeShortcode, types)!);
         }
         
-        public Board? UnpostedBoardOrNull(Game game, string postingNodeShortcode)
+        public Board? CurrentBoardWithoutPost(Game game, string postingNodeShortcode, params PostType[] types)
         {
             if (!game.Active) { return null; }
 
@@ -60,7 +62,10 @@ namespace ConsensusChessShared.Service
 
             // if shortcode found amongst currently playing, check to see if there's already a post
             var board = game.CurrentMove.From;
-            var alreadyPosted = board.BoardPosts.Any(bp => bp.NodeShortcode == postingNodeShortcode);
+            var alreadyPosted = board.BoardPosts
+                .Any(boardPost
+                    => boardPost.NodeShortcode == postingNodeShortcode
+                    && types.Contains(boardPost.Type));
 
             // if not already posted, then return the board, otherwise null
             return alreadyPosted

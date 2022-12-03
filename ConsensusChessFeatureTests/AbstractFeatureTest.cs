@@ -250,7 +250,7 @@ public abstract class AbstractFeatureTest
         Assert.IsTrue(criteria.Invoke(), onFailDescription ?? "Timed out waiting for criteria");
     }
 
-    protected Post WaitAndAssert_NodePostsBoard(Game game, int occurrence = 1)
+    protected Post WaitAndAssert_NodePostsBoard(Game game, string nodeShortcode)
     {
         WaitAndAssert(() =>
         {
@@ -259,12 +259,19 @@ public abstract class AbstractFeatureTest
                     .Single(g => g.Shortcode == game.Shortcode)
                     .CurrentBoard
                     .BoardPosts
-                    .Count() == occurrence;
+                    .Where(p => p.NodeShortcode == nodeShortcode)
+                    .Count(p => p.Type == PostType.Node_BoardUpdate) == 1
+                && db.Games
+                    .Single(g => g.Shortcode == game.Shortcode)
+                    .CurrentBoard
+                    .BoardPosts
+                    .Where(p => p.NodeShortcode == nodeShortcode)
+                    .Count(p => p.Type == PostType.Node_VotingInstructions) == 1;
         });
 
         // get the last post
         return WaitAndAssert_Posts(
-            shortcode: NodeId.Shortcode,
+            shortcode: nodeShortcode,
             ofType: PostType.Node_BoardUpdate)
             .OrderBy(p => p.Created)
             .Last();

@@ -137,7 +137,10 @@ namespace ConsensusChessIntegrationTests
                 {
                     var found = await social.GetAccountStatuses(accountId.ToString());
                     var newFound = found.Where(nf => !statuses.Select(s => s.Id).Contains(nf.Id));
-                    if (newFound.Count() > 0) { WriteLogLine($"Found:\n{string.Join("\n", "  * " + newFound.Select(nf => nf.Content))}"); }
+                    if (newFound.Count() > 0)
+                    {
+                        WriteLogLine($"Found:\n{string.Join("\n", newFound.Select(nf => "  * " + nf.Content))}");
+                    }
                     var matched = newFound.Where(s => matcher(s, CommandHelper.CleanupStatus(s.Content)));
                     statuses.AddRange(matched);
                     if (matched.Count() > 0) { WriteLogLine($"Matched {matched.Count()} statuses of: {expect}"); }
@@ -236,7 +239,7 @@ namespace ConsensusChessIntegrationTests
             WriteLogLine($"Waiting for reply to status containing: {expectedContains}");
             var replyNotifications = await AssertAndGetReplyNotificationsAsync(status, 1);
             var replyContent = CommandHelper.RemoveUnwantedTags(replyNotifications.Single().Status!.Content);
-            Assert.IsTrue(replyContent.Contains(expectedContains));
+            Assert.IsTrue(replyContent.ToLower().Contains(expectedContains.ToLower()));
             return replyNotifications.Single();
         }
 

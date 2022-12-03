@@ -32,6 +32,7 @@ namespace ConsensusChessNode.Service
         protected override async Task PollAsync(CancellationToken cancellationToken)
         {
             await CheckAndPostUnpostedBoardsAsync();
+            //await CheckAndPostUnpostedBoardRemindersAsync(); TODO
             await CheckAndPostUnpostedEndedGamesAsync();
         }
 
@@ -40,21 +41,23 @@ namespace ConsensusChessNode.Service
             using (var db = dbo.GetDb())
             {
                 // find and post uposted boards from active games
-                var unpostedBoardChecks = gm.FindUnpostedActiveBoards(db.Games, state.Shortcode);
-                foreach (var check in unpostedBoardChecks)
+                var unpostedBoards = gm.FindUnpostedActiveGameBoards(db.Games, state.Shortcode, PostType.Node_BoardUpdate);
+                foreach (var gameBoard in unpostedBoards)
                 {
-                    var game = check.Key;
-                    var board = check.Value;
-                    if (board != null)
-                    {
-                        log.LogInformation($"Found a new board to post in game: {game.Id}");
-                        var post = PostBuilder.Node_BoardUpdate(game, board, BoardFormat.Words_en, BoardStyle.PixelChess).Build();
-                        var posted = await social.PostAsync(post);
-                        board.BoardPosts.Add(posted);
+                    var game = gameBoard.Key;
+                    var board = gameBoard.Value;
 
-                        log.LogDebug("Saving board and new board posts...");
-                        await db.SaveChangesAsync();
-                    }
+                    log.LogInformation($"Found a new board to post in game: {game.Id}");
+                    var post = PostBuilder.Node_BoardUpdate(game, board, BoardFormat.Words_en, BoardStyle.PixelChess).Build();
+                    var posted = await social.PostAsync(post);
+                    board.BoardPosts.Add(posted);
+
+                    var instructional = PostBuilder.Node_VotingInstructions().InReplyTo(posted).Build();
+                    var postedInstructional = await social.PostAsync(instructional);
+                    board.BoardPosts.Add(postedInstructional);
+
+                    log.LogDebug("Saving board and new board posts...");
+                    await db.SaveChangesAsync();
                 }
             }
         }
@@ -64,7 +67,7 @@ namespace ConsensusChessNode.Service
             using (var db = dbo.GetDb())
             {
                 // find and post unposted ended/abandoned games
-                var unpostedEndedGames = gm.FindUnpostedEndedGames(db.Games, state.Shortcode);
+                var unpostedEndedGames = gm.FindUnpostedEndedGames(db.Games, state.Shortcode, new[] { PostType.Node_GameAbandonedUpdate, PostType.Node_GameEndedUpdate });
                 foreach (var game in unpostedEndedGames)
                 {
                     log.LogDebug($"Game {game.Shortcode} in state {game.State} - posting about it...");

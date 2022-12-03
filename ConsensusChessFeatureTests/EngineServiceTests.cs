@@ -143,7 +143,7 @@ namespace ConsensusChessFeatureTests
             var engine = await StartEngineAsync();
             var node = await StartNodeAsync();
             var game = await StartGameWithDbAsync();
-            var boardPost = WaitAndAssert_NodePostsBoard(game);
+            var boardPost = WaitAndAssert_NodePostsBoard(game, NodeId.Shortcode);
 
             // add some votes: 5 for e4, 3 for e3
             for (var i = 0; i < 5; i++)
