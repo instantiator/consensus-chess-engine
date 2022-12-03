@@ -32,22 +32,64 @@ namespace ConsensusChessNode.Service
         protected override async Task PollAsync(CancellationToken cancellationToken)
         {
             await CheckAndPostUnpostedBoardsAsync();
-            //await CheckAndPostUnpostedBoardRemindersAsync(); TODO
+            await CheckAndPostUnpostedOverdueBoardRemindersAsync();
             await CheckAndPostUnpostedEndedGamesAsync();
+        }
+
+        private async Task CheckAndPostUnpostedOverdueBoardRemindersAsync()
+        {
+            using (var db = dbo.GetDb())
+            {
+                // find unposted board reminders from active games
+                var unpostedBoards = gm.FindUnpostedActiveGameBoards(
+                    db.Games,
+                    state.Shortcode,
+                    PostType.Node_BoardReminder);
+
+                var overdueBoards = unpostedBoards
+                    .Where(gb =>
+                        DateTime.Now.ToUniversalTime() > gb.Key.CurrentMove.Deadline.Subtract(gb.Key.MoveReminder));
+                    
+                foreach (var overdueGameBoard in overdueBoards)
+                {
+                    var game = overdueGameBoard.Key;
+                    var board = overdueGameBoard.Value;
+
+                    log.LogInformation($"Found a new board reminder to post in game: {game.Shortcode}");
+                    var post = posts.Node_BoardReminder(game, board, game.CurrentMove, BoardFormat.Words_en, BoardStyle.PixelChess).Build();
+                    var posted = await social.PostAsync(post);
+                    board.BoardPosts.Add(posted);
+
+                    var instructional1 = posts.Node_VotingInstructions().InReplyTo(posted).Build();
+                    var postedInstructional1 = await social.PostAsync(instructional1);
+                    board.BoardPosts.Add(postedInstructional1);
+
+                    var instructional2 = posts.Node_FollowInstructions().InReplyTo(postedInstructional1).Build();
+                    var postedInstructional2 = await social.PostAsync(instructional2);
+                    board.BoardPosts.Add(postedInstructional2);
+
+                    log.LogDebug("Saving board and new board posts...");
+                    await db.SaveChangesAsync();
+                } // each overdue game/board reminder
+            } // db
         }
 
         private async Task CheckAndPostUnpostedBoardsAsync()
         {
             using (var db = dbo.GetDb())
             {
-                // find and post uposted boards from active games
-                var unpostedBoards = gm.FindUnpostedActiveGameBoards(db.Games, state.Shortcode, PostType.Node_BoardUpdate);
+                // find uposted board updates from active games
+                var unpostedBoards = gm.FindUnpostedActiveGameBoards(
+                    db.Games,
+                    state.Shortcode,
+                    PostType.Node_BoardUpdate);
+
                 foreach (var gameBoard in unpostedBoards)
                 {
                     var game = gameBoard.Key;
                     var board = gameBoard.Value;
 
-                    log.LogInformation($"Found a new board to post in game: {game.Id}");
+                    log.LogInformation($"Found a new board update to post in game: {game.Shortcode}");
                     var post = posts.Node_BoardUpdate(game, board, BoardFormat.Words_en, BoardStyle.PixelChess).Build();
                     var posted = await social.PostAsync(post);
                     board.BoardPosts.Add(posted);
@@ -62,8 +104,8 @@ namespace ConsensusChessNode.Service
 
                     log.LogDebug("Saving board and new board posts...");
                     await db.SaveChangesAsync();
-                }
-            }
+                } // each game/board update to post
+            } // db
         }
 
         private async Task CheckAndPostUnpostedEndedGamesAsync()

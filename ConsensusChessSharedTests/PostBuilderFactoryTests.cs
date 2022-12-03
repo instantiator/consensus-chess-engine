@@ -145,12 +145,16 @@ namespace ConsensusChessSharedTests
         }
 
         [TestMethod]
-        [Ignore]
         public void Node_BoardReminder_Test()
         {
-            //var config = ServiceConfig.FromEnv(SampleDataGenerator.SimpleConfig);
-            //var builder = new PostBuilderFactory(config). );
-            //var post = builder.Build();
+            var config = ServiceConfig.FromEnv(SampleDataGenerator.SimpleConfig);
+            var builder = new PostBuilderFactory(config).Node_BoardReminder(
+                SampleDataGenerator.SimpleMoveLockGame(),
+                SampleDataGenerator.SimpleMoveLockGame().CurrentBoard,
+                SampleDataGenerator.SimpleMoveLockGame().CurrentMove,
+                BoardFormatter.BoardFormat.StandardFAN,
+                BoardGraphicsData.BoardStyle.PixelChess);
+            var post = builder.Build();
         }
 
         [TestMethod]

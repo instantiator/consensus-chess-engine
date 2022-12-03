@@ -52,6 +52,13 @@ namespace ConsensusChessShared.Content
                 .WithBoard(board, format)
                 .AndBoardGraphic(style, format);
 
+        public PostBuilder Node_BoardReminder(Game game, Board board, Move move, BoardFormat format, BoardStyle style)
+            => new PostBuilder(config, PostType.Node_BoardReminder)
+                .WithGame(game)
+                .WithBoard(board, format)
+                .WithMove(move)
+                .AndBoardGraphic(style, format);
+
         public PostBuilder Node_VotingInstructions()
             => new PostBuilder(config, PostType.Node_VotingInstructions);
 

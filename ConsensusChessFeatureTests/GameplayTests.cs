@@ -86,10 +86,16 @@ namespace ConsensusChessFeatureTests
                     count: boardCount)
                         .Last();
 
-                var votingInfoPost = WaitAndAssert_Posts(
+                WaitAndAssert_Posts(
                     shortcode: NodeId.Shortcode,
                     ofType: PostType.Node_VotingInstructions,
-                    count: boardCount)
+                    count: boardCount * 2 - 1)
+                        .Last();
+
+                WaitAndAssert_Posts(
+                    shortcode: NodeId.Shortcode,
+                    ofType: PostType.Node_FollowInstructions,
+                    count: boardCount * 2 - 1)
                         .Last();
 
                 WriteLogLine($"✅ Board post #{boardCount} received.");
@@ -140,7 +146,28 @@ namespace ConsensusChessFeatureTests
                     command: movePost,
                     ofType: PostType.Node_VoteAccepted);
 
+                await ExpireCurrentMoveShortlyAsync(game, TimeSpan.FromMinutes(30));
+
+                WaitAndAssert_Posts(
+                    shortcode: NodeId.Shortcode,
+                    ofType: PostType.Node_BoardReminder,
+                    count: boardCount)
+                        .Last();
+
+                WaitAndAssert_Posts(
+                    shortcode: NodeId.Shortcode,
+                    ofType: PostType.Node_VotingInstructions,
+                    count: boardCount * 2)
+                        .Last();
+
+                WaitAndAssert_Posts(
+                    shortcode: NodeId.Shortcode,
+                    ofType: PostType.Node_FollowInstructions,
+                    count: boardCount * 2)
+                        .Last();
+
                 await ExpireCurrentMoveShortlyAsync(game);
+
                 whiteToPlay = !whiteToPlay;
                 boardCount++;
             }
