@@ -36,8 +36,9 @@ namespace ConsensusChessShared.Content
             { PostType.Engine_GameAdvance, "Game advanced: {{ Game.Shortcode }}" },
 
             { PostType.Node_BoardUpdate, "🆕📢 There's a new board for the {{ Game.Title }} game. {{ BoardDescription }}\n\nReply to this message to vote for {{ Game.CurrentSide }}'s next move. The votes will be tallied after {{ FormattedGameMoveDuration }}." },
-            { PostType.Node_BoardReminder, "🎗 A reminder - it's almost time to count the votes for the {{ Game.Title}} game.\n\n{{ BoardDescription }}\n\nIf you're planning to vote for {{ Game.CurrentSide }}, you have {{ FormattedMoveTimeRemaining }} to make your move!" },
-            { PostType.Node_VotingInstructions, "ℹ️ How to play:\nVote for the move your side should make by replying to the post with the board on it. Provide coordinates for the square you want to move from, and the square you want to move to - separated by a hyphen.\n\neg. c2 - c4\n\n🔔 Enable notifications from this account to hear about each move as it happens!" },
+            { PostType.Node_BoardReminder, "🎗 A reminder - it's almost time to count the votes for the {{ Game.Title}} game. {{ BoardDescription }}\n\nIf you're planning to vote for {{ Game.CurrentSide }}, you have {{ FormattedMoveTimeRemaining }} to make your move!\n\n🧵 Instructions in thread..." },
+            { PostType.Node_VotingInstructions, "ℹ️ How to play:\nPick a side. On your turn, vote for the move your side should make with a reply. Provide coordinates for the square you want to move from, and the square you want to move to - separated by a hyphen. eg.\n\nc2 - c4" },
+            { PostType.Node_FollowInstructions, "🔔 Enable notifications from this account, or follow {{ GameTag }} to hear about each move as it happens!" },
             { PostType.Node_GameAbandonedUpdate, "The {{ Game.Title }} game was abandoned. This can happen if there are no votes for one side, or if it is actively cancelled by an administrator." },
             { PostType.Node_GameEndedUpdate, "The {{ Game.Title }} game has ended in state: {{ Game.State }}" },
 

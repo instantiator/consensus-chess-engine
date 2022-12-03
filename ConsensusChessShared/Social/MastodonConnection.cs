@@ -56,7 +56,8 @@ namespace ConsensusChessShared.Social
 
             { PostType.Node_BoardUpdate, Visibility.Unlisted },         // TODO: public when live
             { PostType.Node_BoardReminder, Visibility.Unlisted },       // TODO: public when live
-            { PostType.Node_VotingInstructions, Visibility.Unlisted },  // unlisted because this is a reply-to-self post
+            { PostType.Node_VotingInstructions, Visibility.Unlisted },  // TODO: public when live
+            { PostType.Node_FollowInstructions, Visibility.Unlisted },  // TODO: public when live
             { PostType.Node_GameAbandonedUpdate, Visibility.Unlisted }, // TODO: public when live
             { PostType.Node_GameEndedUpdate, Visibility.Unlisted },     // TODO: public when live
 

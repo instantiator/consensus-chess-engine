@@ -52,9 +52,13 @@ namespace ConsensusChessNode.Service
                     var posted = await social.PostAsync(post);
                     board.BoardPosts.Add(posted);
 
-                    var instructional = PostBuilder.Node_VotingInstructions().InReplyTo(posted).Build();
-                    var postedInstructional = await social.PostAsync(instructional);
-                    board.BoardPosts.Add(postedInstructional);
+                    var instructional1 = PostBuilder.Node_VotingInstructions().InReplyTo(posted).Build();
+                    var postedInstructional1 = await social.PostAsync(instructional1);
+                    board.BoardPosts.Add(postedInstructional1);
+
+                    var instructional2 = PostBuilder.Node_FollowInstructions().InReplyTo(postedInstructional1).Build();
+                    var postedInstructional2 = await social.PostAsync(instructional2);
+                    board.BoardPosts.Add(postedInstructional2);
 
                     log.LogDebug("Saving board and new board posts...");
                     await db.SaveChangesAsync();

@@ -36,10 +36,11 @@ namespace ConsensusChessFeatureTests
 
             using (var db = Dbo.GetDb())
             {
-                Assert.AreEqual(2, db.Games.Single().CurrentBoard.BoardPosts.Count());
+                Assert.AreEqual(3, db.Games.Single().CurrentBoard.BoardPosts.Count());
                 Assert.IsTrue(db.Games.Single().CurrentBoard.BoardPosts.All(bp => bp.Succeeded));
                 Assert.IsTrue(db.Games.Single().CurrentBoard.BoardPosts.Count(bp => bp.Type == PostType.Node_BoardUpdate) == 1);
                 Assert.IsTrue(db.Games.Single().CurrentBoard.BoardPosts.Count(bp => bp.Type == PostType.Node_VotingInstructions) == 1);
+                Assert.IsTrue(db.Games.Single().CurrentBoard.BoardPosts.Count(bp => bp.Type == PostType.Node_FollowInstructions) == 1);
             }
 
             NodeSocialMock.Verify(ns => ns.PostAsync(

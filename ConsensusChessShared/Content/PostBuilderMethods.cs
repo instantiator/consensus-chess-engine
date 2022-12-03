@@ -51,6 +51,9 @@ namespace ConsensusChessShared.Content
         public static PostBuilder Node_VotingInstructions()
             => new PostBuilder(PostType.Node_VotingInstructions);
 
+        public static PostBuilder Node_FollowInstructions()
+            => new PostBuilder(PostType.Node_FollowInstructions);
+
         public static PostBuilder Node_GameAbandonedUpdate(Game game)
             => new PostBuilder(PostType.Node_GameAbandonedUpdate)
                 .WithGame(game);

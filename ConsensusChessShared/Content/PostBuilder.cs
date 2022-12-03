@@ -36,6 +36,7 @@ namespace ConsensusChessShared.Content
 			Mappings = new Dictionary<string, object>();
 			Media = new List<Media>();
 			WithMapping("AdminContact", "@instantiator@mastodon.social"); // TODO: config
+			WithMapping("GameTag", "#ConsensusChess"); // TODO: config
 		}
 
 		public PostBuilder WithBoard(Board board, BoardFormat textFormat)

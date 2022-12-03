@@ -101,7 +101,7 @@ namespace ConsensusChessFeatureTests
                     {
                         return
                             db.Games.Single().Moves.Count() == boardCount &&
-                            db.Games.Single().CurrentBoard.BoardPosts.Count() == 2;
+                            db.Games.Single().CurrentBoard.BoardPosts.Count() == 3;
                     }
                 });
 

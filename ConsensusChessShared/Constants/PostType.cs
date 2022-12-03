@@ -21,6 +21,7 @@ namespace ConsensusChessShared.Constants
         Node_BoardUpdate,
 		Node_BoardReminder,
 		Node_VotingInstructions,
+		Node_FollowInstructions,
 		Node_GameAbandonedUpdate,
 		Node_GameEndedUpdate,
 

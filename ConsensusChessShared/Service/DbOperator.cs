@@ -67,17 +67,18 @@ namespace ConsensusChessShared.Service
             // check if this is in reply to any boardpost from any game
             var gamesForNode = GetActiveGamesForNode(db, shortcode);
 
-            var game = db.Games.ToList().SingleOrDefault(g =>
-                g.Moves.Any(m =>
+            var game = db.Games.ToList()
+                .SingleOrDefault(g => g.Moves.Any(m =>
                     m.From.BoardPosts.Any(bp =>
                         bp.NetworkPostId == cmd.InReplyToId)));
 
             if (game == null)
                 throw new GameNotFoundException(cmd, GameNotFoundReason.NoLinkedGame);
 
-            var currentBoard = game.CurrentBoard.BoardPosts.SingleOrDefault(bp => bp.NetworkPostId == cmd.InReplyToId);
+            var currentBoardPost = game.CurrentBoard.BoardPosts
+                .SingleOrDefault(bp => bp.NetworkPostId == cmd.InReplyToId);
 
-            if (currentBoard == null)
+            if (currentBoardPost == null)
                 throw new GameNotFoundException(cmd, GameNotFoundReason.BoardReferenceExpired);
 
             return game;
