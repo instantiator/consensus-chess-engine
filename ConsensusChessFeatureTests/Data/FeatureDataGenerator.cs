@@ -21,31 +21,35 @@ namespace ConsensusChessFeatureTests.Data
         public static Dictionary<string, string> NodeEnv =>
             new Dictionary<string, string>()
             {
-                    { "NODE_NAME", "a fake node" },
-                    { "NODE_SHORTCODE", "node-0-fake" },
-                    { "NETWORK_TYPE", "Mastodon" },
-                    { "NETWORK_SERVER", "fake.mastodon.server" },
-                    { "NETWORK_APP_NAME_REMINDER", "node-app" },
-                    { "NETWORK_APP_KEY", "app-key" },
-                    { "NETWORK_APP_SECRET", "app-secret" },
-                    { "NETWORK_ACCESS_TOKEN", "access-token" },
-                    { "NETWORK_AUTHORISED_ACCOUNTS", "engine" },
-                    { "NETWORK_DRY_RUNS", "false" }
+                { "NODE_NAME", "a fake node" },
+                { "NODE_SHORTCODE", "node-0-fake" },
+                { "NETWORK_TYPE", "Mastodon" },
+                { "NETWORK_SERVER", "fake.mastodon.server" },
+                { "NETWORK_APP_NAME_REMINDER", "node-app" },
+                { "NETWORK_APP_KEY", "app-key" },
+                { "NETWORK_APP_SECRET", "app-secret" },
+                { "NETWORK_ACCESS_TOKEN", "access-token" },
+                { "NETWORK_AUTHORISED_ACCOUNTS", "engine" },
+                { "NETWORK_DRY_RUNS", "false" },
+                { "POST_GAME_TAG", "#ConsensusChessFeatureTests" },
+                { "POST_ADMIN_CONTACT", "@instantiator@mastodon.social" },
             };
 
         public static Dictionary<string, string> EngineEnv =>
             new Dictionary<string, string>()
             {
-                    { "NODE_NAME", "a fake engine" },
-                    { "NODE_SHORTCODE", "engine-fake" },
-                    { "NETWORK_TYPE", "Mastodon" },
-                    { "NETWORK_SERVER", "fake.mastodon.server" },
-                    { "NETWORK_APP_NAME_REMINDER", "engine-app" },
-                    { "NETWORK_APP_KEY", "app-key" },
-                    { "NETWORK_APP_SECRET", "app-secret" },
-                    { "NETWORK_ACCESS_TOKEN", "access-token" },
-                    { "NETWORK_AUTHORISED_ACCOUNTS", "admin@chesstodon.social" },
-                    { "NETWORK_DRY_RUNS", "false" }
+                { "NODE_NAME", "a fake engine" },
+                { "NODE_SHORTCODE", "engine-fake" },
+                { "NETWORK_TYPE", "Mastodon" },
+                { "NETWORK_SERVER", "fake.mastodon.server" },
+                { "NETWORK_APP_NAME_REMINDER", "engine-app" },
+                { "NETWORK_APP_KEY", "app-key" },
+                { "NETWORK_APP_SECRET", "app-secret" },
+                { "NETWORK_ACCESS_TOKEN", "access-token" },
+                { "NETWORK_AUTHORISED_ACCOUNTS", "admin@chesstodon.social" },
+                { "NETWORK_DRY_RUNS", "false" },
+                { "POST_GAME_TAG", "#ConsensusChessFeatureTests" },
+                { "POST_ADMIN_CONTACT", "@instantiator@mastodon.social" },
             };
 
         public static Post SimulatePost(Post post, string shortcode, Network network)

@@ -6,6 +6,7 @@ using ConsensusChessShared.Constants;
 using ConsensusChessShared.DTO;
 using ConsensusChessShared.Exceptions;
 using ConsensusChessShared.Helpers;
+using ConsensusChessShared.Service;
 using ConsensusChessShared.Social;
 using HandlebarsDotNet;
 using Mastonet.Entities;
@@ -30,13 +31,12 @@ namespace ConsensusChessShared.Content
 
 		public List<Media> Media { get; private set; }
 
-		private PostBuilder(PostType type)
+		public PostBuilder(ServiceConfig config, PostType type)
 		{
 			Type = type;
 			Mappings = new Dictionary<string, object>();
 			Media = new List<Media>();
-			WithMapping("AdminContact", "@instantiator@mastodon.social"); // TODO: config
-			WithMapping("GameTag", "#ConsensusChess"); // TODO: config
+			WithObject("Config", config);
 		}
 
 		public PostBuilder WithBoard(Board board, BoardFormat textFormat)

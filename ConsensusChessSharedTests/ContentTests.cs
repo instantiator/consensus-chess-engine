@@ -2,6 +2,7 @@
 using ConsensusChessShared.Constants;
 using ConsensusChessShared.Content;
 using ConsensusChessShared.Social;
+using ConsensusChessSharedTests.Data;
 using HandlebarsDotNet.Compiler;
 
 namespace ConsensusChessSharedTests
@@ -57,7 +58,8 @@ namespace ConsensusChessSharedTests
         [TestMethod]
 		public void PostsWithBrokenSubstitutions_throws_HandlebarsUndefinedBindingException()
         {
-			var post = PostBuilder.Create(PostType.Engine_GameAnnouncement);
+            var posts = SampleDataGenerator.PostBuilderFactory;
+			var post = posts.Create(PostType.Engine_GameAnnouncement);
 			Assert.ThrowsException<HandlebarsUndefinedBindingException>(() => post.Build());
 		}
 

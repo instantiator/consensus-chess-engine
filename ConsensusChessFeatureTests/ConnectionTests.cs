@@ -58,7 +58,7 @@ namespace ConsensusChessFeatureTests
             NodeSocialMock.Verify(ns => ns.PostAsync(
                 It.Is<Post>(p =>
                     p.Succeeded == true &&
-                    p.Message == "a fake node (node-0-fake): Started"),
+                    p.Message!.Contains("a fake node (node-0-fake): Started")),
                 null),
                 Times.Once);
 
@@ -83,7 +83,7 @@ namespace ConsensusChessFeatureTests
             EngineSocialMock.Verify(ns => ns.PostAsync(
                 It.Is<Post>(p =>
                     p.Succeeded == true &&
-                    p.Message == "a fake engine (engine-fake): Started"),
+                    p.Message!.Contains("a fake engine (engine-fake): Started")),
                 null),
                 Times.Once);
 

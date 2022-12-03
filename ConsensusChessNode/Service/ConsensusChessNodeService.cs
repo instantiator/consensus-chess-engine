@@ -23,8 +23,8 @@ namespace ConsensusChessNode.Service
         protected override TimeSpan PollPeriod => overridePollPeriod ?? DefaultPollPeriod;
         protected override NodeType NodeType => NodeType.Node;
 
-        public ConsensusChessNodeService(ILogger log, ServiceIdentity id, DbOperator dbo, Network network, ISocialConnection social, TimeSpan? overridePollPeriod = null)
-            : base(log, id, dbo, network, social)
+        public ConsensusChessNodeService(ILogger log, ServiceIdentity id, DbOperator dbo, Network network, ISocialConnection social, ServiceConfig config, TimeSpan? overridePollPeriod = null)
+            : base(log, id, dbo, network, social, config)
         {
             this.overridePollPeriod = overridePollPeriod;
         }
@@ -48,15 +48,15 @@ namespace ConsensusChessNode.Service
                     var board = gameBoard.Value;
 
                     log.LogInformation($"Found a new board to post in game: {game.Id}");
-                    var post = PostBuilder.Node_BoardUpdate(game, board, BoardFormat.Words_en, BoardStyle.PixelChess).Build();
+                    var post = posts.Node_BoardUpdate(game, board, BoardFormat.Words_en, BoardStyle.PixelChess).Build();
                     var posted = await social.PostAsync(post);
                     board.BoardPosts.Add(posted);
 
-                    var instructional1 = PostBuilder.Node_VotingInstructions().InReplyTo(posted).Build();
+                    var instructional1 = posts.Node_VotingInstructions().InReplyTo(posted).Build();
                     var postedInstructional1 = await social.PostAsync(instructional1);
                     board.BoardPosts.Add(postedInstructional1);
 
-                    var instructional2 = PostBuilder.Node_FollowInstructions().InReplyTo(postedInstructional1).Build();
+                    var instructional2 = posts.Node_FollowInstructions().InReplyTo(postedInstructional1).Build();
                     var postedInstructional2 = await social.PostAsync(instructional2);
                     board.BoardPosts.Add(postedInstructional2);
 
@@ -79,12 +79,12 @@ namespace ConsensusChessNode.Service
                     switch (game.State)
                     {
                         case GameState.Abandoned:
-                            post = PostBuilder.Node_GameAbandonedUpdate(game).Build();
+                            post = posts.Node_GameAbandonedUpdate(game).Build();
                             break;
                         case GameState.Stalemate:
                         case GameState.BlackKingCheckmated:
                         case GameState.WhiteKingCheckmated:
-                            post = PostBuilder.Node_GameEndedUpdate(game).Build();
+                            post = posts.Node_GameEndedUpdate(game).Build();
                             break;
                         default:
                             log.LogWarning($"Should not have attempted to post the end of game in state: {game.State}");
@@ -201,7 +201,7 @@ namespace ConsensusChessNode.Service
                     await db.SaveChangesAsync();
 
                     // post validation response, and attach to vote
-                    var reply = PostBuilder.MoveAccepted(game, game.CurrentSide, vote)
+                    var reply = posts.MoveAccepted(game, game.CurrentSide, vote)
                         .InReplyTo(origin)
                         .Build();
 
@@ -214,7 +214,7 @@ namespace ConsensusChessNode.Service
                     var summary = $"No game linked to move post from {e.Command.SourceUsername.Full}: {moveText}";
                     log.LogWarning(summary);
 
-                    var reply = PostBuilder.GameNotFound(e.Reason)
+                    var reply = posts.GameNotFound(e.Reason)
                         .InReplyTo(origin)
                         .Build();
                     await social.PostAsync(reply);
@@ -224,7 +224,7 @@ namespace ConsensusChessNode.Service
                     var summary = $"{e.Reason} from {participant?.Username.Full ?? "unknown"}: {moveText}, {e.Detail}";
                     log.LogWarning(summary);
 
-                    var reply = PostBuilder.MoveValidation(e.Reason, participant!.Username, moveText, e?.Detail)
+                    var reply = posts.MoveValidation(e.Reason, participant!.Username, moveText, e?.Detail)
                         .InReplyTo(origin)
                         .Build();
 

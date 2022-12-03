@@ -16,7 +16,8 @@ namespace ConsensusChessSharedTests
 		{
 			var game = SampleDataGenerator.SimpleMoveLockGame();
 			var board = game.CurrentBoard;
-			var post = PostBuilder.Node_BoardUpdate(
+            var posts = SampleDataGenerator.PostBuilderFactory;
+            var post = posts.Node_BoardUpdate(
 				game, board,
 				BoardFormatter.BoardFormat.StandardFAN,
 				BoardStyle.PixelChess)

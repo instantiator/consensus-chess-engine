@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections;
 using ConsensusChessShared.Constants;
+using ConsensusChessShared.Content;
 using ConsensusChessShared.DTO;
+using ConsensusChessShared.Service;
 using ConsensusChessShared.Social;
 
 namespace ConsensusChessSharedTests.Data
@@ -70,6 +72,9 @@ namespace ConsensusChessSharedTests.Data
                 blackPostingNodeShortcodes: new[] { NodeState.Shortcode },
                 SideRules.MoveLock);
 
+        public static PostBuilderFactory PostBuilderFactory
+            => new PostBuilderFactory(ServiceConfig.FromEnv(SimpleConfig));
+
         public static IDictionary SimpleNetworkEnv => new Hashtable()
         {
             {"NETWORK_TYPE","Mastodon"},
@@ -80,6 +85,13 @@ namespace ConsensusChessSharedTests.Data
             {"NETWORK_ACCESS_TOKEN","access-token"},
             {"NETWORK_AUTHORISED_ACCOUNTS","instantiator@mastodon.social,icgames@botsin.space"},
             {"NETWORK_DRY_RUNS","true"},
+        };
+
+        public static IDictionary SimpleConfig => new Hashtable()
+        {
+            {"POST_ADMIN_CONTACT","@instantiator@mastodon.social"},
+            {"POST_GAME_TAG","#ConsensusChessUnitTests"},
+
         };
     }
 }

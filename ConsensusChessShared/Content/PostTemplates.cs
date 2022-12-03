@@ -26,27 +26,27 @@ namespace ConsensusChessShared.Content
 
         public static Dictionary<PostType, string> TemplateSource = new Dictionary<PostType, string>()
         {
-            { PostType.SocialStatus, "{{ State.Name }} ({{ State.Shortcode }}): {{ SocialStatus }}" },
+            { PostType.SocialStatus, "⚙️ {{ State.Name }} ({{ State.Shortcode }}): {{ SocialStatus }}" },
+
+            { PostType.Engine_GameCreationResponse, "⚙️🆕 New {{ Game.SideRules }} game for: {{ AllNodes }}" },
+            { PostType.Engine_GameAnnouncement, "⚙️🆕 New {{ Game.SideRules }} game started.\nWhite: {{ WhiteParticipantNetworkServers }}\nBlack: {{ BlackParticipantNetworkServers }}\nMove duration: {{ Game.MoveDuration }}" },
+            { PostType.Engine_GameAbandoned, "⚙️⏹ Game {{ Game.Shortcode }}: {{ Game.State }}" },
+            { PostType.Engine_GameEnded, "⚙️⏹ Game {{ Game.Shortcode }}: {{ Game.State }}" },
+            { PostType.Engine_GameAdvance, "⚙️⏭ Game advanced: {{ Game.Shortcode }}" },
+
+            { PostType.Node_BoardUpdate, "📢 There's a new board for the {{ Game.Title }} game. {{ BoardDescription }}\n\nReply to this message to vote for {{ Game.CurrentSide }}'s next move. The votes will be tallied after {{ FormattedGameMoveDuration }}.\n\n{{ Config.GameTag }}" },
+            { PostType.Node_BoardReminder, "🎗 A reminder - it's almost time to count the votes for the {{ Game.Title}} game. {{ BoardDescription }}\n\nIf you're planning to vote for {{ Game.CurrentSide }}, you have {{ FormattedMoveTimeRemaining }} to make your move!\n\n🧵 Instructions in thread... {{ Config.GameTag }}" },
+            { PostType.Node_VotingInstructions, "ℹ️ How to play:\nPick a side. On your turn, vote for the move your side should make with a reply. Provide coordinates for the square you want to move from, and the square you want to move to - separated by a hyphen. eg.\n\nc2 - c4\n\n{{ Config.GameTag }}" },
+            { PostType.Node_FollowInstructions, "🔔 Enable notifications from this account, or follow {{ Config.GameTag }} to hear about each move as it happens!" },
+            { PostType.Node_GameAbandonedUpdate, "😶 The {{ Game.Title }} game was abandoned. This can happen if there are no votes for one side, or if it is actively cancelled by an administrator." },
+            { PostType.Node_GameEndedUpdate, "🧐 The {{ Game.Title }} game has ended in state: {{ Game.State }}\n\n{{ Config.GameTag }}" },
+
+            { PostType.GameNotFound, "😔 This vote can't be processed: {{ GameNotFoundReason }}" },
+            { PostType.CommandRejection, "😔 This instruction can't be processed: {{ CommandRejectionReason }} {{ ItemsSummary }}" },
+            { PostType.MoveAccepted, "⭐️ Vote accepted - thank you.\n\nThe standard algebraic notation (SAN) for your move is: {{ SAN }}" },
+            { PostType.MoveValidation, "😔 Unfortunately, this move couldn't be interpreted. This might be because it's not a valid move, or because it wasn't in the right format.\n\nYou can try something different by replying to the board post again.\n\nIf you think this is an error, please reach out to {{ Config.AdminContact }}.\n\nDetail: {{ ValidationState }}: {{ MoveText }}\n{{ Detail }}" },
+
             { PostType.CommandResponse, "{{ Text }}" },
-
-            { PostType.Engine_GameCreationResponse, "New {{ Game.SideRules }} game for: {{ AllNodes }}" },
-            { PostType.Engine_GameAnnouncement, "New {{ Game.SideRules }} game started.\nWhite: {{ WhiteParticipantNetworkServers }}\nBlack: {{ BlackParticipantNetworkServers }}\nMove duration: {{ Game.MoveDuration }}" },
-            { PostType.Engine_GameAbandoned, "Game {{ Game.Shortcode }}: {{ Game.State }}" },
-            { PostType.Engine_GameEnded, "Game {{ Game.Shortcode }}: {{ Game.State }}" },
-            { PostType.Engine_GameAdvance, "Game advanced: {{ Game.Shortcode }}" },
-
-            { PostType.Node_BoardUpdate, "🆕📢 There's a new board for the {{ Game.Title }} game. {{ BoardDescription }}\n\nReply to this message to vote for {{ Game.CurrentSide }}'s next move. The votes will be tallied after {{ FormattedGameMoveDuration }}." },
-            { PostType.Node_BoardReminder, "🎗 A reminder - it's almost time to count the votes for the {{ Game.Title}} game. {{ BoardDescription }}\n\nIf you're planning to vote for {{ Game.CurrentSide }}, you have {{ FormattedMoveTimeRemaining }} to make your move!\n\n🧵 Instructions in thread..." },
-            { PostType.Node_VotingInstructions, "ℹ️ How to play:\nPick a side. On your turn, vote for the move your side should make with a reply. Provide coordinates for the square you want to move from, and the square you want to move to - separated by a hyphen. eg.\n\nc2 - c4" },
-            { PostType.Node_FollowInstructions, "🔔 Enable notifications from this account, or follow {{ GameTag }} to hear about each move as it happens!" },
-            { PostType.Node_GameAbandonedUpdate, "The {{ Game.Title }} game was abandoned. This can happen if there are no votes for one side, or if it is actively cancelled by an administrator." },
-            { PostType.Node_GameEndedUpdate, "The {{ Game.Title }} game has ended in state: {{ Game.State }}" },
-
-            { PostType.GameNotFound, "This vote can't be processed: {{ GameNotFoundReason }}" },
-            { PostType.CommandRejection, "This instruction can't be processed: {{ CommandRejectionReason }} {{ ItemsSummary }}" },
-            { PostType.MoveAccepted, "Move accepted - thank you.\n\nThe standard algebraic notation (SAN) for your move is: {{ SAN }}" },
-            { PostType.MoveValidation, "Unfortunately, this move couldn't be interpreted. This might be because it's not a valid move, or because it wasn't in the right format.\n\nYou can try something different by replying to the board.\n\nIf you think this is an error, please reach out to {{ AdminContact }}.\n\nDetail: {{ ValidationState }}: {{ MoveText }}\n{{ Detail }}" },
-
             { PostType.Unspecified, "{{ Text }}" },
         };
 

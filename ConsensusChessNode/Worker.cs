@@ -24,8 +24,9 @@ public class Worker : BackgroundService
         var dbo = new DbOperator(log, env);
         var network = Network.FromEnv(env);
         var social = SocialFactory.From(log, network, id.Shortcode);
+        var config = ServiceConfig.FromEnv(env);
 
-        service = new ConsensusChessNodeService(log, id, dbo, network, social);
+        service = new ConsensusChessNodeService(log, id, dbo, network, social, config);
     }
 
     public override async Task StartAsync(CancellationToken cancellationToken)

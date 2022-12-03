@@ -20,8 +20,8 @@ namespace ConsensusChessEngine.Service
         protected override TimeSpan PollPeriod => overridePollPeriod ?? DefaultPollPeriod;
         protected override NodeType NodeType => NodeType.Engine;
 
-        public ConsensusChessEngineService(ILogger log, ServiceIdentity id, DbOperator dbo, Network network, ISocialConnection social, TimeSpan? overridePollPeriod = null)
-            : base(log, id, dbo, network, social)
+        public ConsensusChessEngineService(ILogger log, ServiceIdentity id, DbOperator dbo, Network network, ISocialConnection social, ServiceConfig config, TimeSpan? overridePollPeriod = null)
+            : base(log, id, dbo, network, social, config)
         {
             this.overridePollPeriod = overridePollPeriod;
         }
@@ -63,12 +63,12 @@ namespace ConsensusChessEngine.Service
                 switch (game.State)
                 {
                     case GameState.InProgress:
-                        post = PostBuilder.Engine_GameAdvance(game).Build();
+                        post = posts.Engine_GameAdvance(game).Build();
                         break;
                     case GameState.WhiteKingCheckmated:
                     case GameState.BlackKingCheckmated:
                     case GameState.Stalemate:
-                        post = PostBuilder.Engine_GameEnded(game).Build();
+                        post = posts.Engine_GameEnded(game).Build();
                         break;
                     default:
                         post = null;
@@ -91,7 +91,7 @@ namespace ConsensusChessEngine.Service
                 log.LogWarning($"0 votes found for game: {game.Shortcode}");
                 log.LogInformation($"Deactivating game: {game.Shortcode}");
                 gm.AbandonGame(game);
-                var post = PostBuilder.Engine_GameAbandoned(game).Build();
+                var post = posts.Engine_GameAbandoned(game).Build();
                 var posted = await social.PostAsync(post);
                 game.GamePosts.Add(posted);
             }
@@ -138,13 +138,13 @@ namespace ConsensusChessEngine.Service
                     var summary = $"New {game.SideRules} game for: {string.Join(", ", nodeShortcodes)}";
                     log.LogInformation(summary);
 
-                    var post = PostBuilder.Engine_GameAnnouncement(game).Build();
+                    var post = posts.Engine_GameAnnouncement(game).Build();
                     await social.PostAsync(post);
                     game.GamePosts.Add(post);
                     db.Update(game);
                     await db.SaveChangesAsync();
 
-                    var reply = PostBuilder.Engine_GameCreationResponse(game).InReplyTo(origin).Build();
+                    var reply = posts.Engine_GameCreationResponse(game).InReplyTo(origin).Build();
                     await social.PostAsync(reply);
                 }
                 else
@@ -153,7 +153,7 @@ namespace ConsensusChessEngine.Service
                     log.LogWarning($"New game node shortcodes unrecognised: {string.Join(", ",unrecognised)}");
 
                     var summary = $"Unrecognised shortcodes: {string.Join(", ", unrecognised)}";
-                    var reply = PostBuilder.CommandRejection(CommandRejectionReason.CommandMalformed, unrecognised)
+                    var reply = posts.CommandRejection(CommandRejectionReason.CommandMalformed, unrecognised)
                         .InReplyTo(origin)
                         .Build();
                     await social.PostAsync(reply);

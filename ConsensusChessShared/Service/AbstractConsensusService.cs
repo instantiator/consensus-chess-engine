@@ -24,6 +24,8 @@ namespace ConsensusChessShared.Service
         protected bool running;
         protected bool polling;
         protected ServiceIdentity identity;
+        protected ServiceConfig config;
+        protected PostBuilderFactory posts;
 
         protected CommandProcessor? cmd;
         protected GameManager gm;
@@ -36,13 +38,15 @@ namespace ConsensusChessShared.Service
 
         protected CancellationTokenSource? pollingCancellation;
 
-        protected AbstractConsensusService(ILogger log, ServiceIdentity identity, DbOperator dbo, Network network, ISocialConnection social)
+        protected AbstractConsensusService(ILogger log, ServiceIdentity identity, DbOperator dbo, Network network, ISocialConnection social, ServiceConfig config)
         {
             this.log = log;
             this.identity = identity;
             this.dbo = dbo;
             this.network = network;
             this.social = social;
+            this.config = config;
+            this.posts = new PostBuilderFactory(config);
 
             using (var db = dbo.GetDb())
             {
@@ -93,7 +97,7 @@ namespace ConsensusChessShared.Service
 
         private async Task Cmd_OnFailAsync(SocialCommand origin, string message, CommandRejectionReason reason)
         {
-            var post = PostBuilder.CommandRejection(reason).InReplyTo(origin).Build();
+            var post = posts.CommandRejection(reason).InReplyTo(origin).Build();
             await social.PostAsync(post);
         }
 
@@ -141,7 +145,7 @@ namespace ConsensusChessShared.Service
                 running = true;
 
                 // post readiness
-                var post = PostBuilder.SocialStatus(state, SocialStatus.Started).Build();
+                var post = posts.SocialStatus(state, SocialStatus.Started).Build();
                 var posted = await social.PostAsync(post);
                 await RecordStatePostAsync(posted);
 
@@ -194,7 +198,7 @@ namespace ConsensusChessShared.Service
             EraseHealthIndicators();
             log.LogInformation("StopAsync at: {time}", DateTimeOffset.Now);
             await social.StopListeningForCommandsAsync(cmd!.ParseAsync);
-            var post = PostBuilder.SocialStatus(state, SocialStatus.Stopped).Build();
+            var post = posts.SocialStatus(state, SocialStatus.Stopped).Build();
             var posted = await social.PostAsync(post);
             await RecordStatePostAsync(posted);
 

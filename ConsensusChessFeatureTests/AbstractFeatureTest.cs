@@ -30,11 +30,13 @@ public abstract class AbstractFeatureTest
     public Mock<ILogger> NodeLogMock { get; private set; }
     public Network NodeNetwork { get; private set; }
     public ServiceIdentity NodeId { get; private set; }
+    public ServiceConfig NodeConfig { get; private set; }
     public Mock<ISocialConnection> NodeSocialMock { get; private set; }
 
     public Mock<ILogger> EngineLogMock { get; private set; }
     public Network EngineNetwork { get; private set; }
     public ServiceIdentity EngineId { get; private set; }
+    public ServiceConfig EngineConfig { get; private set; }
     public Mock<ISocialConnection> EngineSocialMock { get; private set; }
 
     protected Dictionary<string, Func<SocialCommand, Task>> receivers;
@@ -74,11 +76,13 @@ public abstract class AbstractFeatureTest
         NodeLogMock = new Mock<ILogger>();
         NodeNetwork = Network.FromEnv(FeatureDataGenerator.NodeEnv);
         NodeId = ServiceIdentity.FromEnv(FeatureDataGenerator.NodeEnv);
+        NodeConfig = ServiceConfig.FromEnv(FeatureDataGenerator.NodeEnv);
         NodeSocialMock = new Mock<ISocialConnection>();
 
         EngineLogMock = new Mock<ILogger>();
         EngineNetwork = Network.FromEnv(FeatureDataGenerator.EngineEnv);
         EngineId = ServiceIdentity.FromEnv(FeatureDataGenerator.EngineEnv);
+        EngineConfig = ServiceConfig.FromEnv(FeatureDataGenerator.EngineEnv);
         EngineSocialMock = new Mock<ISocialConnection>();
 
         receivers = new Dictionary<string, Func<SocialCommand, Task>>();
@@ -121,6 +125,7 @@ public abstract class AbstractFeatureTest
             Dbo,
             NodeNetwork,
             NodeSocialMock.Object,
+            NodeConfig,
             fastPollOverride);
 
     private ConsensusChessEngineService CreateEngine()
@@ -130,6 +135,7 @@ public abstract class AbstractFeatureTest
             Dbo,
             EngineNetwork,
             EngineSocialMock.Object,
+            EngineConfig,
             fastPollOverride);
 
     protected async Task<ConsensusChessNodeService> StartNodeAsync()
