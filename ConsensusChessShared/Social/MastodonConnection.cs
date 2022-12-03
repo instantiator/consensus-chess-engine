@@ -2,6 +2,7 @@
 using ConsensusChessShared.Constants;
 using ConsensusChessShared.Content;
 using ConsensusChessShared.DTO;
+using ConsensusChessShared.Service;
 using Mastonet;
 using Mastonet.Entities;
 using Microsoft.Extensions.Logging;
@@ -22,8 +23,8 @@ namespace ConsensusChessShared.Social
         public static int RATE_LIMIT_PERMITTED_REQUESTS = 300;
         public static TimeSpan RATE_LIMIT_PERMITTED_PERIOD = TimeSpan.FromSeconds(300);
 
-        public MastodonConnection(ILogger log, Network network, string shortcode)
-            : base(log, network, shortcode, RATE_LIMIT_PERMITTED_REQUESTS, RATE_LIMIT_PERMITTED_PERIOD)
+        public MastodonConnection(ILogger log, Network network, string shortcode, ServiceConfig config)
+            : base(log, network, shortcode, RATE_LIMIT_PERMITTED_REQUESTS, RATE_LIMIT_PERMITTED_PERIOD, config)
 		{
             client = new MastodonClient(network.NetworkServer, network.AppToken, http);
         }
@@ -50,12 +51,12 @@ namespace ConsensusChessShared.Social
             { PostType.Engine_GameAbandoned, Visibility.Unlisted },
             { PostType.Engine_GameEnded, Visibility.Unlisted },
 
-            { PostType.Node_BoardUpdate, Visibility.Unlisted },         // TODO: public when live
-            { PostType.Node_BoardReminder, Visibility.Unlisted },       // TODO: public when live
-            { PostType.Node_VotingInstructions, Visibility.Unlisted },  // TODO: public when live
-            { PostType.Node_FollowInstructions, Visibility.Unlisted },  // TODO: public when live
-            { PostType.Node_GameAbandonedUpdate, Visibility.Unlisted }, // TODO: public when live
-            { PostType.Node_GameEndedUpdate, Visibility.Unlisted },     // TODO: public when live
+            { PostType.Node_BoardUpdate, Visibility.Public },
+            { PostType.Node_BoardReminder, Visibility.Public },
+            { PostType.Node_VotingInstructions, Visibility.Public },
+            { PostType.Node_FollowInstructions, Visibility.Public },
+            { PostType.Node_GameAbandonedUpdate, Visibility.Public },
+            { PostType.Node_GameEndedUpdate, Visibility.Public },
 
             { PostType.Node_VoteAccepted, Visibility.Direct },
             { PostType.Node_VoteSuperceded, Visibility.Direct },
@@ -92,13 +93,18 @@ namespace ConsensusChessShared.Social
                 log.LogError(e, $"Unable to upload media: {media.Filename}");
                 return false;
             }
-
         }
 
         protected override async Task<Post> PostImplementationAsync(Post post, bool? dryRun)
         {
             // already rate limited through the public method
+
+            // get visibility and map to the config setting if it's a public post
             Visibility visibility = VisibilityMapping[post.Type];
+            visibility = visibility == Visibility.Public
+                ? config.MastodonPublicPostVisibility
+                : visibility;
+
             var dry = dryRun ?? dryRuns;
             try
             {

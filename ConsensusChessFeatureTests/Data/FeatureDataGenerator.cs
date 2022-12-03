@@ -33,6 +33,7 @@ namespace ConsensusChessFeatureTests.Data
                 { "NETWORK_DRY_RUNS", "false" },
                 { "POST_GAME_TAG", "#ConsensusChessFeatureTests" },
                 { "POST_ADMIN_CONTACT", "@instantiator@mastodon.social" },
+                { "POST_PUBLIC_VISIBILITY", "Unlisted" }
             };
 
         public static Dictionary<string, string> EngineEnv =>
@@ -50,6 +51,7 @@ namespace ConsensusChessFeatureTests.Data
                 { "NETWORK_DRY_RUNS", "false" },
                 { "POST_GAME_TAG", "#ConsensusChessFeatureTests" },
                 { "POST_ADMIN_CONTACT", "@instantiator@mastodon.social" },
+                { "POST_PUBLIC_VISIBILITY", "Unlisted" }
             };
 
         public static Post SimulatePost(Post post, string shortcode, Network network)

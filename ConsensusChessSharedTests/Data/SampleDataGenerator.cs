@@ -105,7 +105,7 @@ namespace ConsensusChessSharedTests.Data
         {
             {"POST_ADMIN_CONTACT","@instantiator@mastodon.social"},
             {"POST_GAME_TAG","#ConsensusChessUnitTests"},
-
+            { "POST_PUBLIC_VISIBILITY", "Unlisted" }
         };
     }
 }

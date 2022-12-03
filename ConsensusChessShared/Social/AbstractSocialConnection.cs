@@ -19,19 +19,21 @@ namespace ConsensusChessShared.Social
 		protected NodeState state;
 		protected bool dryRuns;
         protected string shortcode;
+        protected ServiceConfig config;
 
         protected event Func<SocialCommand, Task>? asyncCommandReceivers;
         protected IEnumerable<SocialCommand>? missedCommands;
 
         protected RateLimiter? rateLimiter;
 
-        public AbstractSocialConnection(ILogger log, Network network, string shortcode, int? permittedRequests, TimeSpan? rateLimitPeriod)
+        public AbstractSocialConnection(ILogger log, Network network, string shortcode, int? permittedRequests, TimeSpan? rateLimitPeriod, ServiceConfig config)
 		{
 			this.log = log;
 			this.network = network;
 			this.dryRuns = network.DryRuns;
             this.Ready = false;
             this.shortcode = shortcode;
+            this.config = config;
 
             if (permittedRequests != null && rateLimitPeriod != null)
                 this.rateLimiter = new RateLimiter(log, permittedRequests.Value, rateLimitPeriod.Value);

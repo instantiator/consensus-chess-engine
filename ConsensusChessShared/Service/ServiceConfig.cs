@@ -1,18 +1,21 @@
 ﻿using System;
 using System.Collections;
+using Mastonet;
 
 namespace ConsensusChessShared.Service
 {
 	public class ServiceConfig
 	{
-        public ServiceConfig(string tag, string admin)
+        public ServiceConfig(string tag, string admin, Visibility publicVisibility)
         {
             GameTag = tag;
             AdminContact = admin;
+            MastodonPublicPostVisibility = publicVisibility;
         }
 
         public string GameTag { get; set; }
         public string AdminContact { get; set; }
+        public Visibility MastodonPublicPostVisibility { get; set; }
 
         public static ServiceConfig FromEnv(IDictionary env)
         {
@@ -22,7 +25,8 @@ namespace ConsensusChessShared.Service
 
             var tag = environment["POST_GAME_TAG"];
             var admin = environment["POST_ADMIN_CONTACT"];
-            return new ServiceConfig(tag, admin);
+            var publicVisibility = Enum.Parse<Visibility>(environment["POST_PUBLIC_VISIBILITY"]);
+            return new ServiceConfig(tag, admin, publicVisibility);
         }
     }
 }
