@@ -286,5 +286,33 @@ namespace ConsensusChessSharedTests
             game.State = GameState.InProgress;
             Assert.AreEqual(0, gm.FindUnpostedEndedGames(dbGames, shortcode).Count());
         }
+
+        [TestMethod]
+        public void CountVotes_withValidVotes_CorrectlyCounts()
+        {
+            var game = SampleDataGenerator.SimpleMoveLockGame();
+            for (var i = 0; i < 5; i++)
+            {
+                game.CurrentMove.Votes.Add(new Vote(
+                    SampleDataGenerator.RollingPostId++,
+                    "e2 - e4",
+                    SampleDataGenerator.SampleParticipant($"participant-{i}"),
+                    "e4",
+                    VoteValidationState.Valid));
+            }
+            for (var i = 5; i < 8; i++)
+            {
+                game.CurrentMove.Votes.Add(new Vote(
+                    SampleDataGenerator.RollingPostId++,
+                    "e2 - e3",
+                    SampleDataGenerator.SampleParticipant($"participant-{i}"),
+                    "e3",
+                    VoteValidationState.Valid));
+            }
+            var votes = gm.CountVotes(game.CurrentMove);
+
+            Assert.AreEqual(5, votes["e4"]);
+            Assert.AreEqual(3, votes["e3"]);
+        }
     }
 }

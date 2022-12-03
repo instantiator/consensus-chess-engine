@@ -78,12 +78,12 @@ namespace ConsensusChessSharedTests.Data
                 "e2 - e4",
                 SampleParticipant());
 
-        public static Participant SampleParticipant()
-            => new Participant(SampleUsername());
+        public static Participant SampleParticipant(string? name = null)
+            => new Participant(SampleUsername(name));
 
-        public static SocialUsername SampleUsername()
+        public static SocialUsername SampleUsername(string? name = null)
             => SocialUsername.From(
-                "@instantiator@mastodon.social", "lewis",
+                $"@{name ?? "instantiator"}@mastodon.social", name ?? "instantiator",
                 FakeNetwork);
 
         public static PostBuilderFactory PostBuilderFactory

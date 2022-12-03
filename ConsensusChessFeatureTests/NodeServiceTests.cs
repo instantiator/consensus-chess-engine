@@ -204,6 +204,63 @@ namespace ConsensusChessFeatureTests
             }
         }
 
+
+        [TestMethod]
+        public async Task ValidVote_afterValidVode_AcceptedAndStoredAndSupercedesPreviousVote()
+        {
+            var node = await StartNodeAsync();
+            var game = await StartGameWithDbAsync();
+            var boardPost = WaitAndAssert_NodePostsBoard(game, NodeId.Shortcode);
+
+            var command1 = await ReplyToNodeAsync(boardPost, "e2 - e4");
+
+            NodeSocialMock.Verify(ns => ns.PostAsync(
+                It.Is<Post>(p =>
+                    p.Succeeded == true &&
+                    p.Type == PostType.Node_VoteAccepted &&
+                    p.NetworkReplyToId == command1.SourcePostId),
+                null),
+                Times.Once);
+
+            using (var db = Dbo.GetDb())
+            {
+                var move = db.Games.Single().CurrentMove;
+                Assert.AreEqual(1, move.Votes.Count());
+                var vote = move.Votes.Single();
+                Assert.AreEqual("e2 - e4", vote.MoveText);
+                Assert.AreEqual("e4", vote.MoveSAN);
+                Assert.AreEqual(VoteValidationState.Valid, vote.ValidationState);
+            }
+
+            var command2 = await ReplyToNodeAsync(boardPost, "f2 - f4");
+
+            NodeSocialMock.Verify(ns => ns.PostAsync(
+                It.Is<Post>(p =>
+                    p.Succeeded == true &&
+                    p.Type == PostType.Node_VoteAccepted &&
+                    p.NetworkReplyToId == command2.SourcePostId),
+                null),
+                Times.Once);
+
+            NodeSocialMock.Verify(ns => ns.PostAsync(
+                It.Is<Post>(p =>
+                    p.Succeeded == true &&
+                    p.Type == PostType.Node_VoteSuperceded &&
+                    p.NetworkReplyToId == command1.SourcePostId),
+                null),
+                Times.Once);
+
+            using (var db = Dbo.GetDb())
+            {
+                var move = db.Games.Single().CurrentMove;
+                Assert.AreEqual(2, move.Votes.Count());
+                var oldVote = move.Votes.Single(v => v.ValidationState == VoteValidationState.Superceded);
+                var newVote = move.Votes.Single(v => v.ValidationState == VoteValidationState.Valid);
+                Assert.AreEqual("f2 - f4", newVote.MoveText);
+                Assert.AreEqual("f4", newVote.MoveSAN);
+            }
+        }
+
         [TestMethod]
         public async Task InvalidChessVote_is_RejectedAndStored()
         {

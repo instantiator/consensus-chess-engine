@@ -198,7 +198,7 @@ namespace ConsensusChessShared.Service
                 .Where(v => v.ValidationState == VoteValidationState.Valid)
                 .Select(v => v.MoveSAN!)
                 .Distinct()
-                .ToDictionary(dv => dv, dv => move.Votes.Count(v => v.MoveText == dv));
+                .ToDictionary(dv => dv, dv => move.Votes.Count(v => v.MoveSAN == dv));
         }
 
         /// <summary>
