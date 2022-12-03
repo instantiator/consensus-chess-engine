@@ -32,6 +32,18 @@ namespace ConsensusChessSharedTests
         }
 
         [TestMethod]
+        public void AllPostTemplatesAreWithinLimit()
+        {
+            var limit = 350;
+            foreach (var type in Enum.GetValues<PostType>())
+            {
+                Assert.IsTrue(
+                    PostTemplates.TemplateSource[type].Length < limit,
+                    $"PostType.{type} has {PostTemplates.TemplateSource[type].Length} characters. Limit is: {limit}");
+            }
+        }
+
+        [TestMethod]
         public void AllPostTypesHaveMastodonVisibility()
         {
             foreach (var type in Enum.GetValues<PostType>())

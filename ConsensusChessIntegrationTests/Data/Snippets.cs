@@ -3,7 +3,7 @@ using ConsensusChessShared.Constants;
 
 namespace ConsensusChessIntegrationTests.Data
 {
-	public class Responses
+	public class Snippets
 	{
 		public static string Engine_NewGame_reply(SideRules rules, IEnumerable<string> shortcodes)
 			=> $"new {rules.ToString()} game for: {string.Join(", ", shortcodes.Distinct())}";

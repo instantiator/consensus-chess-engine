@@ -46,7 +46,7 @@ namespace ConsensusChessIntegrationTests
             WriteLogLine("Checking for reply from engine...");
             await AssertGetsReplyNotificationAsync(
                 commandNewGame,
-                Responses.Engine_NewGame_reply(SideRules.MoveLock, nodeShortcodes));
+                Snippets.Engine_NewGame_reply(SideRules.MoveLock, nodeShortcodes));
 
             // check db for the new game
             WriteLogLine("Checking for game in database...");
@@ -78,14 +78,14 @@ namespace ConsensusChessIntegrationTests
             WriteLogLine($"Checking for new game announcement by engine...");
             var engineStatuses = await AssertAndGetStatusesAsync(engineAcct, 1,
                 (Status status, string content)
-                    => content.ToLower().Contains(Responses.Engine_NewGame_announcement(SideRules.MoveLock).ToLower())
+                    => content.ToLower().Contains(Snippets.Engine_NewGame_announcement(SideRules.MoveLock).ToLower())
                     && status.CreatedAt > started);
 
             // check the node posted the new board
             WriteLogLine($"Checking for board post by node...");
             var nodeStatuses = await AssertAndGetStatusesAsync(nodeAcct, 1,
                 (Status status, string content) =>
-                    content.ToLower().Contains(Responses.Node_NewBoard().ToLower())
+                    content.ToLower().Contains(Snippets.Node_NewBoard().ToLower())
                     && status.CreatedAt > started);
 
             WriteLogLine($"Checking for board post in db...");
@@ -102,7 +102,7 @@ namespace ConsensusChessIntegrationTests
 
                 Assert.AreEqual(contacts[NodeType.Node].Server, boardPost.NetworkServer);
                 Assert.AreEqual(contacts[NodeType.Node].Shortcode, boardPost.NodeShortcode);
-                Assert.IsTrue(boardPost.Message!.ToLower().Contains(Responses.Node_NewBoard().ToLower()));
+                Assert.IsTrue(boardPost.Message!.ToLower().Contains(Snippets.Node_NewBoard().ToLower()));
             }
         }
 
@@ -135,11 +135,11 @@ namespace ConsensusChessIntegrationTests
             // wait for the node to post the new board
             var nodeStatuses = await AssertAndGetStatusesAsync(node, 1,
                 (Status status, string content)
-                    => content.ToLower().Contains(Responses.Node_NewBoard().ToLower())
+                    => content.ToLower().Contains(Snippets.Node_NewBoard().ToLower())
                     && status.CreatedAt > started);
 
             var boardStatus = nodeStatuses.Single(status
-                => status.Content.ToLower().Contains(Responses.Node_NewBoard().ToLower()));
+                => status.Content.ToLower().Contains(Snippets.Node_NewBoard().ToLower()));
 
             // post a move
             var moveStatus = await SendMessageAsync(
@@ -151,7 +151,7 @@ namespace ConsensusChessIntegrationTests
             // confirm the reply comes through
             var verifiedStatus = await AssertGetsReplyNotificationAsync(
                 moveStatus,
-                Responses.Node_MoveAccepted());
+                Snippets.Node_MoveAccepted());
 
             using (var db = GetDb())
             {
@@ -171,7 +171,7 @@ namespace ConsensusChessIntegrationTests
                 Assert.IsNotNull(vote.ValidationPost.NetworkPostId);
                 Assert.AreEqual(contacts[NodeType.Node].Shortcode, vote.ValidationPost.NodeShortcode);
                 Assert.IsTrue(vote.ValidationPost.NetworkReplyToId > 0);
-                Assert.IsTrue(vote.ValidationPost.Message.ToLower().Contains(Responses.Node_MoveAccepted().ToLower()));
+                Assert.IsTrue(vote.ValidationPost.Message.ToLower().Contains(Snippets.Node_MoveAccepted().ToLower()));
 
                 Assert.IsTrue(vote.NetworkMovePostId > 0);
                 Assert.AreEqual("e2 - e4", vote.MoveText);
