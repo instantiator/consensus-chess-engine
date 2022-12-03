@@ -1,9 +1,11 @@
 ﻿using System;
 using ConsensusChessShared.Constants;
 using ConsensusChessShared.Content;
+using ConsensusChessShared.Helpers;
 using ConsensusChessShared.Social;
 using ConsensusChessSharedTests.Data;
 using HandlebarsDotNet.Compiler;
+using static ConsensusChessShared.Content.BoardGraphicsData;
 
 namespace ConsensusChessSharedTests
 {
@@ -63,6 +65,35 @@ namespace ConsensusChessSharedTests
 			Assert.ThrowsException<HandlebarsUndefinedBindingException>(() => post.Build());
 		}
 
-	}
+
+        [TestMethod]
+        public void NodeBoardUpdateTest()
+        {
+            var game = SampleDataGenerator.SimpleMoveLockGame();
+            var board = game.CurrentBoard;
+            var posts = SampleDataGenerator.PostBuilderFactory;
+            var post = posts.Node_BoardUpdate(
+                game, board,
+                BoardFormatter.BoardFormat.StandardFAN,
+                BoardStyle.PixelChess)
+                    .Build();
+
+            Assert.IsNotNull(post);
+            Assert.IsTrue(post.Message!.Contains(game.Title));
+            Assert.AreEqual(1, post.Media.Count());
+            Assert.IsFalse(post.Media[0].Alt.Contains("&#9820;"));
+            Assert.IsTrue(post.Media[0].Alt.Contains("♜"));
+        }
+
+        [TestMethod]
+        public void CanRestoreUnicode()
+        {
+            var unicodeString = "black rook &#9820;";
+
+            Assert.IsTrue(unicodeString.Contains("&#9820;"));
+            Assert.IsFalse(unicodeString.RestoreUnicode()!.Contains("&#9820;"));
+            Assert.IsTrue(unicodeString.RestoreUnicode()!.Contains("♜"));
+        }
+    }
 }
 

@@ -72,6 +72,20 @@ namespace ConsensusChessSharedTests.Data
                 blackPostingNodeShortcodes: new[] { NodeState.Shortcode },
                 SideRules.MoveLock);
 
+        public static Vote SampleVote()
+            => new Vote(
+                SampleDataGenerator.RollingPostId++,
+                "e2 - e4",
+                SampleParticipant());
+
+        public static Participant SampleParticipant()
+            => new Participant(SampleUsername());
+
+        public static SocialUsername SampleUsername()
+            => SocialUsername.From(
+                "@instantiator@mastodon.social", "lewis",
+                FakeNetwork);
+
         public static PostBuilderFactory PostBuilderFactory
             => new PostBuilderFactory(ServiceConfig.FromEnv(SimpleConfig));
 

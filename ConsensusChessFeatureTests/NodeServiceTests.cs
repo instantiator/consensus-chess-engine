@@ -94,7 +94,7 @@ namespace ConsensusChessFeatureTests
             NodeSocialMock.Verify(ns => ns.PostAsync(
                 It.Is<Post>(p =>
                     p.Succeeded == true &&
-                    p.Type == PostType.MoveAccepted &&
+                    p.Type == PostType.Node_VoteAccepted &&
                     p.NetworkReplyToId == command.SourcePostId),
                 null),
                 Times.Once);
@@ -116,7 +116,7 @@ namespace ConsensusChessFeatureTests
 
                 Assert.IsNotNull(vote.ValidationPost);
                 Assert.IsTrue(vote.ValidationPost.Succeeded);
-                Assert.AreEqual(PostType.MoveAccepted, vote.ValidationPost.Type);
+                Assert.AreEqual(PostType.Node_VoteAccepted, vote.ValidationPost.Type);
             }
         }
 
@@ -132,7 +132,7 @@ namespace ConsensusChessFeatureTests
             NodeSocialMock.Verify(ns => ns.PostAsync(
                 It.Is<Post>(p =>
                     p.Succeeded == true &&
-                    p.Type == PostType.MoveAccepted &&
+                    p.Type == PostType.Node_VoteAccepted &&
                     p.NetworkReplyToId == command.SourcePostId),
                 null),
                 Times.Once);
@@ -160,7 +160,7 @@ namespace ConsensusChessFeatureTests
             NodeSocialMock.Verify(ns => ns.PostAsync(
                 It.Is<Post>(p =>
                     p.Succeeded == true &&
-                    p.Type == PostType.MoveAccepted &&
+                    p.Type == PostType.Node_VoteAccepted &&
                     p.NetworkReplyToId == command.SourcePostId),
                 null),
                 Times.Once);
@@ -188,7 +188,7 @@ namespace ConsensusChessFeatureTests
             NodeSocialMock.Verify(ns => ns.PostAsync(
                 It.Is<Post>(p =>
                     p.Succeeded == true &&
-                    p.Type == PostType.MoveAccepted &&
+                    p.Type == PostType.Node_VoteAccepted &&
                     p.NetworkReplyToId == command.SourcePostId),
                 null),
                 Times.Once);
@@ -216,7 +216,7 @@ namespace ConsensusChessFeatureTests
             NodeSocialMock.Verify(ns => ns.PostAsync(
                 It.Is<Post>(p =>
                     p.Succeeded == true &&
-                    p.Type == PostType.MoveValidation &&
+                    p.Type == PostType.Node_MoveValidation &&
                     p.NetworkReplyToId == command.SourcePostId),
                 null),
                 Times.Once);
@@ -234,7 +234,7 @@ namespace ConsensusChessFeatureTests
 
                 Assert.IsNotNull(vote.ValidationPost);
                 Assert.IsTrue(vote.ValidationPost.Succeeded);
-                Assert.AreEqual(PostType.MoveValidation, vote.ValidationPost.Type);
+                Assert.AreEqual(PostType.Node_MoveValidation, vote.ValidationPost.Type);
             }
         }
 
@@ -250,7 +250,7 @@ namespace ConsensusChessFeatureTests
             NodeSocialMock.Verify(ns => ns.PostAsync(
                 It.Is<Post>(p =>
                     p.Succeeded == true &&
-                    p.Type == PostType.MoveValidation &&
+                    p.Type == PostType.Node_MoveValidation &&
                     p.NetworkReplyToId == command.SourcePostId),
                 null),
                 Times.Once);
@@ -268,7 +268,7 @@ namespace ConsensusChessFeatureTests
 
                 Assert.IsNotNull(vote.ValidationPost);
                 Assert.IsTrue(vote.ValidationPost.Succeeded);
-                Assert.AreEqual(PostType.MoveValidation, vote.ValidationPost.Type);
+                Assert.AreEqual(PostType.Node_MoveValidation, vote.ValidationPost.Type);
             }
         }
 
@@ -307,7 +307,7 @@ namespace ConsensusChessFeatureTests
             NodeSocialMock.Verify(ns => ns.PostAsync(
                 It.Is<Post>(p =>
                     p.Succeeded == true &&
-                    p.Type == PostType.MoveValidation &&
+                    p.Type == PostType.Node_MoveValidation &&
                     p.NetworkReplyToId == command.SourcePostId),
                 null),
                 Times.Once);
@@ -325,7 +325,7 @@ namespace ConsensusChessFeatureTests
 
                 Assert.IsNotNull(vote.ValidationPost);
                 Assert.IsTrue(vote.ValidationPost.Succeeded);
-                Assert.AreEqual(PostType.MoveValidation, vote.ValidationPost.Type);
+                Assert.AreEqual(PostType.Node_MoveValidation, vote.ValidationPost.Type);
             }
         }
 

@@ -26,6 +26,11 @@ namespace ConsensusChessShared.DTO
 		public bool Expired => DateTime.Now.ToUniversalTime() > Deadline;
 		public Side SideToPlay => From.ActiveSide;
 
+		[NotMapped]
+		public TimeSpan? TimeRemaining => Deadline > DateTime.Now.ToUniversalTime()
+			? Deadline.Subtract(DateTime.Now.ToUniversalTime())
+			: null;
+
 		public static Move CreateStartingMove(TimeSpan duration)
 		{
 			return new Move()

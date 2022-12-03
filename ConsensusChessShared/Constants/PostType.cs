@@ -8,9 +8,10 @@ namespace ConsensusChessShared.Constants
 		CommandRejection,
 		CommandResponse,
 
-		MoveAccepted,
-		GameNotFound,
-		MoveValidation,
+		Node_VoteAccepted,
+		Node_VoteSuperceded,
+		Node_GameNotFound,
+		Node_MoveValidation,
 
 		Engine_GameCreationResponse,
 		Engine_GameAnnouncement,

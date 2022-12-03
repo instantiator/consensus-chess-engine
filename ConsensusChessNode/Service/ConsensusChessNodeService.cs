@@ -177,6 +177,14 @@ namespace ConsensusChessNode.Service
                         log.LogDebug("Marking preexisting vote superceded.");
                         preexistingVote.ValidationState = VoteValidationState.Superceded;
                         log.LogDebug(JsonConvert.SerializeObject(preexistingVote));
+
+                        // prepare and post a reply to the original vote to let the user know it was superceded
+                        // it's not saved to the vote, this is just a courtesy
+                        var supercessionPost = posts.Node_MoveSuperceded(game.CurrentMove, game, game.CurrentSide, preexistingVote, vote)
+                            .InReplyTo(preexistingVote.NetworkMovePostId, preexistingVote.Participant.Username)
+                            .Build();
+
+                        await social.PostAsync(supercessionPost);
                     }
 
                     // update participant with current side for this game
@@ -201,7 +209,7 @@ namespace ConsensusChessNode.Service
                     await db.SaveChangesAsync();
 
                     // post validation response, and attach to vote
-                    var reply = posts.MoveAccepted(game, game.CurrentSide, vote)
+                    var reply = posts.Node_MoveAccepted(game.CurrentMove, game, game.CurrentSide, vote)
                         .InReplyTo(origin)
                         .Build();
 
@@ -214,7 +222,7 @@ namespace ConsensusChessNode.Service
                     var summary = $"No game linked to move post from {e.Command.SourceUsername.Full}: {moveText}";
                     log.LogWarning(summary);
 
-                    var reply = posts.GameNotFound(e.Reason)
+                    var reply = posts.Node_GameNotFound(e.Reason)
                         .InReplyTo(origin)
                         .Build();
                     await social.PostAsync(reply);
@@ -224,7 +232,8 @@ namespace ConsensusChessNode.Service
                     var summary = $"{e.Reason} from {participant?.Username.Full ?? "unknown"}: {moveText}, {e.Detail}";
                     log.LogWarning(summary);
 
-                    var reply = posts.MoveValidation(e.Reason, participant!.Username, moveText, e?.Detail)
+                    // game is safe to use - if it were null, we'd see GameNotFoundException
+                    var reply = posts.Node_MoveValidation(game!.CurrentMove, e.Reason, participant!.Username, moveText, e?.Detail)
                         .InReplyTo(origin)
                         .Build();
 

@@ -41,11 +41,12 @@ namespace ConsensusChessShared.Content
             { PostType.Node_GameAbandonedUpdate, "😶 The {{ Game.Title }} game was abandoned. This can happen if there are no votes for one side, or if it is actively cancelled by an administrator." },
             { PostType.Node_GameEndedUpdate, "🧐 The {{ Game.Title }} game has ended in state: {{ Game.State }}\n\n{{ Config.GameTag }}" },
 
-            { PostType.GameNotFound, "😔 This vote can't be processed: {{ GameNotFoundReason }}" },
-            { PostType.CommandRejection, "😔 This instruction can't be processed: {{ CommandRejectionReason }} {{ ItemsSummary }}" },
-            { PostType.MoveAccepted, "⭐️ Vote accepted - thank you.\n\nThe standard algebraic notation (SAN) for your move is: {{ SAN }}" },
-            { PostType.MoveValidation, "😔 Unfortunately, this move couldn't be interpreted. This might be because it's not a valid move, or because it wasn't in the right format.\n\nYou can try something different by replying to the board post again.\n\nIf you think this is an error, please reach out to {{ Config.AdminContact }}.\n\nDetail: {{ ValidationState }}: {{ MoveText }}\n{{ Detail }}" },
+            { PostType.Node_GameNotFound, "😔 This vote can't be processed: {{ GameNotFoundReason }}" },
+            { PostType.Node_VoteAccepted, "⭐️ Vote accepted - thank you.\n\nThe SAN (standard algebraic notation) for your move is: {{ SAN }}\n\nThe votes will be tallied in {{ FormattedMoveTimeRemaining }}." },
+            { PostType.Node_VoteSuperceded, "↔️ New vote accepted - thank you.\n\nThe SAN for your new move is: {{ SAN }}\n\nThis supercedes your previous move: {{ PreviousSAN }}\n\nThe votes will be tallied in {{ FormattedMoveTimeRemaining }}." },
+            { PostType.Node_MoveValidation, "😔 Unfortunately, this move couldn't be interpreted. Please check that it's a valid move and then reply to the board post again.\n\nThe votes will be tallied in {{ FormattedMoveTimeRemaining }}.\n\nIf you think this is an error, please reach out to {{ Config.AdminContact }}." }, // \n\nDetail: {{ ValidationState }}: {{ MoveText }}\n{{ Detail }}
 
+            { PostType.CommandRejection, "😔 This instruction can't be processed: {{ CommandRejectionReason }} {{ ItemsSummary }}" },
             { PostType.CommandResponse, "{{ Text }}" },
             { PostType.Unspecified, "{{ Text }}" },
         };

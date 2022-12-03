@@ -138,7 +138,7 @@ namespace ConsensusChessFeatureTests
 
                 var validationPost = WaitAndAssert_NodeRepliesTo(
                     command: movePost,
-                    ofType: PostType.MoveAccepted);
+                    ofType: PostType.Node_VoteAccepted);
 
                 await ExpireCurrentMoveShortlyAsync(game);
                 whiteToPlay = !whiteToPlay;

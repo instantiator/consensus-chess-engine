@@ -87,6 +87,17 @@ namespace ConsensusChessShared.Content
 			return this;
 		}
 
+		public PostBuilder WithMove(Move move)
+		{
+			WithObject("Move", move);
+			WithMapping(
+				"FormattedMoveTimeRemaining",
+				move.TimeRemaining != null
+					? $"{move.TimeRemaining.Value.TotalHours} hours"
+					: $"no time");
+			return this;
+		}
+
 		public PostBuilder WithOptionalItems(IEnumerable<string>? items)
         {
 			WithMapping("Items", string.Join(", ", items ?? new string[0]));
@@ -148,20 +159,20 @@ namespace ConsensusChessShared.Content
 		public PostBuilder WithVote(Vote vote)
 		{
 			WithObject("Vote", vote);
-			WithMoveText(vote.MoveText);
-			WithSAN(vote.MoveSAN!);
+			WithMapping("SAN", vote.MoveSAN!);
 			return this;
 		}
+
+        public PostBuilder WithPreexistingVote(Vote vote)
+        {
+            WithObject("PreexistingVote", vote);
+            WithMapping("PreviousSAN", vote.MoveSAN!);
+            return this;
+        }
 
         public PostBuilder WithMoveText(string moveText)
 		{
             WithMapping("MoveText", moveText);
-            return this;
-        }
-
-        public PostBuilder WithSAN(string san)
-        {
-            WithMapping("SAN", san);
             return this;
         }
 
@@ -196,10 +207,10 @@ namespace ConsensusChessShared.Content
 
         public PostBuilder InReplyTo(Post post)
         {
-            return InReplyTo(post.NetworkPostId, null);
+            return InReplyTo(post.NetworkPostId!.Value, null);
         }
 
-        private PostBuilder InReplyTo(long? id, SocialUsername? user)
+        public PostBuilder InReplyTo(long id, SocialUsername? user)
 		{
 			ReplyToId = id;
 			ToHandle = user?.Full;

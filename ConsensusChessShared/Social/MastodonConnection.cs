@@ -44,10 +44,6 @@ namespace ConsensusChessShared.Social
             { PostType.CommandResponse, Visibility.Direct },
             { PostType.CommandRejection, Visibility.Direct },
 
-            { PostType.MoveAccepted, Visibility.Direct },
-            { PostType.MoveValidation, Visibility.Direct },
-            { PostType.GameNotFound, Visibility.Direct },
-
             { PostType.Engine_GameAnnouncement, Visibility.Unlisted },
             { PostType.Engine_GameAdvance, Visibility.Unlisted },
             { PostType.Engine_GameCreationResponse, Visibility.Direct },
@@ -60,6 +56,11 @@ namespace ConsensusChessShared.Social
             { PostType.Node_FollowInstructions, Visibility.Unlisted },  // TODO: public when live
             { PostType.Node_GameAbandonedUpdate, Visibility.Unlisted }, // TODO: public when live
             { PostType.Node_GameEndedUpdate, Visibility.Unlisted },     // TODO: public when live
+
+            { PostType.Node_VoteAccepted, Visibility.Direct },
+            { PostType.Node_VoteSuperceded, Visibility.Direct },
+            { PostType.Node_MoveValidation, Visibility.Direct },
+            { PostType.Node_GameNotFound, Visibility.Direct },
 
             { PostType.Unspecified, Visibility.Unlisted },
         };

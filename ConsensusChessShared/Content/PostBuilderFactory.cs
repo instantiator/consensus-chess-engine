@@ -26,10 +26,6 @@ namespace ConsensusChessShared.Content
                 .WithNodeState(state)
                 .WithSocialStatus(status);
 
-        public PostBuilder CommandResponse(string text)
-            => new PostBuilder(config, PostType.CommandResponse)
-                .WithText(text);
-
         public PostBuilder Engine_GameCreationResponse(Game game)
             => new PostBuilder(config, PostType.Engine_GameCreationResponse)
                 .WithGame(game);
@@ -70,27 +66,41 @@ namespace ConsensusChessShared.Content
             => new PostBuilder(config, PostType.Node_GameEndedUpdate)
                 .WithGame(game);
 
-        public PostBuilder GameNotFound(GameNotFoundReason reason)
-            => new PostBuilder(config, PostType.GameNotFound)
+        public PostBuilder Node_GameNotFound(GameNotFoundReason reason)
+            => new PostBuilder(config, PostType.Node_GameNotFound)
                 .WithGameNotFoundReason(reason);
+
+        public PostBuilder Node_MoveAccepted(Move move, Game game, Side side, Vote vote)
+            => new PostBuilder(config, PostType.Node_VoteAccepted)
+                .WithMove(move)
+                .WithGame(game)
+                .WithSide(side)
+                .WithVote(vote);
+
+        public PostBuilder Node_MoveSuperceded(Move move, Game game, Side side, Vote preexistingVote, Vote vote)
+            => new PostBuilder(config, PostType.Node_VoteSuperceded)
+                .WithMove(move)
+                .WithGame(game)
+                .WithSide(side)
+                .WithPreexistingVote(preexistingVote)
+                .WithVote(vote);
+
+        public PostBuilder Node_MoveValidation(Move move, VoteValidationState state, SocialUsername sender, string movetext, string? detail)
+            => new PostBuilder(config, PostType.Node_MoveValidation)
+                .WithMove(move)
+                .WithValidationState(state)
+                .WithUsername(sender)
+                .WithMoveText(movetext)
+                .WithDetail(detail);
+
+        public PostBuilder CommandResponse(string text)
+            => new PostBuilder(config, PostType.CommandResponse)
+                .WithText(text);
 
         public PostBuilder CommandRejection(CommandRejectionReason reason, IEnumerable<string>? items = null)
             => new PostBuilder(config, PostType.CommandRejection)
                 .WithOptionalItems(items)
                 .WithRejectionReason(reason);
-
-        public PostBuilder MoveAccepted(Game game, Side side, Vote vote)
-            => new PostBuilder(config, PostType.MoveAccepted)
-                .WithGame(game)
-                .WithSide(side)
-                .WithVote(vote);
-
-        public PostBuilder MoveValidation(VoteValidationState state, SocialUsername sender, string movetext, string? detail)
-            => new PostBuilder(config, PostType.MoveValidation)
-                .WithValidationState(state)
-                .WithUsername(sender)
-                .WithMoveText(movetext)
-                .WithDetail(detail);
 
         public PostBuilder Unspecified(string text)
             => new PostBuilder(config, PostType.Unspecified)
