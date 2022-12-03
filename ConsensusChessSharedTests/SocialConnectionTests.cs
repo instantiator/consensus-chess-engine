@@ -1,6 +1,7 @@
 ﻿using System;
 using ConsensusChessEngine.Service;
 using ConsensusChessShared.DTO;
+using ConsensusChessShared.Service;
 using ConsensusChessShared.Social;
 using ConsensusChessSharedTests.Data;
 using Microsoft.Extensions.Logging;
@@ -25,11 +26,16 @@ namespace ConsensusChessSharedTests
         [TestMethod]
         public async Task SocialFactory_creates_MastodonConnection()
 		{
-            var connection = SocialFactory.From(mockLogger!.Object, network!, "some-short-code");
+            var connection = SocialFactory.From(
+                mockLogger!.Object,
+                network!,
+                "some-short-code",
+                ServiceConfig.FromEnv(SampleDataGenerator.SimpleConfig));
+
             var mastodonConnection = connection as MastodonConnection;
             Assert.IsNotNull(mastodonConnection);
             Assert.IsFalse(mastodonConnection.Ready);
-            // InitAsync has not been run - save it for integration tests
+            // InitAsync has not been run - save it for feature tests
 		}
 	}
 }
