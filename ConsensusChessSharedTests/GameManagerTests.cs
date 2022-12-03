@@ -314,5 +314,48 @@ namespace ConsensusChessSharedTests
             Assert.AreEqual(5, votes["e4"]);
             Assert.AreEqual(3, votes["e3"]);
         }
+
+        [TestMethod]
+        public void CountVotes_withValidationVariety_CorrectlyCounts()
+        {
+            var game = SampleDataGenerator.SimpleMoveLockGame();
+            for (var i = 0; i < 5; i++)
+            {
+                game.CurrentMove.Votes.Add(new Vote(
+                    SampleDataGenerator.RollingPostId++,
+                    "e2 - e4",
+                    SampleDataGenerator.SampleParticipant($"participant-{i}"),
+                    "e4",
+                    VoteValidationState.Valid));
+            }
+
+            game.CurrentMove.Votes.Add(new Vote(
+                SampleDataGenerator.RollingPostId++,
+                "a2 - a3",
+                SampleDataGenerator.SampleParticipant($"participant-5"),
+                "a3",
+                VoteValidationState.Superceded));
+
+            game.CurrentMove.Votes.Add(new Vote(
+                SampleDataGenerator.RollingPostId++,
+                "b2 - b3",
+                SampleDataGenerator.SampleParticipant($"participant-6"),
+                "b3",
+                VoteValidationState.NoGame));
+
+            game.CurrentMove.Votes.Add(new Vote(
+                SampleDataGenerator.RollingPostId++,
+                "c2 - c3",
+                SampleDataGenerator.SampleParticipant($"participant-7"),
+                "c3",
+                VoteValidationState.OffSide));
+
+            var votes = gm.CountVotes(game.CurrentMove);
+
+            Assert.AreEqual(5, votes["e4"]);
+            Assert.IsFalse(votes.ContainsKey("a3"));
+            Assert.IsFalse(votes.ContainsKey("b3"));
+            Assert.IsFalse(votes.ContainsKey("c3"));
+        }
     }
 }
