@@ -104,7 +104,7 @@ namespace ConsensusChessShared.Content
 			switch (reason)
 			{
 				case CommandRejectionReason.UnrecognisedCommand:
-                    return "This command was note recognised.";
+                    return "This command was not recognised.";
 
                 case CommandRejectionReason.NotAuthorised:
                     return "You are not authorised to issue this command. Please contact an administrator.";
@@ -146,12 +146,12 @@ namespace ConsensusChessShared.Content
 
         public string Translate_to_DaysHours(TimeSpan? duration)
 			=> duration != null
-				? $"{duration.Value.TotalDays} days, {duration.Value.Hours} hours"
+				? $"{((int)duration.Value.TotalDays)} days, {duration.Value.Hours} hours"
 				: "no time";
 
 		public string Translate_to_Hours(TimeSpan? duration)
 			=> duration != null
-				? $"{duration.Value.TotalHours} hours"
+				? $"{(Math.Round(duration.Value.TotalHours))} hours"
 			: "no time";
 
 	}
