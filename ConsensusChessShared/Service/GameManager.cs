@@ -193,7 +193,7 @@ namespace ConsensusChessShared.Service
         /// <returns>A dictionary of move SAN to count</returns>
         public Dictionary<string, int> CountVotes(DTO.Move move)
         {
-            // Assume that the SAN is canonical. See: ICG-66 canonical SAN
+            // The SAN is canonical. See: ICG-66 canonical SAN
             return move.Votes
                 .Where(v => v.ValidationState == VoteValidationState.Valid)
                 .Select(v => v.MoveSAN!)
