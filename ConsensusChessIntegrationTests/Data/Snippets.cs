@@ -15,7 +15,7 @@ namespace ConsensusChessIntegrationTests.Data
 			=> "new board";
 
 		public static string Node_MoveAccepted()
-			=> "move accepted";
+			=> "vote accepted";
     }
 }
 
