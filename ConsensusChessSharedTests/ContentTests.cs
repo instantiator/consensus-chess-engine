@@ -1,6 +1,7 @@
 ﻿using System;
 using ConsensusChessShared.Constants;
 using ConsensusChessShared.Content;
+using ConsensusChessShared.Exceptions;
 using ConsensusChessShared.Helpers;
 using ConsensusChessShared.Social;
 using ConsensusChessSharedTests.Data;
@@ -54,6 +55,29 @@ namespace ConsensusChessSharedTests
                 Assert.IsTrue(
                     MastodonConnection.VisibilityMapping.ContainsKey(type),
                     $"PostType.{type} does not have a visibility set for Mastodon.");
+            }
+        }
+
+        [TestMethod]
+        public void AllEnumsHaveTranslations()
+        {
+            var translator = new EnumTranslator();
+            TestEnum((SocialStatus x) => translator.Translate(x));
+            TestEnum((GameState x) => translator.Translate(x));
+            TestEnum((SideRules x) => translator.Translate(x));
+            TestEnum((SideRules x) => translator.Explain(x));
+            TestEnum((VoteValidationState x) => translator.Describe(x));
+            TestEnum((CommandRejectionReason x) => translator.Describe(x));
+            TestEnum((GameNotFoundReason x) => translator.Describe(x));
+        }
+
+        private void TestEnum<T>(Func<T,string> translation)
+        {
+            foreach (T enumeration in Enum.GetValues(typeof(T)))
+            {
+                Assert.IsFalse(
+                    string.IsNullOrWhiteSpace(translation(enumeration)),
+                    $"{typeof(T).GetType().Name}.{enumeration} does not have a translation.");
             }
         }
 

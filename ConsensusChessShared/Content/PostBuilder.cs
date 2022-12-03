@@ -28,15 +28,18 @@ namespace ConsensusChessShared.Content
 		public long? ReplyToId { get; private set; }
 		public string? ToHandle { get; private set; }
 		public string? OverrideTemplate { get; private set; }
-
 		public List<Media> Media { get; private set; }
+
+		private EnumTranslator translator;
 
 		public PostBuilder(ServiceConfig config, PostType type)
 		{
 			Type = type;
 			Mappings = new Dictionary<string, object>();
 			Media = new List<Media>();
+			translator = new EnumTranslator();
 			WithObject("Config", config);
+
 		}
 
 		public PostBuilder WithBoard(Board board, BoardFormat textFormat)
@@ -74,10 +77,13 @@ namespace ConsensusChessShared.Content
 			var shortcodes = new List<string>();
 			shortcodes.AddRange(game.WhitePostingNodeShortcodes.Select(ss => ss.Value!));
             shortcodes.AddRange(game.BlackPostingNodeShortcodes.Select(ss => ss.Value!));
-			WithMapping("FormattedGameMoveDuration", $"{game.MoveDuration.Days} days, {game.MoveDuration.Hours} hours");
-			WithMapping("AllNodes", string.Join(", ", shortcodes.Distinct()));
+			WithMapping("FormattedGameMoveDuration", translator.Translate_to_DaysHours(game.MoveDuration));
+			WithMapping("SideRules", translator.Translate(game.SideRules));
+            WithMapping("SideRulesExplanation", translator.Explain(game.SideRules));
+            WithMapping("AllNodes", string.Join(", ", shortcodes.Distinct()));
             WithMapping("BlackParticipantNetworkServers", string.Join(", ", game.BlackParticipantNetworkServers.Select(ss => ss.Value)));
             WithMapping("WhiteParticipantNetworkServers", string.Join(", ", game.WhiteParticipantNetworkServers.Select(ss => ss.Value)));
+			WithMapping("GameState", translator.Translate(game.State));
             return this;
 		}
 
@@ -92,16 +98,17 @@ namespace ConsensusChessShared.Content
 			WithObject("Move", move);
 			WithMapping(
 				"FormattedMoveTimeRemaining",
-				move.TimeRemaining != null
-					? $"{move.TimeRemaining.Value.TotalHours} hours"
-					: $"no time");
+				translator.Translate_to_Hours(move.TimeRemaining));
 			return this;
 		}
 
 		public PostBuilder WithOptionalItems(IEnumerable<string>? items)
         {
+			var summary = items == null || items.Count() == 0
+				? ""
+				: $"References: {string.Join(", ", items)}";
 			WithMapping("Items", string.Join(", ", items ?? new string[0]));
-			WithMapping("ItemsSummary", items == null ? "" : $"References: {string.Join(", ", items)}");
+            WithMapping("ItemsSummary", summary);
 			return this;
         }
 
@@ -119,25 +126,25 @@ namespace ConsensusChessShared.Content
 
 		public PostBuilder WithSocialStatus(SocialStatus status)
 		{
-			WithMapping("SocialStatus", status.ToString());
+			WithMapping("SocialStatus", translator.Translate(status));
 			return this;
 		}
 
 		public PostBuilder WithValidationState(VoteValidationState state)
 		{
-            WithMapping("ValidationState", state.ToString());
+            WithMapping("ValidationDescription", translator.Describe(state));
             return this;
         }
 
 		public PostBuilder WithRejectionReason(CommandRejectionReason reason)
 		{
-			WithMapping("CommandRejectionReason", reason.ToString());
+			WithMapping("CommandRejectionDescription", translator.Describe(reason));
 			return this;
 		}
 
         public PostBuilder WithGameNotFoundReason(GameNotFoundReason reason)
         {
-            WithMapping("GameNotFoundReason", reason.ToString());
+            WithMapping("GameNotFoundReason", translator.Describe(reason));
             return this;
         }
 

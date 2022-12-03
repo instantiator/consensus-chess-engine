@@ -28,7 +28,7 @@ namespace ConsensusChessShared.Content
         {
             { PostType.SocialStatus, "⚙️ {{ State.Name }} ({{ State.Shortcode }}): {{ SocialStatus }}" },
 
-            { PostType.Engine_GameCreationResponse, "⚙️🆕 New {{ Game.SideRules }} game for: {{ AllNodes }}" },
+            { PostType.Engine_GameCreationResponse, "👍 New {{ Game.SideRules }} game for: {{ AllNodes }}" },
             { PostType.Engine_GameAnnouncement, "⚙️🆕 New {{ Game.SideRules }} game started.\nWhite: {{ WhiteParticipantNetworkServers }}\nBlack: {{ BlackParticipantNetworkServers }}\nMove duration: {{ Game.MoveDuration }}" },
             { PostType.Engine_GameAbandoned, "⚙️⏹ Game {{ Game.Shortcode }}: {{ Game.State }}" },
             { PostType.Engine_GameEnded, "⚙️⏹ Game {{ Game.Shortcode }}: {{ Game.State }}" },
@@ -39,16 +39,16 @@ namespace ConsensusChessShared.Content
             { PostType.Node_VotingInstructions, "ℹ️ How to play:\nPick a side. On your turn, vote for the move your side should make with a reply. Provide coordinates for the square you want to move from, and the square you want to move to - separated by a hyphen. eg.\n\nc2 - c4\n\n{{ Config.GameTag }}" },
             { PostType.Node_FollowInstructions, "🔔 Enable notifications from this account, or follow {{ Config.GameTag }} to hear about each move as it happens!" },
             { PostType.Node_GameAbandonedUpdate, "😶 The {{ Game.Title }} game was abandoned. This can happen if there are no votes for one side, or if it is actively cancelled by an administrator." },
-            { PostType.Node_GameEndedUpdate, "🧐 The {{ Game.Title }} game has ended in state: {{ Game.State }}\n\n{{ Config.GameTag }}" },
+            { PostType.Node_GameEndedUpdate, "🧐 The {{ Game.Title }} game has ended in state: {{ GameState }}\n\n{{ Config.GameTag }}" },
 
-            { PostType.Node_GameNotFound, "😔 This vote can't be processed: {{ GameNotFoundReason }}" },
-            { PostType.Node_VoteAccepted, "⭐️ Vote accepted - thank you.\n\nThe SAN (standard algebraic notation) for your move is: {{ SAN }}\n\nThe votes will be tallied in {{ FormattedMoveTimeRemaining }}." },
+            { PostType.Node_GameNotFound,   "😔 This vote can't be processed: {{ GameNotFoundReason }}" },
+            { PostType.CommandRejection,    "😔 {{ CommandRejectionDescription }}\n\n{{ ItemsSummary }}" },
+            { PostType.Node_MoveValidation, "😔 {{ ValidationDescription }} Please check your vote, and reply to the board post to try again.\n\nThe votes will be tallied in {{ FormattedMoveTimeRemaining }}.\n\nIf you think this is an error, please reach out to {{ Config.AdminContact }}." },
+            { PostType.Node_VoteAccepted,   "⭐️ Vote accepted - thank you.\n\nThe SAN (standard algebraic notation) for your move is: {{ SAN }}\n\nThe votes will be tallied in {{ FormattedMoveTimeRemaining }}." },
             { PostType.Node_VoteSuperceded, "↔️ New vote accepted - thank you.\n\nThe SAN for your new move is: {{ SAN }}\n\nThis supercedes your previous move: {{ PreviousSAN }}\n\nThe votes will be tallied in {{ FormattedMoveTimeRemaining }}." },
-            { PostType.Node_MoveValidation, "😔 Unfortunately, this move couldn't be interpreted. Please check that it's a valid move and then reply to the board post again.\n\nThe votes will be tallied in {{ FormattedMoveTimeRemaining }}.\n\nIf you think this is an error, please reach out to {{ Config.AdminContact }}." }, // \n\nDetail: {{ ValidationState }}: {{ MoveText }}\n{{ Detail }}
 
-            { PostType.CommandRejection, "😔 This instruction can't be processed: {{ CommandRejectionReason }} {{ ItemsSummary }}" },
             { PostType.CommandResponse, "{{ Text }}" },
-            { PostType.Unspecified, "{{ Text }}" },
+            { PostType.Unspecified,     "{{ Text }}" },
         };
 
 	}
