@@ -40,23 +40,27 @@ namespace ConsensusChessNode.Service
         {
             using (var db = dbo.GetDb())
             {
-                // find unposted board reminders from active games
+                // find unposted board reminders for active games
                 var unpostedBoards = gm.FindUnpostedActiveGameBoards(
                     db.Games,
                     state.Shortcode,
                     PostType.Node_BoardReminder);
 
+                // establish which of these moves are due a reminder
                 var overdueBoards = unpostedBoards
                     .Where(gb =>
-                        DateTime.Now.ToUniversalTime() > gb.Key.CurrentMove.Deadline.Subtract(gb.Key.MoveReminder));
-                    
+                        DateTime.Now.ToUniversalTime() > gb.Key.CurrentMove.Deadline.Subtract(gb.Key.MoveReminder))
+                    .ToDictionary(gb => gb.Key, gb => gb.Key.Moves.Single(m => m.From.Id == gb.Value.Id));
+
+                // post the reminders
                 foreach (var overdueGameBoard in overdueBoards)
                 {
                     var game = overdueGameBoard.Key;
-                    var board = overdueGameBoard.Value;
+                    var move = overdueGameBoard.Value;
+                    var board = move.From;
 
                     log.LogInformation($"Found a new board reminder to post in game: {game.Shortcode}");
-                    var post = posts.Node_BoardReminder(game, board, game.CurrentMove, BoardFormat.Words_en, BoardStyle.PixelChess).Build();
+                    var post = posts.Node_BoardReminder(game, board, move, BoardFormat.Words_en, BoardStyle.PixelChess).Build();
                     var posted = await social.PostAsync(post);
                     board.BoardPosts.Add(posted);
 
