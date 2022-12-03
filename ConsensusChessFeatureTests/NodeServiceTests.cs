@@ -254,7 +254,11 @@ namespace ConsensusChessFeatureTests
             {
                 var move = db.Games.Single().CurrentMove;
                 Assert.AreEqual(2, move.Votes.Count());
+
                 var oldVote = move.Votes.Single(v => v.ValidationState == VoteValidationState.Superceded);
+                Assert.AreEqual("e2 - e4", oldVote.MoveText);
+                Assert.AreEqual("e4", oldVote.MoveSAN);
+
                 var newVote = move.Votes.Single(v => v.ValidationState == VoteValidationState.Valid);
                 Assert.AreEqual("f2 - f4", newVote.MoveText);
                 Assert.AreEqual("f4", newVote.MoveSAN);
