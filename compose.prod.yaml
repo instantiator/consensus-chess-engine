@@ -1,21 +1,20 @@
 version: "3.8"
 services:
 
-  # additional configuration for the database
+  # additional configuration for the database
   database:
     env_file:
-      - environments/prod-database.env
+      - environments/db-prod.env
     volumes:
       - db-data-prod:/var/lib/postgresql/data/
 
-  # additional configuration for the database
+  # additional configuration for the database
   engine:
     env_file:
       - environments/prod-database.env
       - environments/prod-engine.env
 
-  # node (icgames@mastodon.gamedev.place)
-  prod-node-1-gamedev:
+  node-prod-00:
     depends_on:
       database:
         condition: service_healthy
@@ -27,8 +26,8 @@ services:
       timeout: 10s
       retries: 12
     env_file:
-      - environments/prod-database.env
-      - environments/prod-node-001-gamedev.env
+      - environments/db-prod.env
+      - environments/node-prod-00.env
     build:
       context: .
       dockerfile: ConsensusChessNode/Dockerfile

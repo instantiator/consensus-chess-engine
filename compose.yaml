@@ -1,6 +1,6 @@
 version: "3.8"
 
-# basic services are partially defined here: database and engine
+# basic services are partially defined here: database and engine
 # environment variables are provided for these in the int and prod compose yaml
 services:
   database:

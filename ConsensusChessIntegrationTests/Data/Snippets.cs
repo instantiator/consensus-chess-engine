@@ -6,7 +6,7 @@ namespace ConsensusChessIntegrationTests.Data
 	public class Snippets
 	{
 		public static string[] Engine_StatusParts()
-			=> new[] { "active games:", "nodes:" };
+			=> new[] { "inactive games:", "active games:", "nodes:" };
 
 		public static string Engine_NewGame_reply(SideRules rules, IEnumerable<string> shortcodes)
 			=> $"new {rules.ToString()} game for: {string.Join(", ", shortcodes.Distinct())}";

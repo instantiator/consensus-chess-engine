@@ -108,7 +108,7 @@ namespace ConsensusChessIntegrationTests
 
         protected async Task<IEnumerable<Notification>> AwaitNotificationsAsync(TimeSpan timeoutAfter, Func<Notification,bool> matcher, int expect = 1)
         {
-            WriteLogLine("Awaiting notifications...");
+            WriteLogLine($"Awaiting {expect} notifications...");
 
             var timeout = DateTime.Now.Add(timeoutAfter);
             List<Notification> notifications = new List<Notification>();

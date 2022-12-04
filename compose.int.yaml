@@ -1,21 +1,20 @@
 version: "3.8"
 services:
 
-  # additional configuration for the database
+  # additional configuration for the database
   database:
     env_file:
-      - environments/int-database.env
+      - environments/db-int.env
     volumes:
       - db-data-int:/var/lib/postgresql/data/
   
-  # additional configuration for the engine
+  # additional configuration for the engine
   engine:
     env_file:
-      - environments/int-database.env
-      - environments/int-engine.env
+      - environments/db-int.env
+      - environments/engine-int.env
 
-  # test node (botsin.space)
-  int-node-0-test:
+  node-int-00:
     depends_on:
       database:
         condition: service_healthy
@@ -27,8 +26,8 @@ services:
       timeout: 10s
       retries: 12
     env_file:
-      - environments/int-database.env
-      - environments/int-node-0-test.env
+      - environments/db-int.env
+      - environments/node-int-00.env
     build:
       context: .
       dockerfile: ConsensusChessNode/Dockerfile

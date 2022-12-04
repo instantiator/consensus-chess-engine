@@ -1,7 +1,7 @@
 version: "3.8"
 services:
 
-  # container to run integration tests
+  # container to run integration tests
   feature-tests:
     environment:
       - TEST_FILTER

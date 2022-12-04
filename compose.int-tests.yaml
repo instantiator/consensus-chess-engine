@@ -1,18 +1,18 @@
 version: "3.8"
 services:
 
-  # container to run integration tests
+  # container to run integration tests
   integration-tests:
     depends_on:
       database:
         condition: service_healthy
       engine:
         condition: service_healthy
-      int-node-0-test:
+      node-int-00:
         condition: service_healthy
     env_file:
-      - environments/int-database.env
-      - environments/int-integration-tester.env
+      - environments/db-int.env
+      - environments/test-agent-int.env
     environment:
       - TEST_FILTER
     volumes:
