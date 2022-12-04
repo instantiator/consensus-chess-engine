@@ -82,7 +82,7 @@ namespace ConsensusChessShared.Service
             await social.InitAsync(state);
             log.LogDebug($"Username: {social.Username!.Full}");
             log.LogDebug($"Authorised accounts: {string.Join(", ", network.AuthorisedAccountsList)}");
-            ReportOnGames();
+            LogGameCount();
 
             var skips = social.CalculateCommandSkips();
             log.LogDebug($"Command prefix skips: {string.Join(", ", skips)}");
@@ -128,7 +128,7 @@ namespace ConsensusChessShared.Service
             }
         }
 
-        protected void ReportOnGames()
+        protected void LogGameCount()
         {
             using (var db = dbo.GetDb())
             {

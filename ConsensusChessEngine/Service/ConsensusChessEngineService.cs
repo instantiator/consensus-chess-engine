@@ -7,7 +7,10 @@ using ConsensusChessShared.Exceptions;
 using ConsensusChessShared.Helpers;
 using ConsensusChessShared.Service;
 using ConsensusChessShared.Social;
+using Mastonet.Entities;
 using Newtonsoft.Json;
+using static ConsensusChessShared.Content.BoardFormatter;
+using static ConsensusChessShared.Content.BoardGraphicsData;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace ConsensusChessEngine.Service
@@ -89,21 +92,148 @@ namespace ConsensusChessEngine.Service
             else
             {
                 log.LogWarning($"0 votes found for game: {game.Shortcode}");
-                log.LogInformation($"Deactivating game: {game.Shortcode}");
-                gm.AbandonGame(game);
-                var post = posts.Engine_GameAbandoned(game).Build();
-                var posted = await social.PostAsync(post);
-                game.GamePosts.Add(posted);
+                await DeactivateGameAsync(game);
             }
         }
 
         protected override void RegisterForCommands(CommandProcessor processor)
         {
-            processor.Register("shutdown", requireAuthorised: true, runsRetrospectively: false, ShutdownAsync);
-            processor.Register("new", requireAuthorised: true, runsRetrospectively: true, StartNewGameAsync);
+            processor.Register("shutdown", requireAuthorised: true, runsRetrospectively: false, ShutdownCmdAsync);
+            processor.Register("new", requireAuthorised: true, runsRetrospectively: true, StartNewGameCmdAsync);
+            processor.Register("status", requireAuthorised: true, runsRetrospectively: false, ShareStatusCmdAsync);
+            processor.Register("abandon", requireAuthorised: true, runsRetrospectively: false, AbandonGameCmdAsync);
+            processor.Register("advance", requireAuthorised: true, runsRetrospectively: false, AdvanceGameCmdAsync);
         }
 
-        private async Task StartNewGameAsync(SocialCommand origin, IEnumerable<string> words)
+        private async Task AdvanceGameCmdAsync(SocialCommand origin, IEnumerable<string> words)
+        {
+            if (words.Count() > 1)
+            {
+                var shortcode = words.ElementAt(1);
+                using (var db = dbo.GetDb())
+                {
+                    var gamesList = db.Games.ToList();
+                    var game = gamesList.SingleOrDefault(g => g.Shortcode == shortcode);
+
+                    if (game != null)
+                    {
+                        await AdvanceGameAsync(game);
+                        await db.SaveChangesAsync();
+                        var reply = posts.CommandResponse($"Game advanced: {shortcode}")
+                            .InReplyTo(origin)
+                            .Build();
+                        await social.PostAsync(reply);
+                    }
+                    else
+                    {
+                        var reply = posts.CommandRejection(CommandRejectionReason.CommandMalformed, new[] { shortcode })
+                            .InReplyTo(origin)
+                            .Build();
+                        await social.PostAsync(reply);
+                    }
+                }
+            }
+            else
+            {
+                var reply = posts.CommandRejection(CommandRejectionReason.CommandMalformed)
+                    .InReplyTo(origin)
+                    .Build();
+                await social.PostAsync(reply);
+            }
+        }
+
+        private async Task ShareStatusCmdAsync(SocialCommand origin, IEnumerable<string> words)
+        {
+            if (words.Count() > 1)
+            {
+                await ShareGameStatusAsync(origin, words);
+            }
+            else
+            {
+                await ShareGeneralStatusAsync(origin, words);
+            }
+        }
+
+        private async Task ShareGameStatusAsync(SocialCommand origin, IEnumerable<string> words)
+        {
+            var shortcode = words.ElementAt(1);
+            using (var db = dbo.GetDb())
+            {
+                var gamesList = db.Games.ToList();
+                var game = gamesList.SingleOrDefault(g => g.Shortcode == shortcode);
+                if (game != null)
+                {
+                    var header = $"{game.Shortcode}: \"{game.Title}\", {game.State}";
+                    var moves = $"{game.Moves.Count()} Moves: {game.CurrentSide} active";
+                    var votes = $"Votes: {string.Join(", ", game.Moves.Select(m => m.Votes.Count()))}";
+                    //var serverList = new List<string>();
+                    //serverList.AddRange(game.WhiteParticipantNetworkServers.Select(s => s.Value!));
+                    //serverList.AddRange(game.BlackParticipantNetworkServers.Select(s => s.Value!));
+                    //var servers = $"Servers: {string.Join(", ", serverList)}";
+                    var shortcodeList = new List<string>();
+                    shortcodeList.AddRange(game.BlackPostingNodeShortcodes.Select(s => s.Value!));
+                    shortcodeList.AddRange(game.WhitePostingNodeShortcodes.Select(s => s.Value!));
+                    var nodes = $"Nodes: {string.Join(", ",shortcodeList)}";
+
+                    var status = string.Format($"{header}\n{nodes}\n{moves}\n{votes}");
+                    log.LogInformation($"Game status information requested.\n{status}");
+
+                    var post = posts.CommandResponse(status)
+                        .WithGame(game)
+                        .WithBoard(game.CurrentBoard, BoardFormat.StandardFAN)
+                        .AndBoardGraphic(BoardStyle.PixelChess, BoardFormat.StandardFEN)
+                        .InReplyTo(origin)
+                        .Build();
+
+                    await social.PostAsync(post);
+                }
+                else
+                {
+                    // no game found
+                    var reply = posts.CommandRejection(CommandRejectionReason.CommandMalformed, new[] { shortcode })
+                        .InReplyTo(origin)
+                        .Build();
+                    await social.PostAsync(reply);
+                }
+            }
+        }
+
+        private async Task ShareGeneralStatusAsync(SocialCommand origin, IEnumerable<string> words)
+        {
+            using (var db = dbo.GetDb())
+            {
+                var gamesList = db.Games.ToList();
+                var nodesList = db.NodeState.ToList();
+
+                var activeGames = gamesList
+                    .Where(g => g.Active)
+                    .OrderByDescending(g => g.Created)
+                    .Select(g => $"- {g.Shortcode}: {g.State}");
+
+                var inactiveGames = gamesList
+                    .Where(g => !g.Active)
+                    .OrderByDescending(g => g.Created)
+                    .Select(g => $"- {g.Shortcode}: {g.State}");
+
+                var nodes = nodesList.Select(ns => $"- {ns.Shortcode}: \"{ns.Name}\"");
+
+                var status = string.Format(
+                    "{0} nodes:\n{1}\n\n{2} active games:\n{3}\n\n{4} inactive games:\n{5}",
+                    nodes.Count(),
+                    string.Join("\n", nodes),
+                    activeGames.Count(),
+                    string.Join("\n", activeGames),
+                    inactiveGames.Count(),
+                    string.Join("\n", inactiveGames));
+
+                log.LogInformation($"Status information requested.\n{status}");
+
+                var post = posts.CommandResponse(status).InReplyTo(origin).Build();
+                await social.PostAsync(post);
+            }
+        }
+
+        private async Task StartNewGameCmdAsync(SocialCommand origin, IEnumerable<string> words)
         {
             // TODO: more complex games, better structure for issuing commands
             var nodeShortcodes = words.Skip(1); // everything after "new" is a shortcode (for now)
@@ -159,11 +289,49 @@ namespace ConsensusChessEngine.Service
                     await social.PostAsync(reply);
                 }
 
-                ReportOnGames();
+                LogGameCount();
             }
         }
 
-        private async Task ShutdownAsync(SocialCommand origin, IEnumerable<string> words)
+        private async Task AbandonGameCmdAsync(SocialCommand origin, IEnumerable<string> words)
+        {
+            var shortcode = words.ElementAt(1);
+
+            using (var db = dbo.GetDb())
+            {
+                var game = db.Games.ToList().SingleOrDefault(g => g.Shortcode == shortcode);
+
+                if (game != null)
+                {
+                    await DeactivateGameAsync(game);
+                    await db.SaveChangesAsync();
+
+                    var summary = $"Abandoned game: {game.Shortcode}";
+                    var reply = posts.CommandResponse(summary).InReplyTo(origin).Build();
+                    await social.PostAsync(reply);
+                }    
+                else
+                {
+                    // no game found
+                    var reply = posts.CommandRejection(CommandRejectionReason.CommandMalformed, new[] { shortcode })
+                        .InReplyTo(origin)
+                        .Build();
+                    await social.PostAsync(reply);
+                }
+            }
+        }
+
+        private async Task DeactivateGameAsync(Game game)
+        {
+            log.LogInformation($"Deactivating game: {game.Shortcode}");
+            gm.AbandonGame(game);
+
+            var post = posts.Engine_GameAbandoned(game).Build();
+            var posted = await social.PostAsync(post);
+            game.GamePosts.Add(posted);
+        }
+
+        private async Task ShutdownCmdAsync(SocialCommand origin, IEnumerable<string> words)
         {
             log.LogInformation($"Shutting down.");
             polling = false;

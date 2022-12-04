@@ -262,6 +262,10 @@ namespace ConsensusChessNode.Service
                     var validationPost = await social.PostAsync(reply);
                     vote.ValidationPost = validationPost;
                     await db.SaveChangesAsync();
+
+                    // additional information for players
+                    var informationReply = posts.Node_FollowInstructions().InReplyTo(reply).Build();
+                    await social.PostAsync(informationReply);
                 }
                 catch (GameNotFoundException e)
                 {

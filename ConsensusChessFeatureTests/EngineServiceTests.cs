@@ -210,5 +210,181 @@ namespace ConsensusChessFeatureTests
             }
         }
 
+        [TestMethod]
+        public async Task StatusCommand_resultsIn_StatusReply()
+        {
+            var engine = await StartEngineAsync();
+
+            var command = await SendToEngineAsync($"status", authorised: true);
+
+            EngineSocialMock.Verify(ns => ns.PostAsync(
+            It.Is<Post>(p =>
+                p.Succeeded == true &&
+                p.Type == PostType.CommandResponse &&
+                p.NetworkReplyToId == command.SourcePostId),
+            null),
+            Times.Once);
+        }
+
+        [TestMethod]
+        public async Task AbandonCommand_abandons_GameByShortcode()
+        {
+            var engine = await StartEngineAsync();
+            var game = await StartGameWithDbAsync();
+
+            using (var db = Dbo.GetDb())
+            {
+                Assert.AreEqual(GameState.InProgress, db.Games.Single().State);
+            }
+
+            var command = await SendToEngineAsync($"abandon {game.Shortcode}", authorised: true);
+
+            EngineSocialMock.Verify(ns => ns.PostAsync(
+                It.Is<Post>(p =>
+                    p.Succeeded == true &&
+                    p.Type == PostType.CommandResponse &&
+                    p.NetworkReplyToId == command.SourcePostId),
+                null),
+                Times.Once);
+
+            EngineSocialMock.Verify(ns => ns.PostAsync(
+                It.Is<Post>(p =>
+                    p.Succeeded == true &&
+                    p.Type == PostType.Engine_GameAbandoned),
+                null),
+                Times.Once);
+
+            using (var db = Dbo.GetDb())
+            {
+                Assert.AreEqual(GameState.Abandoned, db.Games.Single().State);
+                Assert.IsNotNull(db.Games.Single().Finished);
+                Assert.AreEqual(1, db.Games.Single().GamePosts.Count(p => p.Type == PostType.Engine_GameAbandoned));
+            }
+        }
+
+        [TestMethod]
+        public async Task AdvanceCommand_advancesAndAbandons_GameByShortcode()
+        {
+            var engine = await StartEngineAsync();
+            var game = await StartGameWithDbAsync();
+
+            using (var db = Dbo.GetDb())
+            {
+                Assert.AreEqual(GameState.InProgress, db.Games.Single().State);
+            }
+
+            var command = await SendToEngineAsync($"advance {game.Shortcode}", authorised: true);
+
+            EngineSocialMock.Verify(ns => ns.PostAsync(
+                It.Is<Post>(p =>
+                    p.Succeeded == true &&
+                    p.Type == PostType.CommandResponse &&
+                    p.NetworkReplyToId == command.SourcePostId),
+                null),
+                Times.Once);
+
+            EngineSocialMock.Verify(ns => ns.PostAsync(
+                It.Is<Post>(p =>
+                    p.Succeeded == true &&
+                    p.Type == PostType.Engine_GameAbandoned),
+                null),
+                Times.Once);
+
+            using (var db = Dbo.GetDb())
+            {
+                Assert.AreEqual(GameState.Abandoned, db.Games.Single().State);
+                Assert.IsNotNull(db.Games.Single().Finished);
+                Assert.AreEqual(1, db.Games.Single().GamePosts.Count(p => p.Type == PostType.Engine_GameAbandoned));
+            }
+        }
+
+        [TestMethod]
+        public async Task AdvanceCommand_requires_GameShortcode()
+        {
+            var engine = await StartEngineAsync();
+            var game = await StartGameWithDbAsync();
+
+            using (var db = Dbo.GetDb())
+            {
+                Assert.AreEqual(GameState.InProgress, db.Games.Single().State);
+            }
+
+            var command = await SendToEngineAsync($"advance", authorised: true);
+
+            EngineSocialMock.Verify(ns => ns.PostAsync(
+                It.Is<Post>(p =>
+                    p.Succeeded == true &&
+                    p.Type == PostType.CommandRejection &&
+                    p.NetworkReplyToId == command.SourcePostId),
+                null),
+                Times.Once);
+        }
+
+        [TestMethod]
+        public async Task AdvanceCommand_requires_ValidGameShortcode()
+        {
+            var engine = await StartEngineAsync();
+            var game = await StartGameWithDbAsync();
+
+            using (var db = Dbo.GetDb())
+            {
+                Assert.AreEqual(GameState.InProgress, db.Games.Single().State);
+            }
+
+            var command = await SendToEngineAsync($"advance kryten", authorised: true);
+
+            EngineSocialMock.Verify(ns => ns.PostAsync(
+                It.Is<Post>(p =>
+                    p.Succeeded == true &&
+                    p.Type == PostType.CommandRejection &&
+                    p.NetworkReplyToId == command.SourcePostId),
+                null),
+                Times.Once);
+        }
+
+        [TestMethod]
+        public async Task StatusCommand_forGameShortcode_ShowsInfoAboutGame()
+        {
+            var engine = await StartEngineAsync();
+            var game = await StartGameWithDbAsync();
+
+            using (var db = Dbo.GetDb())
+            {
+                Assert.AreEqual(GameState.InProgress, db.Games.Single().State);
+            }
+
+            var command = await SendToEngineAsync($"status {game.Shortcode}", authorised: true);
+
+            EngineSocialMock.Verify(ns => ns.PostAsync(
+                It.Is<Post>(p =>
+                    p.Succeeded == true &&
+                    p.Type == PostType.CommandResponse &&
+                    p.NetworkReplyToId == command.SourcePostId),
+                null),
+                Times.Once);
+        }
+
+        [TestMethod]
+        public async Task StatusCommand_forUnknownParameter_IsRejected()
+        {
+            var engine = await StartEngineAsync();
+            var game = await StartGameWithDbAsync();
+
+            using (var db = Dbo.GetDb())
+            {
+                Assert.AreEqual(GameState.InProgress, db.Games.Single().State);
+            }
+
+            var command = await SendToEngineAsync($"status ramasses-niblet-the-third", authorised: true);
+
+            EngineSocialMock.Verify(ns => ns.PostAsync(
+                It.Is<Post>(p =>
+                    p.Succeeded == true &&
+                    p.Type == PostType.CommandRejection &&
+                    p.NetworkReplyToId == command.SourcePostId),
+                null),
+                Times.Once);
+        }
+
     }
 }

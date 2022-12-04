@@ -21,6 +21,20 @@ namespace ConsensusChessIntegrationTests
         }
 
         [TestMethod]
+        public async Task StatusRequest_GetsResponse()
+        {
+            var started = DateTime.Now;
+            var status = await SendMessageAsync("status", Mastonet.Visibility.Direct, contacts[NodeType.Engine]);
+            await AssertFavouritedAsync(status);
+
+            var engineAcct = await GetAccountAsync(contacts[NodeType.Engine]);
+            var engineStatuses = await AssertAndGetStatusesAsync(engineAcct, 1,
+                (Status status, string content)
+                    => Snippets.Engine_StatusParts().All(part => content.ToLower().Contains(part.ToLower()))
+                    && status.CreatedAt > started);
+        }
+
+        [TestMethod]
         public async Task StartNewGame_PostsSentAndDbEntriesCreated()
         {
             var started = DateTime.Now;
@@ -171,7 +185,7 @@ namespace ConsensusChessIntegrationTests
                 Assert.IsNotNull(vote.ValidationPost.NetworkPostId);
                 Assert.AreEqual(contacts[NodeType.Node].Shortcode, vote.ValidationPost.NodeShortcode);
                 Assert.IsTrue(vote.ValidationPost.NetworkReplyToId > 0);
-                Assert.IsTrue(vote.ValidationPost.Message.ToLower().Contains(Snippets.Node_MoveAccepted().ToLower()));
+                Assert.IsTrue(vote.ValidationPost.Message!.ToLower().Contains(Snippets.Node_MoveAccepted().ToLower()));
 
                 Assert.IsTrue(vote.NetworkMovePostId > 0);
                 Assert.AreEqual("e2 - e4", vote.MoveText);
