@@ -11,8 +11,8 @@ services:
   # additional configuration for the database
   engine:
     env_file:
-      - environments/prod-database.env
-      - environments/prod-engine.env
+      - environments/db-prod.env
+      - environments/engine-prod.env
 
   node-prod-00:
     depends_on:
