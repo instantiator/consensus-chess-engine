@@ -399,6 +399,10 @@ namespace ConsensusChessShared.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("node_state_id");
 
+                    b.Property<int?>("OverrideMastodonVisibility")
+                        .HasColumnType("integer")
+                        .HasColumnName("override_mastodon_visibility");
+
                     b.Property<bool>("Succeeded")
                         .HasColumnType("boolean")
                         .HasColumnName("succeeded");

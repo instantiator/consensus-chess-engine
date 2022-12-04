@@ -9,6 +9,7 @@ using ConsensusChessShared.Helpers;
 using ConsensusChessShared.Service;
 using ConsensusChessShared.Social;
 using HandlebarsDotNet;
+using Mastonet;
 using Mastonet.Entities;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Newtonsoft.Json.Linq;
@@ -29,6 +30,7 @@ namespace ConsensusChessShared.Content
 		public string? ToHandle { get; private set; }
 		public string? OverrideTemplate { get; private set; }
 		public List<Media> Media { get; private set; }
+		public Visibility? OverrideMastodonVisibility { get; private set; }
 
 		private EnumTranslator translator;
 
@@ -224,6 +226,12 @@ namespace ConsensusChessShared.Content
 			return this;
 		}
 
+		public PostBuilder WithOverrideVisibility(Visibility visibility)
+		{
+			OverrideMastodonVisibility = visibility;
+			return this;
+		}
+
 		public Post Build()
 		{
 			var template = OverrideTemplate == null
@@ -243,7 +251,8 @@ namespace ConsensusChessShared.Content
 				Message = message,
 				NetworkReplyToId = ReplyToId,
 				Type = Type,
-				Media = Media
+				Media = Media,
+				OverrideMastodonVisibility = OverrideMastodonVisibility
 			};
 			return post;
 		}

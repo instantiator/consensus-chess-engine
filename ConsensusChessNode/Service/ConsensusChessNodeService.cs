@@ -7,6 +7,7 @@ using ConsensusChessShared.Exceptions;
 using ConsensusChessShared.Helpers;
 using ConsensusChessShared.Service;
 using ConsensusChessShared.Social;
+using Mastonet;
 using Mastonet.Entities;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -264,7 +265,10 @@ namespace ConsensusChessNode.Service
                     await db.SaveChangesAsync();
 
                     // additional information for players
-                    var informationReply = posts.Node_FollowInstructions().InReplyTo(reply).Build();
+                    var informationReply = posts.Node_FollowInstructions()
+                        .InReplyTo(reply.NetworkPostId!.Value, origin.SourceUsername)
+                        .WithOverrideVisibility(Visibility.Direct)
+                        .Build();
                     await social.PostAsync(informationReply);
                 }
                 catch (GameNotFoundException e)

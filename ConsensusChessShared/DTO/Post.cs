@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using ConsensusChessShared.Constants;
 using ConsensusChessShared.Content;
+using Mastonet;
 
 namespace ConsensusChessShared.DTO
 {
@@ -22,6 +23,7 @@ namespace ConsensusChessShared.DTO
         public PostType Type { get; set; }
 		public string? Message { get; set; }
 		public virtual List<Media> Media { get; set; }
+        public Visibility? OverrideMastodonVisibility { get; set; }
 
         // filled during send
 		public string? NetworkServer { get; set; }

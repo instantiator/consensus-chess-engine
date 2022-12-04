@@ -100,7 +100,7 @@ namespace ConsensusChessShared.Social
             // already rate limited through the public method
 
             // get visibility and map to the config setting if it's a public post
-            Visibility visibility = VisibilityMapping[post.Type];
+            Visibility visibility = post.OverrideMastodonVisibility ?? VisibilityMapping[post.Type];
             visibility = visibility == Visibility.Public
                 ? config.MastodonPublicPostVisibility
                 : visibility;
