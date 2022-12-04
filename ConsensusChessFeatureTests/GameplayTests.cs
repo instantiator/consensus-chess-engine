@@ -95,7 +95,7 @@ namespace ConsensusChessFeatureTests
                 WaitAndAssert_Posts(
                     shortcode: NodeId.Shortcode,
                     ofType: PostType.Node_FollowInstructions,
-                    count: boardCount * 2 - 1)
+                    count: boardCount * 3 - 2)
                         .Last();
 
                 WriteLogLine($"✅ Board post #{boardCount} received.");
@@ -163,7 +163,7 @@ namespace ConsensusChessFeatureTests
                 WaitAndAssert_Posts(
                     shortcode: NodeId.Shortcode,
                     ofType: PostType.Node_FollowInstructions,
-                    count: boardCount * 2)
+                    count: boardCount * 3)
                         .Last();
 
                 await ExpireCurrentMoveShortlyAsync(game);
