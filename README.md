@@ -2,13 +2,15 @@
 
 A new way to play distributed, consensus games across federated social networks.
 
-![a board rendered using the pixel chess asset pack](docs/images/pixelchess-board.png "a board rendered using the pixel chess asset pack")
+![network diagram](docs/images/consensus-diagram.png "A network diagram showing how each node and engine runs in a docker container, and connects to a mastodon account. They each share a single database.")
 
 ## Project status
 
 Consensus Chess has reached MVP. It can launch and manage simple move-lock* games.
 
 _*When a player participates in a game, they are then locked to the side that they move for._
+
+![a board rendered using the pixel chess asset pack](docs/images/pixelchess-board.png "a board rendered using the pixel chess asset pack")
 
 ## Documentation
 
