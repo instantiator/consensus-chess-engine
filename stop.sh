@@ -50,5 +50,5 @@ esac
 # stop the containers
 docker compose -p consensus-chess-$ENVIRO \
   -f compose.yaml -f compose.$ENVIRO.yaml \
-  --env-file environments/$ENVIRO-database.env \
+  --env-file environments/db-$ENVIRO.env \
   down
