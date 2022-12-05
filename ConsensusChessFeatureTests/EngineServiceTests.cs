@@ -41,7 +41,7 @@ namespace ConsensusChessFeatureTests
                 Assert.AreEqual(0, db.Games.Count());
             }
 
-            var command = await SendToEngineAsync($"new {NodeId.Shortcode}");
+            var command = await SendToEngineAsync($"new \"A Title\" \"and a description\" {NodeId.Shortcode}");
 
             // acknowledgement
             EngineSocialMock.Verify(ns => ns.PostAsync(
@@ -66,6 +66,9 @@ namespace ConsensusChessFeatureTests
                 Assert.IsTrue(db.Games.Single().Active);
 
                 var game = db.Games.Single();
+                Assert.AreEqual("A Title", game.Title);
+                Assert.AreEqual("and a description", game.Description);
+
                 Assert.AreEqual(1, game.BlackParticipantNetworkServers.Count());
                 Assert.AreEqual(NodeNetwork.NetworkServer, game.BlackParticipantNetworkServers.Single().Value);
                 Assert.AreEqual(1, game.WhiteParticipantNetworkServers.Count());

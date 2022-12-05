@@ -1,23 +1,24 @@
 ﻿using System;
+using System.Text;
 using HtmlAgilityPack;
 
 namespace ConsensusChessShared.Helpers
 {
-    public class CommandHelper
+    public static class CommandHelper
     {
         public static IEnumerable<string> ParseSocialCommand(string data, IEnumerable<string>? skip = null)
         {
             skip ??= new string[0];
             skip = skip.Select(x => x.ToLower());
             return RemoveUnwantedTags(data)
-                .Split(' ')
+                .SplitOutsideQuotes(new[] { ' ', ',' }, true, true, true)
+                .Select(part => part.Trim(' ', '"')) // trim quotes away
                 .Where(x => !string.IsNullOrWhiteSpace(x) && !skip.Contains(x.ToLower()));
         }
 
         public static string CleanupStatus(string status)
         {
             var content = RemoveUnwantedTags(status);
-            
             return content;
         }
 

@@ -8,8 +8,8 @@ This file is provided to each node and the database in `compose.yaml` and `compo
 
 | Environment | File | Description |
 |-|-|-|
-| `int` | `int-database.env` | All environment variables for the integration environment database. |
-| `prod` | `prod-database.env` | All environment variables for the production environment database. |
+| `int` | `db-int.env` | All environment variables for the integration environment database. |
+| `prod` | `db-prod.env` | All environment variables for the production environment database. |
 
 ### File structure
 
@@ -51,7 +51,7 @@ In reality, the production database should run on a dedicated machine (or vm), b
 
 NB. The default port for postgres is `5432` - you _may_ wish to set one of your instances to use this for the sake of simplicity, but it's not required.
 
-## Nodes
+## Nodes/Engines
 
 The `environments` directory should also contain a number of environment files that give each node its identity.
 
@@ -63,11 +63,11 @@ The filenames provided here follow a simple naming convention - but can be confi
 
 | Environment | File | Description |
 |-|-|-|
-| `int` | `int-engine.env` | Environment variables for the engine in the integration environment. |
-| `int` | `int-node-000-test.env` | Environment variables for a test node in the integration environment. |
-| `int` | `int-integration-tester.env` | Config for the integration test runner itself (which also needs an identity to be able to interact with social networks when exercising the nodes). |
-| `prod` | `prod-engine.env` | Environment variables for the engine in production. |
-| `prod` | `prod-node-001-something.env` | Environment variables for a node in production. |
+| `int` | `engine-int.env` | Environment variables for the engine in the integration environment. |
+| `int` | `node-int-00.env` | Environment variables for a test node in the integration environment. |
+| `int` | `test-agent-int.env` | Config for the integration test runner itself (which also needs an identity to be able to interact with social networks when exercising the nodes). |
+| `prod` | `engine-prod.env` | Environment variables for the engine in production. |
+| `prod` | `node-prod-00.env` | Environment variables for a node in production. |
 
 ### File structure
 
@@ -82,6 +82,9 @@ NETWORK_APP_NAME_REMINDER=<name of the app>
 NETWORK_ACCESS_TOKEN=<app access token>
 NETWORK_AUTHORISED_ACCOUNTS=<authorised accounts>
 NETWORK_DRY_RUNS=<true|false>
+POST_GAME_TAG=<#hashtag>
+POST_ADMIN_CONTACT=<contact account>
+POST_PUBLIC_VISIBILITY=<Public|Unlisted|Private>
 ```
 
 Additionally, the integration tester needs a few more pointers so it knows where the engine and node is to bother:
@@ -132,3 +135,15 @@ Shortcodes are used to refer to participating nodes when setting up games. They 
 
 * These are for the integration tester only - as it needs to know which accounts to poke and prod at.
 * Provide the account name for your integration testing engine and node (eg. `@icgames_engine@botsin.space`, or `@icgames@botsin.space`)
+
+### `POST_GAME_TAG`
+
+* This is the hashtag to include in game posts, for discoverability - and so it's easy for players to participate in games and conversations.
+
+### `POST_ADMIN_CONTACT`
+
+* The admin contact account, eg. `instantiator@mastodon.social` - for occasional distribution in some posts.
+
+### `POST_PUBLIC_VISIBILITY`
+
+* The visibility for announcement posts. Choose from: `Public`, `Unlisted`, `Private`

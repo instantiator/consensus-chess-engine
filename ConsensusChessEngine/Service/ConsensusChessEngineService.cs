@@ -43,6 +43,52 @@ namespace ConsensusChessEngine.Service
             }
         }
 
+        protected override void RegisterForCommands(CommandProcessor processor)
+        {
+            processor.Register("shutdown", requireAuthorised: true, runsRetrospectively: false, ShutdownCmdAsync);
+            processor.Register("new", requireAuthorised: true, runsRetrospectively: true, StartNewGameCmdAsync);
+            processor.Register("status", requireAuthorised: true, runsRetrospectively: false, ShareStatusCmdAsync);
+            processor.Register("abandon", requireAuthorised: true, runsRetrospectively: false, AbandonGameCmdAsync);
+            processor.Register("advance", requireAuthorised: true, runsRetrospectively: false, AdvanceGameCmdAsync);
+        }
+
+        private async Task AdvanceGameCmdAsync(SocialCommand origin, IEnumerable<string> words)
+        {
+            if (words.Count() > 1)
+            {
+                var shortcode = words.ElementAt(1);
+                using (var db = dbo.GetDb())
+                {
+                    var gamesList = db.Games.ToList();
+                    var game = gamesList.SingleOrDefault(g => g.Shortcode == shortcode);
+
+                    if (game != null)
+                    {
+                        await AdvanceGameAsync(game);
+                        await db.SaveChangesAsync();
+                        var reply = posts.CommandResponse($"Game advanced: {shortcode}")
+                            .InReplyTo(origin)
+                            .Build();
+                        await social.PostAsync(reply);
+                    }
+                    else
+                    {
+                        var reply = posts.CommandRejection(CommandRejectionReason.CommandMalformed, new[] { shortcode })
+                            .InReplyTo(origin)
+                            .Build();
+                        await social.PostAsync(reply);
+                    }
+                }
+            }
+            else
+            {
+                var reply = posts.CommandRejection(CommandRejectionReason.CommandMalformed)
+                    .InReplyTo(origin)
+                    .Build();
+                await social.PostAsync(reply);
+            }
+        }
+
         private async Task AdvanceGameAsync(Game game)
         {
             // count all votes
@@ -93,52 +139,6 @@ namespace ConsensusChessEngine.Service
             {
                 log.LogWarning($"0 votes found for game: {game.Shortcode}");
                 await DeactivateGameAsync(game);
-            }
-        }
-
-        protected override void RegisterForCommands(CommandProcessor processor)
-        {
-            processor.Register("shutdown", requireAuthorised: true, runsRetrospectively: false, ShutdownCmdAsync);
-            processor.Register("new", requireAuthorised: true, runsRetrospectively: true, StartNewGameCmdAsync);
-            processor.Register("status", requireAuthorised: true, runsRetrospectively: false, ShareStatusCmdAsync);
-            processor.Register("abandon", requireAuthorised: true, runsRetrospectively: false, AbandonGameCmdAsync);
-            processor.Register("advance", requireAuthorised: true, runsRetrospectively: false, AdvanceGameCmdAsync);
-        }
-
-        private async Task AdvanceGameCmdAsync(SocialCommand origin, IEnumerable<string> words)
-        {
-            if (words.Count() > 1)
-            {
-                var shortcode = words.ElementAt(1);
-                using (var db = dbo.GetDb())
-                {
-                    var gamesList = db.Games.ToList();
-                    var game = gamesList.SingleOrDefault(g => g.Shortcode == shortcode);
-
-                    if (game != null)
-                    {
-                        await AdvanceGameAsync(game);
-                        await db.SaveChangesAsync();
-                        var reply = posts.CommandResponse($"Game advanced: {shortcode}")
-                            .InReplyTo(origin)
-                            .Build();
-                        await social.PostAsync(reply);
-                    }
-                    else
-                    {
-                        var reply = posts.CommandRejection(CommandRejectionReason.CommandMalformed, new[] { shortcode })
-                            .InReplyTo(origin)
-                            .Build();
-                        await social.PostAsync(reply);
-                    }
-                }
-            }
-            else
-            {
-                var reply = posts.CommandRejection(CommandRejectionReason.CommandMalformed)
-                    .InReplyTo(origin)
-                    .Build();
-                await social.PostAsync(reply);
             }
         }
 
@@ -236,11 +236,26 @@ namespace ConsensusChessEngine.Service
         private async Task StartNewGameCmdAsync(SocialCommand origin, IEnumerable<string> words)
         {
             // TODO: more complex games, better structure for issuing commands
-            var nodeShortcodes = words.Skip(1); // everything after "new" is a shortcode (for now)
+            if (words.Count() < 4)
+            {
+                var summary = "new game command format: new <title> <description> <node> [<node> [<node>]]...";
+                log.LogWarning(summary);
+                throw new CommandRejectionException(
+                    origin,
+                    words,
+                    CommandRejectionReason.CommandMalformed,
+                    summary);
+
+            }
+
+            // new <title> <description> <nodes...>
+            var title = words.Skip(1).First();
+            var description = words.Skip(2).First();
+            var nodeShortcodes = words.Skip(3);
 
             if (nodeShortcodes.Count() == 0)
             {
-                var summary = "No sides provided - cannot create game.";
+                var summary = "No nodes provided - cannot create game.";
                 log.LogWarning(summary);
                 throw new CommandRejectionException(
                     origin,
@@ -259,13 +274,16 @@ namespace ConsensusChessEngine.Service
                 if (nodesOk)
                 {
                     var shortcode = dbo.GenerateUniqueGameShortcode(db);
-                    var game = gm.CreateSimpleMoveLockGame(shortcode, "Simple MoveLock", "a simple move-lock game",
+                    var game = gm.CreateSimpleMoveLockGame(
+                        shortcode: shortcode,
+                        title: title,
+                        description: description,
                         participantNetworkServers: participantNetworks.Select(n => n.NetworkServer),
                         postingNodeShortcodes: nodeShortcodes);
                     db.Games.Add(game);
                     await db.SaveChangesAsync();
 
-                    var summary = $"New {game.SideRules} game for: {string.Join(", ", nodeShortcodes)}";
+                    var summary = $"New {game.SideRules} game: {game.Title}\nNodes: {string.Join(", ", nodeShortcodes)}";
                     log.LogInformation(summary);
 
                     var post = posts.Engine_GameAnnouncement(game).Build();
