@@ -21,6 +21,7 @@ namespace ConsensusChessShared.DTO
 		public string NetworkServer { get; set; }
         public string AppToken { get; set; }
         public string AppName { get; set; }
+        public string ExpectedAccountName { get; set; }
         public string AuthorisedAccounts { get; set; }
         public bool DryRuns { get; set; }
 
@@ -36,6 +37,7 @@ namespace ConsensusChessShared.DTO
             var networkType = Enum.Parse<NetworkType>(environment["NETWORK_TYPE"]);
             var appName = environment["NETWORK_APP_NAME_REMINDER"];
             var server = environment["NETWORK_SERVER"];
+            var expectedAccountName = environment["NETWORK_ACCOUNT_NAME"];
             var appAccessToken = environment["NETWORK_ACCESS_TOKEN"];
             var authorisedAccounts = environment["NETWORK_AUTHORISED_ACCOUNTS"];
             var dryRuns = bool.Parse(environment["NETWORK_DRY_RUNS"]);
@@ -47,7 +49,8 @@ namespace ConsensusChessShared.DTO
                 AppName = appName,
                 AppToken = appAccessToken,
                 AuthorisedAccounts = authorisedAccounts,
-                DryRuns = dryRuns
+                DryRuns = dryRuns,
+                ExpectedAccountName = expectedAccountName
             };
         }
     }

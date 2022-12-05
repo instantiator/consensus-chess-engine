@@ -93,9 +93,8 @@ namespace ConsensusChessSharedTests.Data
         {
             {"NETWORK_TYPE","Mastodon"},
             {"NETWORK_SERVER","some.kind.of.mastodon"},
+            {"NETWORK_ACCOUNT_NAME","icgames"},
             {"NETWORK_APP_NAME_REMINDER","app-name"},
-            {"NETWORK_APP_KEY","app-key"},
-            {"NETWORK_APP_SECRET","app-secret"},
             {"NETWORK_ACCESS_TOKEN","access-token"},
             {"NETWORK_AUTHORISED_ACCOUNTS","instantiator@mastodon.social,icgames@botsin.space"},
             {"NETWORK_DRY_RUNS","true"},

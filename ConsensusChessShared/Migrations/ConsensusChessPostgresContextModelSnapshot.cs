@@ -259,6 +259,11 @@ namespace ConsensusChessShared.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("dry_runs");
 
+                    b.Property<string>("ExpectedAccountName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("expected_account_name");
+
                     b.Property<string>("NetworkServer")
                         .IsRequired()
                         .HasColumnType("text")

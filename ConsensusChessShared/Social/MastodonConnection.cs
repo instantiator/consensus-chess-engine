@@ -33,7 +33,14 @@ namespace ConsensusChessShared.Social
         {
             await RateLimitAsync();
             user = await client.GetCurrentUser();
+
+            var expectedUser = SocialUsername.From(network.ExpectedAccountName, user.DisplayName!, network, shortcode);
             Username = SocialUsername.From(user.AccountName!, user.DisplayName!, network, shortcode);
+
+            if (expectedUser.Full != Username.Full)
+            {
+                throw new ArgumentException($"Expected to connect as: {expectedUser.Full}\nActually connected as: {Username.Full}");
+            }
         }
 
         public override SocialUsername? Username { get; set; }

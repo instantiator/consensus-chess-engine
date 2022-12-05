@@ -80,8 +80,8 @@ namespace ConsensusChessShared.Service
             EraseHealthIndicators();
 
             await social.InitAsync(state);
-            log.LogDebug($"Username: {social.Username!.Full}");
-            log.LogDebug($"Authorised accounts: {string.Join(", ", network.AuthorisedAccountsList)}");
+            log.LogInformation($"Initialised as: {social.Username!.Full}");
+            log.LogInformation($"Authorised accounts: {string.Join(", ", network.AuthorisedAccountsList)}");
             LogGameCount();
 
             var skips = social.CalculateCommandSkips();
