@@ -31,10 +31,10 @@ eg. `@icgames_engine@botsin.space shutdown`
 Initiates a new move-lock game, all named nodes will participate.
 
 ```text
-new --type MoveLock --title <title> --description <description> --nodes <shortcode>[,<shortcode>[,<shortcode>]]...
+@icgames_engine@botsin.space new MoveLock <title> <description> <shortcode> [<shortcode>] [<shortcode>]...
 ```
 
-eg. `@icgames_engine@botsin.space new --type MoveLock --title "First" --description "The very first consensus chess game." --nodes node-prod-00`
+eg. `@icgames_engine@botsin.space new MoveLock "First" "The very first consensus chess game." node-prod-00`
 
 ## status
 

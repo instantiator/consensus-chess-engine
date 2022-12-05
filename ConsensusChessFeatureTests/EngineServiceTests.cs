@@ -41,7 +41,7 @@ namespace ConsensusChessFeatureTests
                 Assert.AreEqual(0, db.Games.Count());
             }
 
-            var command = await SendToEngineAsync($"new \"A Title\" \"and a description\" {NodeId.Shortcode}");
+            var command = await SendToEngineAsync($"new MoveLock \"A Title\" \"and a description\" {NodeId.Shortcode}");
 
             // acknowledgement
             EngineSocialMock.Verify(ns => ns.PostAsync(

@@ -236,9 +236,9 @@ namespace ConsensusChessEngine.Service
         private async Task StartNewGameCmdAsync(SocialCommand origin, IEnumerable<string> words)
         {
             // TODO: more complex games, better structure for issuing commands
-            if (words.Count() < 4)
+            if (words.Count() < 5)
             {
-                var summary = "new game command format: new <title> <description> <node> [<node> [<node>]]...";
+                var summary = "new game command format: new MoveLock <title> <description> <node> [<node> [<node>]]...";
                 log.LogWarning(summary);
                 throw new CommandRejectionException(
                     origin,
@@ -249,9 +249,21 @@ namespace ConsensusChessEngine.Service
             }
 
             // new <title> <description> <nodes...>
-            var title = words.Skip(1).First();
-            var description = words.Skip(2).First();
-            var nodeShortcodes = words.Skip(3);
+            var type = words.Skip(1).First();
+            var title = words.Skip(2).First();
+            var description = words.Skip(3).First();
+            var nodeShortcodes = words.Skip(4);
+
+            if (type != "MoveLock")
+            {
+                var summary = $"{type} unsupported. Only MoveLock games are currently supported.";
+                log.LogWarning(summary);
+                throw new CommandRejectionException(
+                    origin,
+                    words,
+                    CommandRejectionReason.CommandMalformed,
+                    summary);
+            }
 
             if (nodeShortcodes.Count() == 0)
             {

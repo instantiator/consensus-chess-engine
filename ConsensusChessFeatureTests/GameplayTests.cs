@@ -64,7 +64,7 @@ namespace ConsensusChessFeatureTests
             var fen = GameplayTestData.FEN_positions[position];
             var moves = GameplayTestData.MOVE_sequences[reenactment];
 
-            var startCommand = await SendToEngineAsync($"new {reenactment} \"A reenactment game.\" {NodeId.Shortcode}");
+            var startCommand = await SendToEngineAsync($"new MoveLock {reenactment} \"A reenactment game.\" {NodeId.Shortcode}");
 
             WaitAndAssert_Post(
                 shortcode: EngineId.Shortcode,

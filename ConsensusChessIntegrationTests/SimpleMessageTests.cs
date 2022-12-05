@@ -50,7 +50,7 @@ namespace ConsensusChessIntegrationTests
             // issue a command to start a new game
             WriteLogLine("Posting new game request...");
             var commandNewGame = await SendMessageAsync(
-                Messages.NewGameCommand(nodeShortcodes),
+                Messages.NewGameCommand("Integration", "a game for the integration tests", nodeShortcodes),
                 Mastonet.Visibility.Direct,
                 contacts[NodeType.Engine]);
 
@@ -137,7 +137,7 @@ namespace ConsensusChessIntegrationTests
                 var servers = new[] { contacts[NodeType.Node].Server };
                 var nodes = new[] { contacts[NodeType.Node].Shortcode! };
                 var game = new Game(
-                    "test-game", "Int Game", "A game for integration testing",
+                    "test-game", "Integration", "A game for integration testing",
                     servers, servers,
                     nodes, nodes,
                     SideRules.MoveLock);
