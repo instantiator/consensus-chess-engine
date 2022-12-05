@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Runtime.InteropServices.JavaScript;
 using ConsensusChessShared.Constants;
 using ConsensusChessShared.DTO;
 using ConsensusChessShared.Exceptions;
 using ConsensusChessShared.Service;
 using ConsensusChessShared.Social;
+using Mastonet.Entities;
 using static ConsensusChessShared.Content.BoardFormatter;
 using static ConsensusChessShared.Content.BoardGraphicsData;
 
@@ -65,13 +67,17 @@ namespace ConsensusChessShared.Content
         public PostBuilder Node_FollowInstructions()
             => new PostBuilder(config, PostType.Node_FollowInstructions);
 
-        public PostBuilder Node_GameAbandonedUpdate(Game game)
+        public PostBuilder Node_GameAbandonedUpdate(Game game, BoardFormat format, BoardStyle style)
             => new PostBuilder(config, PostType.Node_GameAbandonedUpdate)
-                .WithGame(game);
+                .WithGame(game)
+                .WithBoard(game.CurrentBoard, format)
+                .AndBoardGraphic(style, format);
 
-        public PostBuilder Node_GameEndedUpdate(Game game)
+        public PostBuilder Node_GameEndedUpdate(Game game, BoardFormat format, BoardStyle style)
             => new PostBuilder(config, PostType.Node_GameEndedUpdate)
-                .WithGame(game);
+                .WithGame(game)
+                .WithBoard(game.CurrentBoard, format)
+                .AndBoardGraphic(style, format);
 
         public PostBuilder Node_GameNotFound(GameNotFoundReason reason)
             => new PostBuilder(config, PostType.Node_GameNotFound)

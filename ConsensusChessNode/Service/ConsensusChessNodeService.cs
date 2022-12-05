@@ -126,12 +126,20 @@ namespace ConsensusChessNode.Service
                     switch (game.State)
                     {
                         case GameState.Abandoned:
-                            post = posts.Node_GameAbandonedUpdate(game).Build();
+                            post = posts.Node_GameAbandonedUpdate(
+                                game,
+                                BoardFormat.Words_en,
+                                BoardStyle.PixelChess)
+                                    .Build();
                             break;
                         case GameState.Stalemate:
                         case GameState.BlackKingCheckmated:
                         case GameState.WhiteKingCheckmated:
-                            post = posts.Node_GameEndedUpdate(game).Build();
+                            post = posts.Node_GameEndedUpdate(
+                                game,
+                                BoardFormat.Words_en,
+                                BoardStyle.PixelChess)
+                                    .Build();
                             break;
                         default:
                             log.LogWarning($"Should not have attempted to post the end of game in state: {game.State}");

@@ -178,7 +178,9 @@ namespace ConsensusChessSharedTests
         {
             var config = ServiceConfig.FromEnv(SampleDataGenerator.SimpleConfig);
             var builder = new PostBuilderFactory(config).Node_GameAbandonedUpdate(
-                SampleDataGenerator.SimpleMoveLockGame());
+                SampleDataGenerator.SimpleMoveLockGame(),
+                BoardFormatter.BoardFormat.Words_en,
+                BoardGraphicsData.BoardStyle.PixelChess);
             var post = builder.Build();
         }
 
@@ -187,7 +189,9 @@ namespace ConsensusChessSharedTests
         {
             var config = ServiceConfig.FromEnv(SampleDataGenerator.SimpleConfig);
             var builder = new PostBuilderFactory(config).Node_GameEndedUpdate(
-                SampleDataGenerator.SimpleMoveLockGame());
+                SampleDataGenerator.SimpleMoveLockGame(),
+                BoardFormatter.BoardFormat.Words_en,
+                BoardGraphicsData.BoardStyle.PixelChess);
             var post = builder.Build();
         }
 

@@ -26,12 +26,14 @@ Issue commands to the engine by mentioning it.
 
 eg. `@icgames_engine@botsin.space shutdown`
 
+_NB. As docker compose is currently configured to restart containers on error, and because the shutdown command causes an exception during shutdown, this command is currently ineffectual. The node or engine will restart immediately._
+
 ## new
 
-Initiates a new move-lock game, all named nodes will participate.
+Initiates a new game, all named nodes will participate.
 
 ```text
-@icgames_engine@botsin.space new MoveLock <title> <description> <shortcode> [<shortcode>] [<shortcode>]...
+new MoveLock <title> <description> <shortcode> [<shortcode>] [<shortcode>]...
 ```
 
 eg. `@icgames_engine@botsin.space new MoveLock "First" "The very first consensus chess game." node-prod-00`
