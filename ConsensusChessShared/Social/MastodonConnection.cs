@@ -18,8 +18,7 @@ namespace ConsensusChessShared.Social
         private TimelineStreaming? stream;
 
         // TODO: revisit the paging limit - may or may not be necessary
-        private const int MAX_PAGES = 100;
-
+        public static int MAX_PAGES = 100;
         public static int RATE_LIMIT_PERMITTED_REQUESTS = 300;
         public static TimeSpan RATE_LIMIT_PERMITTED_PERIOD = TimeSpan.FromSeconds(300);
 
@@ -174,18 +173,19 @@ namespace ConsensusChessShared.Social
             }
         }
 
+        protected int recentIterations; // for exposure in tests
         protected override async Task<IEnumerable<Notification>> GetAllNotificationSinceAsync(long sinceId)
         {
             var list = new List<Notification>();
             long? nextPageMaxId = null;
-            int iterations = 0;
+            recentIterations = 0;
 
             do
             {
                 ArrayOptions opts = new ArrayOptions()
                 {
                     SinceId = sinceId.ToString(),
-                    MaxId = nextPageMaxId.ToString()
+                    MaxId = nextPageMaxId?.ToString()
                 };
 
                 await RateLimitAsync();
@@ -193,10 +193,9 @@ namespace ConsensusChessShared.Social
 
                 list.AddRange(page.Where(pn => !list.Select(n => n.Id).Contains(pn.Id)));
                 nextPageMaxId = page.NextPageMaxId;
-                iterations++;
-            } while (nextPageMaxId != null && iterations < MAX_PAGES);
-
-            return list;
+                recentIterations++;
+            } while (nextPageMaxId != null && recentIterations < MAX_PAGES);
+            return list.OrderBy(n => n.CreatedAt);
         }
 
         private async void Stream_OnNotification(object? sender, StreamNotificationEventArgs e)
