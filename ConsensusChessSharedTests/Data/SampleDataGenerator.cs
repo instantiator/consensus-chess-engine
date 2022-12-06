@@ -14,7 +14,11 @@ namespace ConsensusChessSharedTests.Data
         public static string FEN_FoolsMate    = "rnbqkbnr/3ppQpp/ppp5/8/2B5/4P3/PPPP1PPP/RNB1K1NR b KQkq - 0 1";
         public static string SAN_FoolsMate    = "Qf7";
 
-        public static long RollingPostId = 1;
+        private static long rollingPostId = 1;
+        private static long rollingNotificationId = 1;
+
+        public static string NextPostId => rollingPostId++.ToString();
+        public static string NextNotificationId => rollingNotificationId++.ToString();
 
 		public static string[] AuthorisedAccounts =>
             new[]
@@ -44,7 +48,8 @@ namespace ConsensusChessSharedTests.Data
             {
                 Name = "simple test node",
                 Shortcode = "node-0-test",
-                LastNotificationId = 0,
+                LastNotificationId = null,
+                LastCommandStatusId = null,
                 Network = FakeNetwork
             };
 
@@ -53,7 +58,8 @@ namespace ConsensusChessSharedTests.Data
             return new SocialCommand(
                 receivingNetwork: FakeNetwork,
                 username: SocialUsername.From(sender ?? "instantiator@mastodon.social", "lewis", FakeNetwork),
-                postId: RollingPostId++,
+                postId: NextPostId,
+                notificationId: NextNotificationId,
                 text: message,
                 isForThisNode: true,
                 isAuthorised: isAuthorised,
@@ -74,7 +80,7 @@ namespace ConsensusChessSharedTests.Data
 
         public static Vote SampleVote()
             => new Vote(
-                SampleDataGenerator.RollingPostId++,
+                SampleDataGenerator.NextPostId,
                 "e2 - e4",
                 SampleParticipant());
 

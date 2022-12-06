@@ -15,7 +15,8 @@ namespace ConsensusChessShared.DTO
 		{
 			StatePosts = new List<Post>();
 			Created = DateTime.Now.ToUniversalTime();
-			LastNotificationId = 0;
+			LastNotificationId = null;
+			LastCommandStatusId = null;
 		}
 
 		public NodeState(string name, string shortcode, Network network) : this()
@@ -32,8 +33,9 @@ namespace ConsensusChessShared.DTO
 		public string Name { get; set; }
 
 		public string Shortcode { get; set; }
-		public long LastNotificationId { get; set; }
-		public virtual List<Post> StatePosts { get; set; }
+		public string? LastNotificationId { get; set; }
+		public string? LastCommandStatusId { get; set; }
+        public virtual List<Post> StatePosts { get; set; }
 		public virtual Network Network { get; set; }
     }
 }

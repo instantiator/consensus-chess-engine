@@ -29,8 +29,8 @@ namespace ConsensusChessShared.DTO
 		public string? NetworkServer { get; set; }
 		public string? AppName { get; set; }
 		public string? NodeShortcode { get; set; }
-        public long? NetworkPostId { get; set; }
-        public long? NetworkReplyToId { get; set; }
+        public string? NetworkPostId { get; set; }
+        public string? NetworkReplyToId { get; set; }
         public DateTime? Attempted { get; set; }
         public bool Succeeded { get; set; }
         public string? ErrorMessage { get; set; }
@@ -39,7 +39,7 @@ namespace ConsensusChessShared.DTO
         [NotMapped]
         public Exception? Exception { get; set; }
 
-        public void Succeed(string shortcode, string appname, string networkserver, long? networkPostId)
+        public void Succeed(string shortcode, string appname, string networkserver, string? networkPostId)
         {
             NodeShortcode = shortcode;
             AppName = appname;

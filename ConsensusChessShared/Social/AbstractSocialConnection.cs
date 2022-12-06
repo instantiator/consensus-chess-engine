@@ -52,9 +52,9 @@ namespace ConsensusChessShared.Social
 
 		public abstract IEnumerable<string> CalculateCommandSkips();
         protected abstract Task GetMissedCommands();
-        protected abstract Task MarkCommandProcessedAsync(long id);
+        protected abstract Task MarkCommandProcessedAsync(string id);
         protected abstract Task StartListeningForNotificationsAsync();
-        protected abstract Task<IEnumerable<Notification>> GetAllNotificationSinceAsync(long sinceId);
+        protected abstract Task<IEnumerable<Notification>> GetAllNotificationSinceAsync(string? sinceId);
         public abstract Task StopListeningForCommandsAsync(Func<SocialCommand, Task> asyncReceiver);
 
         public async Task StartListeningForCommandsAsync(Func<SocialCommand, Task> asyncCommandReceiver, bool getMissedCommands)
@@ -118,12 +118,23 @@ namespace ConsensusChessShared.Social
                     command.IsProcessed = true;
                 }
 
-                // always update the last notification id
-                if (command.SourcePostId > state!.LastNotificationId)
+                // update the last status id
+                if (state!.LastCommandStatusId == null ||
+                    ulong.Parse(command.SourcePostId) > ulong.Parse(state!.LastCommandStatusId))
                 {
-                    state.LastNotificationId = command.SourcePostId;
-                    await ReportStateChangeAsync();
+                    state.LastCommandStatusId = command.SourcePostId;
                 }
+
+                // update the last notification id (if present)
+                if (command.SourceNotificationId != null)
+                {
+                    if (state!.LastNotificationId == null ||
+                    ulong.Parse(command.SourceNotificationId!) > ulong.Parse(state!.LastNotificationId))
+                    {
+                        state.LastNotificationId = command.SourceNotificationId;
+                    }
+                }
+                await ReportStateChangeAsync();
             }
         }
 

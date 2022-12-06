@@ -188,10 +188,10 @@ namespace ConsensusChessIntegrationTests
                 Assert.IsTrue(vote.ValidationPost!.Succeeded);
                 Assert.IsNotNull(vote.ValidationPost.NetworkPostId);
                 Assert.AreEqual(contacts[NodeType.Node].Shortcode, vote.ValidationPost.NodeShortcode);
-                Assert.IsTrue(vote.ValidationPost.NetworkReplyToId > 0);
+                Assert.IsTrue(ulong.Parse(vote.ValidationPost.NetworkReplyToId!) > 0);
                 Assert.IsTrue(vote.ValidationPost.Message!.ToLower().Contains(Snippets.Node_MoveAccepted().ToLower()));
 
-                Assert.IsTrue(vote.NetworkMovePostId > 0);
+                Assert.IsTrue(ulong.Parse(vote.NetworkMovePostId) > 0);
                 Assert.AreEqual("e2 - e4", vote.MoveText);
                 Assert.AreEqual("e4", vote.MoveSAN);
             }

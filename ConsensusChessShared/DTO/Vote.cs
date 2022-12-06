@@ -14,7 +14,7 @@ namespace ConsensusChessShared.DTO
         }
 
 		public Vote(
-			long postId, string raw,
+			string postId, string raw,
 			Participant participant,
             string? san = null,
             VoteValidationState validation = VoteValidationState.Unchecked,
@@ -32,7 +32,7 @@ namespace ConsensusChessShared.DTO
         public Guid Id { get; set; }
         public DateTime Created { get; set; }
 
-		public long NetworkMovePostId { get; set; }
+		public string NetworkMovePostId { get; set; }
 		public string MoveText { get; set; }
 		public virtual Participant Participant { get; set; }
 

@@ -294,7 +294,7 @@ namespace ConsensusChessSharedTests
             for (var i = 0; i < 5; i++)
             {
                 game.CurrentMove.Votes.Add(new Vote(
-                    SampleDataGenerator.RollingPostId++,
+                    SampleDataGenerator.NextPostId,
                     "e2 - e4",
                     SampleDataGenerator.SampleParticipant($"participant-{i}"),
                     "e4",
@@ -303,7 +303,7 @@ namespace ConsensusChessSharedTests
             for (var i = 5; i < 8; i++)
             {
                 game.CurrentMove.Votes.Add(new Vote(
-                    SampleDataGenerator.RollingPostId++,
+                    SampleDataGenerator.NextPostId,
                     "e2 - e3",
                     SampleDataGenerator.SampleParticipant($"participant-{i}"),
                     "e3",
@@ -322,7 +322,7 @@ namespace ConsensusChessSharedTests
             for (var i = 0; i < 5; i++)
             {
                 game.CurrentMove.Votes.Add(new Vote(
-                    SampleDataGenerator.RollingPostId++,
+                    SampleDataGenerator.NextPostId,
                     "e2 - e4",
                     SampleDataGenerator.SampleParticipant($"participant-{i}"),
                     "e4",
@@ -330,21 +330,21 @@ namespace ConsensusChessSharedTests
             }
 
             game.CurrentMove.Votes.Add(new Vote(
-                SampleDataGenerator.RollingPostId++,
+                SampleDataGenerator.NextPostId,
                 "a2 - a3",
                 SampleDataGenerator.SampleParticipant($"participant-5"),
                 "a3",
                 VoteValidationState.Superceded));
 
             game.CurrentMove.Votes.Add(new Vote(
-                SampleDataGenerator.RollingPostId++,
+                SampleDataGenerator.NextPostId,
                 "b2 - b3",
                 SampleDataGenerator.SampleParticipant($"participant-6"),
                 "b3",
                 VoteValidationState.NoGame));
 
             game.CurrentMove.Votes.Add(new Vote(
-                SampleDataGenerator.RollingPostId++,
+                SampleDataGenerator.NextPostId,
                 "c2 - c3",
                 SampleDataGenerator.SampleParticipant($"participant-7"),
                 "c3",

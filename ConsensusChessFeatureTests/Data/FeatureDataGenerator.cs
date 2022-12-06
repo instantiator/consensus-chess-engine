@@ -12,7 +12,10 @@ namespace ConsensusChessFeatureTests.Data
 {
 	public class FeatureDataGenerator
 	{
-        public static long RollingPostId { get; set; } = 1;
+        private static long rollingPostId { get; set; } = 1;
+        private static long rollingNotificationId { get; set; } = 1;
+        public static string NextPostId => rollingPostId++.ToString();
+        public static string NextNotificationId => rollingNotificationId++.ToString();
 
         public static string FEN_PreSimpleCheckmate = "rnbqkbnr/3ppppp/ppp5/8/2B5/4PQ2/PPPP1PPP/RNB1K1NR w KQkq - 0 1";
         public static string FEN_SimpleCheckmate = "rnbqkbnr/3ppQpp/ppp5/8/2B5/4P3/PPPP1PPP/RNB1K1NR b KQkq - 0 1";
@@ -59,7 +62,7 @@ namespace ConsensusChessFeatureTests.Data
             post.NetworkServer = network.NetworkServer;
             post.NodeShortcode = shortcode;
             post.Succeeded = true;
-            post.NetworkPostId = RollingPostId++;
+            post.NetworkPostId = NextPostId;
             return post;
         }
 
@@ -75,18 +78,19 @@ namespace ConsensusChessFeatureTests.Data
                 NodeShortcode = shortcode,
                 Succeeded = true,
                 Type = type ?? PostType.Unspecified,
-                NetworkPostId = RollingPostId++,
+                NetworkPostId = NextPostId,
             };
         }
 
-        public static SocialCommand GenerateCommand(string message, Network network, bool authorised = true, string? from = null, long? inReplyTo = null)
+        public static SocialCommand GenerateCommand(string message, Network network, bool authorised = true, string? from = null, string? inReplyTo = null)
         {
             var fromUser = from ?? "instantiator";
 
             return new SocialCommand(
                 receivingNetwork: network,
                 username: SocialUsername.From(fromUser, $"Display name for {fromUser}", network),
-                postId: RollingPostId++,
+                postId: NextPostId,
+                notificationId: NextNotificationId,
                 text: message,
                 isForThisNode: true,
                 isAuthorised: authorised,

@@ -15,7 +15,7 @@ namespace ConsensusChessIntegrationTests
             MAX_PAGES = 6;
         }
 
-        public async Task<IEnumerable<Notification>> ExposeGetAllNotificationSinceAsync(long sinceId)
+        public async Task<IEnumerable<Notification>> ExposeGetAllNotificationSinceAsync(string? sinceId)
             => await GetAllNotificationSinceAsync(sinceId);
 
         public int RecentIterations => recentIterations;

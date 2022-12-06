@@ -26,7 +26,7 @@ namespace ConsensusChessShared.Content
 
 		public PostType Type { get; private set; }
 		public Dictionary<string,object> Mappings { get; private set; }
-		public long? ReplyToId { get; private set; }
+		public string? ReplyToId { get; private set; }
 		public string? ToHandle { get; private set; }
 		public string? OverrideTemplate { get; private set; }
 		public List<Media> Media { get; private set; }
@@ -216,10 +216,10 @@ namespace ConsensusChessShared.Content
 
         public PostBuilder InReplyTo(Post post)
         {
-            return InReplyTo(post.NetworkPostId!.Value, null);
+            return InReplyTo(post.NetworkPostId!, null);
         }
 
-        public PostBuilder InReplyTo(long id, SocialUsername? user)
+        public PostBuilder InReplyTo(string id, SocialUsername? user)
 		{
 			ReplyToId = id;
 			ToHandle = user?.Full;

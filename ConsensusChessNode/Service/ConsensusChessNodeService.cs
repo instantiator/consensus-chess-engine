@@ -274,7 +274,7 @@ namespace ConsensusChessNode.Service
 
                     // additional information for players
                     var informationReply = posts.Node_FollowInstructions()
-                        .InReplyTo(reply.NetworkPostId!.Value, origin.SourceUsername)
+                        .InReplyTo(reply.NetworkPostId!, origin.SourceUsername)
                         .WithOverrideVisibility(Visibility.Direct)
                         .Build();
                     await social.PostAsync(informationReply);

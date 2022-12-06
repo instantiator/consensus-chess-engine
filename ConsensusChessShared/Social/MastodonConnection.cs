@@ -22,6 +22,8 @@ namespace ConsensusChessShared.Social
         public static int RATE_LIMIT_PERMITTED_REQUESTS = 300;
         public static TimeSpan RATE_LIMIT_PERMITTED_PERIOD = TimeSpan.FromSeconds(300);
 
+        private Task streamTask;
+
         public MastodonConnection(ILogger log, Network network, string shortcode, ServiceConfig config)
             : base(log, network, shortcode, RATE_LIMIT_PERMITTED_REQUESTS, RATE_LIMIT_PERMITTED_PERIOD, config)
 		{
@@ -127,7 +129,7 @@ namespace ConsensusChessShared.Social
                         mediaIds: mediaIds,
                         replyStatusId: post.NetworkReplyToId?.ToString());
 
-                    post.Succeed(state.Shortcode, network.AppName, network.NetworkServer, long.Parse(status.Id));
+                    post.Succeed(state.Shortcode, network.AppName, network.NetworkServer, status.Id);
                 }
                 else
                 {
@@ -149,13 +151,13 @@ namespace ConsensusChessShared.Social
             stream = client.GetUserStreaming();
             stream.OnNotification += Stream_OnNotification;
             log.LogDebug("Starting stream");
-            stream.Start(); // not awaited - awaiting blocks
+            streamTask = stream.Start(); // not awaited - awaiting blocks
         }
 
         protected override async Task GetMissedCommands()
         {
             // fetch conversations up to now before starting to stream
-            var firstStart = state.LastNotificationId == 0;
+            var firstStart = state.LastNotificationId == null;
 
             log.LogDebug(
                 !firstStart
@@ -174,17 +176,17 @@ namespace ConsensusChessShared.Social
         }
 
         protected int recentIterations; // for exposure in tests
-        protected override async Task<IEnumerable<Notification>> GetAllNotificationSinceAsync(long sinceId)
+        protected override async Task<IEnumerable<Notification>> GetAllNotificationSinceAsync(string? sinceId)
         {
             var list = new List<Notification>();
-            long? nextPageMaxId = null;
+            long? nextPageMaxId = null; // TODO: should this be a string?
             recentIterations = 0;
 
             do
             {
                 ArrayOptions opts = new ArrayOptions()
                 {
-                    SinceId = sinceId.ToString(),
+                    SinceId = sinceId ?? "0",
                     MaxId = nextPageMaxId?.ToString()
                 };
 
@@ -207,11 +209,11 @@ namespace ConsensusChessShared.Social
             }
         }
 
-        protected override async Task MarkCommandProcessedAsync(long id)
+        protected override async Task MarkCommandProcessedAsync(string id)
         {
             log.LogDebug($"Favouriting status: {id}");
             await RateLimitAsync();
-            await client.Favourite(id.ToString());
+            await client.Favourite(id);
         }
 
         public override async Task StopListeningForCommandsAsync(Func<SocialCommand, Task> asyncCommandReceiver)
@@ -266,7 +268,8 @@ namespace ConsensusChessShared.Social
             return new SocialCommand(
                 receivingNetwork: network,
                 username: username,
-                postId: long.Parse(notification.Status!.Id),
+                postId: notification.Status!.Id,
+                notificationId: notification.Id,
                 text: notification.Status!.Content,
                 isForThisNode: isForMe,
                 isAuthorised: isAuthorised,
@@ -274,7 +277,7 @@ namespace ConsensusChessShared.Social
                 isProcessed: isFavourited,
                 deliveryMedium: typeof(MastodonConnection).Name,
                 deliveryType: notification.Type,
-                inReplyTo: inReplyTo == null ? null : long.Parse(inReplyTo));
+                inReplyTo: inReplyTo);
         }
     }
 }

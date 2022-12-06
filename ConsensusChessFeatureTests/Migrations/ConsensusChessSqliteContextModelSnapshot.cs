@@ -286,8 +286,12 @@ namespace ConsensusChessFeatureTests.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("created");
 
-                    b.Property<long>("LastNotificationId")
-                        .HasColumnType("INTEGER")
+                    b.Property<string>("LastCommandStatusId")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("last_command_status_id");
+
+                    b.Property<string>("LastNotificationId")
+                        .HasColumnType("TEXT")
                         .HasColumnName("last_notification_id");
 
                     b.Property<string>("Name")
@@ -380,12 +384,12 @@ namespace ConsensusChessFeatureTests.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("message");
 
-                    b.Property<long?>("NetworkPostId")
-                        .HasColumnType("INTEGER")
+                    b.Property<string>("NetworkPostId")
+                        .HasColumnType("TEXT")
                         .HasColumnName("network_post_id");
 
-                    b.Property<long?>("NetworkReplyToId")
-                        .HasColumnType("INTEGER")
+                    b.Property<string>("NetworkReplyToId")
+                        .HasColumnType("TEXT")
                         .HasColumnName("network_reply_to_id");
 
                     b.Property<string>("NetworkServer")
@@ -536,8 +540,9 @@ namespace ConsensusChessFeatureTests.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("move_text");
 
-                    b.Property<long>("NetworkMovePostId")
-                        .HasColumnType("INTEGER")
+                    b.Property<string>("NetworkMovePostId")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
                         .HasColumnName("network_move_post_id");
 
                     b.Property<Guid>("ParticipantId")

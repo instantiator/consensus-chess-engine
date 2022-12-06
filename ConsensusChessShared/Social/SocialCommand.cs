@@ -6,7 +6,8 @@ namespace ConsensusChessShared.Social
 	public class SocialCommand
 	{
         public SocialCommand(
-			Network receivingNetwork, SocialUsername username, long postId,
+			Network receivingNetwork, SocialUsername username,
+			string postId, string? notificationId,
 			string text,
 			bool isForThisNode,
 			bool isAuthorised,
@@ -14,11 +15,12 @@ namespace ConsensusChessShared.Social
 			bool isProcessed,
 			string deliveryMedium,
 			string deliveryType,
-            long? inReplyTo = null)
+            string? inReplyTo = null)
 		{
 			ReceivingNetwork = receivingNetwork;
 			SourceUsername = username;
 			SourcePostId = postId;
+			SourceNotificationId = notificationId;
 			RawText = text;
 			IsForThisNode = isForThisNode;
 			IsAuthorised = isAuthorised;
@@ -31,11 +33,12 @@ namespace ConsensusChessShared.Social
 
 		public Network ReceivingNetwork { get; set; }
 		public SocialUsername SourceUsername { get; set; }
-		public long SourcePostId { get; set; }
+		public string SourcePostId { get; set; }
+		public string? SourceNotificationId { get; set; }
 
 		public string RawText { get; set; }
 
-		public long? InReplyToId { get; set; }
+		public string? InReplyToId { get; set; }
 		public bool IsForThisNode { get; set; }
 		public bool IsAuthorised { get; set; }
 		public bool IsRetrospective { get; set; }
