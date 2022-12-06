@@ -40,7 +40,7 @@ namespace ConsensusChessIntegrationTests
             Assert.IsTrue(connection.Streaming);
         }
 
-        public async Task CommandReceiver(SocialCommand cmd)
+        private async Task CommandReceiver(SocialCommand cmd)
         {
             receivedCommands.Add(cmd);
         }
