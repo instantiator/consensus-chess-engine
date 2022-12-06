@@ -8,6 +8,8 @@ namespace ConsensusChessShared.Social
 	public interface ISocialConnection
 	{
 		bool Ready { get; }
+		bool Streaming { get; }
+
 		Task InitAsync(NodeState state);
         SocialUsername? Username { get; }
 

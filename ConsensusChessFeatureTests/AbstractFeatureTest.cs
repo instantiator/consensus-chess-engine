@@ -45,6 +45,9 @@ public abstract class AbstractFeatureTest
     protected TimeSpan fastPollOverride = TimeSpan.FromMilliseconds(1);
     protected TimeSpan spinWaitTimeout = TimeSpan.FromSeconds(3);
 
+    protected Task? nodeTask;
+    protected Task? engineTask;
+
     protected AbstractFeatureTest()
     {
         postsSent = new ConcurrentBag<Post>();
@@ -144,8 +147,8 @@ public abstract class AbstractFeatureTest
         var cancel = new CancellationTokenSource();
         var token = cancel.Token;
         await node.StartAsync(token);
-        SpinWait.SpinUntil(() => File.Exists(AbstractConsensusService.HEALTHCHECK_READY_PATH));
-        node.ExecuteAsync(token); // don't await - this is a background process
+        WaitAndAssert(() => File.Exists(AbstractConsensusService.HEALTHCHECK_READY_PATH),"Healthcheck file not created.");
+        nodeTask = node.ExecuteAsync(token); // don't await - this is a background process
         SpinWait.SpinUntil(() => receivers.ContainsKey(NodeId.Shortcode));
         return node;
     }
@@ -157,7 +160,7 @@ public abstract class AbstractFeatureTest
         var token = cancel.Token;
         await engine.StartAsync(token);
         SpinWait.SpinUntil(() => File.Exists(AbstractConsensusService.HEALTHCHECK_READY_PATH));
-        engine.ExecuteAsync(token); // don't await - this is a background process
+        engineTask = engine.ExecuteAsync(token); // don't await - this is a background process
         SpinWait.SpinUntil(() => receivers.ContainsKey(EngineId.Shortcode));
         return engine;
     }

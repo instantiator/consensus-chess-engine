@@ -10,9 +10,10 @@ namespace ConsensusChessShared.Social
 {
 	public abstract class AbstractSocialConnection : ISocialConnection
 	{
-		public event Func<NodeState, Task> OnStateChange;
+		public event Func<NodeState, Task>? OnStateChange;
 
         public bool Ready { get; private set; }
+        public bool Streaming { get; protected set; }
 
 		protected ILogger log;
 		protected Network network;
@@ -34,6 +35,8 @@ namespace ConsensusChessShared.Social
             this.Ready = false;
             this.shortcode = shortcode;
             this.config = config;
+
+            Streaming = false;
 
             if (permittedRequests != null && rateLimitPeriod != null)
                 this.rateLimiter = new RateLimiter(log, permittedRequests.Value, rateLimitPeriod.Value);

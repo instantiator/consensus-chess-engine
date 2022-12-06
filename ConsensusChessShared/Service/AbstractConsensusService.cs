@@ -38,6 +38,8 @@ namespace ConsensusChessShared.Service
 
         protected CancellationTokenSource? pollingCancellation;
 
+        public ISocialConnection Social => social;
+
         protected AbstractConsensusService(ILogger log, ServiceIdentity identity, DbOperator dbo, Network network, ISocialConnection social, ServiceConfig config)
         {
             this.log = log;

@@ -22,7 +22,7 @@ namespace ConsensusChessShared.Social
         public static int RATE_LIMIT_PERMITTED_REQUESTS = 300;
         public static TimeSpan RATE_LIMIT_PERMITTED_PERIOD = TimeSpan.FromSeconds(300);
 
-        private Task streamTask;
+        private Task? streamTask;
 
         public MastodonConnection(ILogger log, Network network, string shortcode, ServiceConfig config)
             : base(log, network, shortcode, RATE_LIMIT_PERMITTED_REQUESTS, RATE_LIMIT_PERMITTED_PERIOD, config)
@@ -151,7 +151,25 @@ namespace ConsensusChessShared.Social
             stream = client.GetUserStreaming();
             stream.OnNotification += Stream_OnNotification;
             log.LogDebug("Starting stream");
-            streamTask = stream.Start(); // not awaited - awaiting blocks
+
+            streamTask = await Task.Factory.StartNew(async () => {
+                try
+                {
+                    while (true)
+                    {
+                        log.LogInformation("Starting stream...");
+                        Streaming = true;
+                        await stream.Start();
+                        Streaming = false;
+                        log.LogWarning("Streaming unexpectedly finished.");
+                    }
+                }
+                catch (Exception e)
+                {
+                    Streaming = false;
+                    log.LogError(e, "Exception encountered streaming.");
+                }
+            });
         }
 
         protected override async Task GetMissedCommands()

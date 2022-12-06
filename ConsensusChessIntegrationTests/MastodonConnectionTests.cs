@@ -18,13 +18,38 @@ namespace ConsensusChessIntegrationTests
 			=> Network.FromEnv(Environment.GetEnvironmentVariables());
 
         private int MAX_PAGES = 6;
+        private List<SocialCommand> receivedCommands = new List<SocialCommand>();
+
+        [TestInitialize]
+        public void Reset()
+        {
+            receivedCommands.Clear();
+        }
+
+        [TestMethod]
+        public async Task MastodonClient_StartsListening()
+        {
+            var mockLogger = new Mock<ILogger>();
+            var network = GetNetwork();
+            var config = new ServiceConfig("#ConsensusChessIntegrationTests", "instantiator@mastodon.social", Mastonet.Visibility.Unlisted);
+            var connection = new MoreExposedMastodonConnection(mockLogger.Object, network, "personal-test", config);
+            var state = new NodeState("personal test connection", "personal-test", network);
+            await connection.InitAsync(state);
+            Assert.IsTrue(connection.Ready);
+            await connection.StartListeningForCommandsAsync(CommandReceiver, true);
+            Assert.IsTrue(connection.Streaming);
+        }
+
+        public async Task CommandReceiver(SocialCommand cmd)
+        {
+            receivedCommands.Add(cmd);
+        }
 
         [TestMethod]
         public async Task MastodonClient_PaginatesIndefinitely()
         {
-			var network = GetNetwork();
-
             // the test actually caps pagination at MAX_PAGES, but this proves it could go on...
+			var network = GetNetwork();
             var client = new MastodonClient(network.NetworkServer, network.AppToken);
             var notifications = await GetAllNotificationsSinceSinceIdAsync(client, 0, MAX_PAGES);
             Assert.IsNotNull(notifications);
@@ -37,7 +62,6 @@ namespace ConsensusChessIntegrationTests
 		{
             var mockLogger = new Mock<ILogger>();
             var network = GetNetwork();
-
             var config = new ServiceConfig("#ConsensusChessIntegrationTests", "instantiator@mastodon.social", Mastonet.Visibility.Unlisted);
 			var connection = new MoreExposedMastodonConnection(mockLogger.Object, network, "personal-test", config);
 			var state = new NodeState("personal test connection", "personal-test", network);
