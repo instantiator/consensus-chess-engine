@@ -176,7 +176,7 @@ namespace ConsensusChessShared.Social
         }
 
         protected int recentIterations; // for exposure in tests
-        protected override async Task<IEnumerable<Notification>> GetAllNotificationSinceAsync(string? sinceId)
+        protected override async Task<IEnumerable<Notification>> GetAllNotificationSinceAsync(string? sinceId, DateTime? orSinceWhen = null)
         {
             var list = new List<Notification>();
             long? nextPageMaxId = null; // TODO: should this be a string?
@@ -196,8 +196,11 @@ namespace ConsensusChessShared.Social
                 list.AddRange(page.Where(pn => !list.Select(n => n.Id).Contains(pn.Id)));
                 nextPageMaxId = page.NextPageMaxId;
                 recentIterations++;
-            } while (nextPageMaxId != null && recentIterations < MAX_PAGES);
-            return list.OrderBy(n => n.CreatedAt);
+            } while (nextPageMaxId != null && recentIterations < MAX_PAGES && (orSinceWhen == null || list.Any(n => n.CreatedAt < orSinceWhen)));
+
+            return orSinceWhen == null
+                ? list.OrderBy(n => n.CreatedAt)
+                : list.Where(n => n.CreatedAt > orSinceWhen).OrderBy(n => n.CreatedAt);
         }
 
         private async void Stream_OnNotification(object? sender, StreamNotificationEventArgs e)

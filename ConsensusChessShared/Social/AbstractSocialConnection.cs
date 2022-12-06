@@ -54,7 +54,7 @@ namespace ConsensusChessShared.Social
         protected abstract Task GetMissedCommands();
         protected abstract Task MarkCommandProcessedAsync(string id);
         protected abstract Task StartListeningForNotificationsAsync();
-        protected abstract Task<IEnumerable<Notification>> GetAllNotificationSinceAsync(string? sinceId);
+        protected abstract Task<IEnumerable<Notification>> GetAllNotificationSinceAsync(string? sinceId, DateTime? orSinceWhen = null);
         public abstract Task StopListeningForCommandsAsync(Func<SocialCommand, Task> asyncReceiver);
 
         public async Task StartListeningForCommandsAsync(Func<SocialCommand, Task> asyncCommandReceiver, bool getMissedCommands)
