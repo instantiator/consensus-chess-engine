@@ -15,6 +15,7 @@ namespace ConsensusChessSharedTests
         private Mock<ILogger> mockLogger;
         private IEnumerable<string> authorisedAccounts;
         private IEnumerable<string> skips;
+        private IEnumerable<string> ignorables;
         private CommandProcessor cmd;
         private Network fakeNetwork;
         private SocialUsername fakeSelf;
@@ -30,7 +31,8 @@ namespace ConsensusChessSharedTests
             skips = SampleDataGenerator.Skips;
             fakeNetwork = SampleDataGenerator.FakeNetwork;
             fakeSelf = SampleDataGenerator.FakeSelf;
-            cmd = new CommandProcessor(mockLogger.Object, authorisedAccounts, fakeSelf, skips);
+            ignorables = new[] { "#hush" }; 
+            cmd = new CommandProcessor(mockLogger.Object, authorisedAccounts, fakeSelf, skips, ignorables);
             cmd.OnFailAsync += Cmd_OnFailAsync;
             enactions = new List<Tuple<SocialCommand, IEnumerable<string>>>();
             fails = new List<Tuple<SocialCommand, string, CommandRejectionReason?>>();
@@ -78,6 +80,18 @@ namespace ConsensusChessSharedTests
             Assert.AreEqual(2, enactedWords.Count());
             Assert.AreEqual("keyword", enactedWords.ElementAt(0));
             Assert.AreEqual("thirdWord", enactedWords.ElementAt(1));
+        }
+
+        [TestMethod]
+        public async Task Parse_ignores_COMMAND_IGNORE_KEYWORDS()
+        {
+            cmd.Register("keyword", requireAuthorised: false, runsRetrospectively: true, EnactionAsync);
+            Assert.AreEqual(0, enactions.Count());
+            Assert.AreEqual(0, fails.Count());
+
+            var command = SampleDataGenerator.SimpleCommand("@icgames keyword thirdWord #hush");
+            await cmd.ParseAsync(command);
+            Assert.AreEqual(0, enactions.Count());
         }
 
         [TestMethod]

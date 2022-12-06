@@ -46,17 +46,19 @@ namespace ConsensusChessShared.Service
         private IEnumerable<string> authorisedAccounts;
         private IDictionary<string, CommandRule> register;
         private List<UnrecognisedCommandRule> unregister;
+        private List<string> ignorables;
         private ILogger log;
         private SocialUsername self;
 
-        public CommandProcessor(ILogger log, IEnumerable<string> authorisedAccounts, SocialUsername self, IEnumerable<string> skips)
+        public CommandProcessor(ILogger log, IEnumerable<string> authorisedAccounts, SocialUsername self, IEnumerable<string> skips, IEnumerable<string> ignorables)
         {
             this.log = log;
             this.authorisedAccounts = authorisedAccounts;
             this.skips = skips;
             this.self = self;
-            register = new Dictionary<string, CommandRule>();
-            unregister = new List<UnrecognisedCommandRule>();
+            this.register = new Dictionary<string, CommandRule>();
+            this.unregister = new List<UnrecognisedCommandRule>();
+            this.ignorables = new List<string>(ignorables);
         }
 
         /// <summary>
@@ -101,12 +103,20 @@ namespace ConsensusChessShared.Service
             if (self.Equals(command.SourceUsername))
             {
                 log.LogDebug("Electing not to parse own message.");
+                return;
             }
 
             log.LogDebug($"Parsing new command from: {command.SourceUsername.Full}");
             log.LogTrace($"Command raw text: {command.RawText}");
 
             var commandWords = CommandHelper.ParseSocialCommand(command.RawText!, skips);
+
+            if (commandWords.Any(w => ignorables.Any(iw => iw.ToLower() == w.ToLower())))
+            {
+                log.LogDebug("Command ignored.");
+                return;
+            }
+
             var commandWord = commandWords.FirstOrDefault()?.ToLower();
 
             try

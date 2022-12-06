@@ -6,16 +6,18 @@ namespace ConsensusChessShared.Service
 {
 	public class ServiceConfig
 	{
-        public ServiceConfig(string tag, string admin, Visibility publicVisibility)
+        public ServiceConfig(string tag, string admin, Visibility publicVisibility, IEnumerable<string> ignorables)
         {
             GameTag = tag;
             AdminContact = admin;
             MastodonPublicPostVisibility = publicVisibility;
+            Ignorables = ignorables;
         }
 
         public string GameTag { get; set; }
         public string AdminContact { get; set; }
         public Visibility MastodonPublicPostVisibility { get; set; }
+        public IEnumerable<string> Ignorables { get; set; }
 
         public static ServiceConfig FromEnv(IDictionary env)
         {
@@ -26,7 +28,8 @@ namespace ConsensusChessShared.Service
             var tag = environment["POST_GAME_TAG"];
             var admin = environment["POST_ADMIN_CONTACT"];
             var publicVisibility = Enum.Parse<Visibility>(environment["POST_PUBLIC_VISIBILITY"]);
-            return new ServiceConfig(tag, admin, publicVisibility);
+            var ignorables = environment["COMMAND_IGNORE_KEYWORDS"].Split(',').Select(i => i.Trim());
+            return new ServiceConfig(tag, admin, publicVisibility, ignorables);
         }
     }
 }

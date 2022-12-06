@@ -108,9 +108,10 @@ namespace ConsensusChessSharedTests.Data
 
         public static IDictionary SimpleConfig => new Hashtable()
         {
-            {"POST_ADMIN_CONTACT","@instantiator@mastodon.social"},
-            {"POST_GAME_TAG","#ConsensusChessUnitTests"},
-            { "POST_PUBLIC_VISIBILITY", "Unlisted" }
+            { "POST_ADMIN_CONTACT", "@instantiator@mastodon.social" },
+            { "POST_GAME_TAG", "#ConsensusChessUnitTests" },
+            { "POST_PUBLIC_VISIBILITY", "Unlisted" },
+            { "COMMAND_IGNORE_KEYWORDS", "#hush,#ignore" }
         };
     }
 }

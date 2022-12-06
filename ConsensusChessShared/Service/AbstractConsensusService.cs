@@ -87,8 +87,9 @@ namespace ConsensusChessShared.Service
             LogGameCount();
 
             var skips = social.CalculateCommandSkips();
+            var ignorables = config.Ignorables;
             log.LogDebug($"Command prefix skips: {string.Join(", ", skips)}");
-            cmd = new CommandProcessor(log, network.AuthorisedAccountsList, social.Username, skips);
+            cmd = new CommandProcessor(log, network.AuthorisedAccountsList, social.Username, skips, ignorables);
             cmd.OnFailAsync += Cmd_OnFailAsync;
             RegisterForCommands(cmd);
             social.OnStateChange += RecordStateChangeAsync;
