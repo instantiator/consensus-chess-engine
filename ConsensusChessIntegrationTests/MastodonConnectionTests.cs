@@ -32,7 +32,7 @@ namespace ConsensusChessIntegrationTests
             var mockLogger = new Mock<ILogger>();
             var network = GetNetwork();
             var ignorables = new string[] { "#hush" };
-            var config = new ServiceConfig("#ConsensusChessIntegrationTests", "instantiator@mastodon.social", Mastonet.Visibility.Unlisted, ignorables);
+            var config = new ServiceConfig("#ConsensusChessIntegrationTests", "instantiator@mastodon.social", Mastonet.Visibility.Unlisted, ignorables, true);
             var connection = new MoreExposedMastodonConnection(mockLogger.Object, network, "personal-test", config);
             var state = new NodeState("personal test connection", "personal-test", network);
             await connection.InitAsync(state);
@@ -64,38 +64,38 @@ namespace ConsensusChessIntegrationTests
             var mockLogger = new Mock<ILogger>();
             var network = GetNetwork();
             var ignorables = new string[] { "#hush" };
-            var config = new ServiceConfig("#ConsensusChessIntegrationTests", "instantiator@mastodon.social", Mastonet.Visibility.Unlisted, ignorables);
+            var config = new ServiceConfig("#ConsensusChessIntegrationTests", "instantiator@mastodon.social", Mastonet.Visibility.Unlisted, ignorables, true);
 			var connection = new MoreExposedMastodonConnection(mockLogger.Object, network, "personal-test", config);
 			var state = new NodeState("personal test connection", "personal-test", network);
 			await connection.InitAsync(state);
 
 			var debug = new List<String>();
 
-			var notifications = await connection.ExposeGetAllNotificationSinceAsync(null);
-			Assert.IsNotNull(notifications);
-			Assert.IsTrue(notifications.Count() > 2);
+			var commands = await connection.ExposeGetAllNotificationSinceAsync(false, null);
+			Assert.IsNotNull(commands);
+			Assert.IsTrue(commands.Count() > 2);
 			Assert.AreEqual(MastodonConnection.MAX_PAGES, connection.RecentIterations, $"Iterated {connection.RecentIterations} times.");
 
-            debug.Add($"notifications.Count() = {notifications.Count()}");
-            debug.Add($"minId = {notifications.Min(n => long.Parse(n.Id))}");
+            debug.Add($"notifications.Count() = {commands.Count()}");
+            debug.Add($"minId = {commands.Min(n => long.Parse(n.SourceNotificationId!))}");
 
             // find an id in the middle of the pack
-            var sinceId = FindAMiddleishId(notifications);
+            var sinceId = FindAMiddleishId(commands);
             debug.Add($"sinceId = {sinceId}");
 
-            var justSecondHalf = await connection.ExposeGetAllNotificationSinceAsync(sinceId);
+            var justSecondHalf = await connection.ExposeGetAllNotificationSinceAsync(false, sinceId);
             debug.Add($"justSecondHalf.Count() = {justSecondHalf.Count()}");
 
 			Assert.IsTrue(justSecondHalf.Count() > 0);
-			Assert.IsTrue(justSecondHalf.Count() < notifications.Count(), string.Join("\n", debug));
+			Assert.IsTrue(justSecondHalf.Count() < commands.Count(), string.Join("\n", debug));
 		}
 
-        private string FindAMiddleishId(IEnumerable<Notification> notifications)
+        private string FindAMiddleishId(IEnumerable<SocialCommand> commands)
         {
-            var avgTicks = (notifications.Max(n => n.CreatedAt.Ticks) + notifications.Min(n => n.CreatedAt.Ticks)) / 2;
-            var closestDiff = notifications.Min(n => Math.Abs(n.CreatedAt.Ticks - avgTicks));
-            var midNotification = notifications.Single(n => Math.Abs(n.CreatedAt.Ticks - avgTicks) == closestDiff);
-            return midNotification.Id;
+            var avgTicks = (commands.Max(c => c.SourceCreated.Ticks) + commands.Min(c => c.SourceCreated.Ticks)) / 2;
+            var closestDiff = commands.Min(n => Math.Abs(n.SourceCreated.Ticks - avgTicks));
+            var midNotification = commands.Single(n => Math.Abs(n.SourceCreated.Ticks - avgTicks) == closestDiff);
+            return midNotification.SourceNotificationId!;
         }
 
         private int recentIterations;

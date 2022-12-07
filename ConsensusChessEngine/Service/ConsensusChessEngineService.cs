@@ -18,7 +18,7 @@ namespace ConsensusChessEngine.Service
     public class ConsensusChessEngineService : AbstractConsensusService
     {
         // TODO: be a good citizen - set a polling period that isn't too disruptive
-        private static readonly TimeSpan DefaultPollPeriod = TimeSpan.FromMinutes(1);
+        private static readonly TimeSpan DefaultPollPeriod = TimeSpan.FromSeconds(30);
         private TimeSpan? overridePollPeriod;
         protected override TimeSpan PollPeriod => overridePollPeriod ?? DefaultPollPeriod;
         protected override NodeType NodeType => NodeType.Engine;
@@ -29,7 +29,7 @@ namespace ConsensusChessEngine.Service
             this.overridePollPeriod = overridePollPeriod;
         }
 
-        protected override async Task PollAsync(CancellationToken cancellationToken)
+        protected override async Task PollImplementationAsync(CancellationToken cancellationToken)
         {
             IEnumerable<Game> gamesToMove;
             using (var db = dbo.GetDb())
@@ -364,13 +364,12 @@ namespace ConsensusChessEngine.Service
         private async Task ShutdownCmdAsync(SocialCommand origin, IEnumerable<string> words)
         {
             log.LogInformation($"Shutting down.");
-            polling = false;
-            pollingCancellation?.Cancel();
+            await StopAsync();
         }
 
-        protected override async Task FinishAsync()
+        protected override async Task FinishImplementationAsync()
         {
-            log.LogDebug("FinishAsync");
+            log.LogDebug("ConsensusChessEngineService.FinishImplementationAsync");
         }
 
     }

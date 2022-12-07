@@ -59,6 +59,7 @@ namespace ConsensusChessSharedTests.Data
                 receivingNetwork: FakeNetwork,
                 username: SocialUsername.From(sender ?? "instantiator@mastodon.social", "lewis", FakeNetwork),
                 postId: NextPostId,
+                sourceCreated: DateTime.Now,
                 notificationId: NextNotificationId,
                 text: message,
                 isForThisNode: true,
@@ -111,7 +112,8 @@ namespace ConsensusChessSharedTests.Data
             { "POST_ADMIN_CONTACT", "@instantiator@mastodon.social" },
             { "POST_GAME_TAG", "#ConsensusChessUnitTests" },
             { "POST_PUBLIC_VISIBILITY", "Unlisted" },
-            { "COMMAND_IGNORE_KEYWORDS", "#hush,#ignore" }
+            { "COMMAND_IGNORE_KEYWORDS", "#hush,#ignore" },
+            { "STREAM_ENABLED", "true" }
         };
     }
 }

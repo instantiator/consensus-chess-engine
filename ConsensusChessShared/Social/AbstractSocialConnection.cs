@@ -14,10 +14,14 @@ namespace ConsensusChessShared.Social
 
         public bool Ready { get; private set; }
         public bool Streaming { get; protected set; }
+        public bool Paused { get; protected set; }
+
+        protected int socialActionRetries = 3;
+        protected TimeSpan socailActionRetryDelay = TimeSpan.FromSeconds(2);
 
 		protected ILogger log;
 		protected Network network;
-		protected NodeState state;
+		protected NodeState? state;
 		protected bool dryRuns;
         protected string shortcode;
         protected ServiceConfig config;
@@ -56,15 +60,29 @@ namespace ConsensusChessShared.Social
 		public abstract IEnumerable<string> CalculateCommandSkips();
         protected abstract Task GetMissedCommands();
         protected abstract Task MarkCommandProcessedAsync(string id);
-        protected abstract Task StartListeningForNotificationsAsync();
-        protected abstract Task<IEnumerable<Notification>> GetAllNotificationSinceAsync(string? sinceId, DateTime? orSinceWhen = null);
-        public abstract Task StopListeningForCommandsAsync(Func<SocialCommand, Task> asyncReceiver);
+        public abstract Task<IEnumerable<SocialCommand>> GetAllNotificationSinceAsync(bool isRetrospective, string? sinceId, DateTime? orSinceWhen = null);
 
+        protected abstract Task StopStreamingNotificationsAsync();
+        public async Task StopListeningForCommandsAsync(Func<SocialCommand, Task> asyncReceiver)
+        {
+            if (config.StreamEnabled)
+                await StopStreamingNotificationsAsync();
+
+            asyncCommandReceivers -= asyncReceiver;
+        }
+
+        public void PauseStream() { Paused = true; }
+        public void ResumeStream() { Paused = false; }
+
+        protected abstract Task StartStreamingNotificationsAsync();
         public async Task StartListeningForCommandsAsync(Func<SocialCommand, Task> asyncCommandReceiver, bool getMissedCommands)
 		{
             asyncCommandReceivers += asyncCommandReceiver;
             if (getMissedCommands) { await GetMissedCommands(); }
-            await StartListeningForNotificationsAsync();
+
+            if (config.StreamEnabled)
+                await StartStreamingNotificationsAsync();
+
             if (getMissedCommands) { await ProcessMissedCommands(); }
         }
 
@@ -75,12 +93,12 @@ namespace ConsensusChessShared.Social
                 log.LogDebug($"Retrospectively processing {missedCommands.Count()} notifications...");
                 foreach (var command in missedCommands)
                 {
-                    await ProcessCommand(command);
+                    await ProcessCommandAsync(command);
                 }
             }
         }
 
-        protected async Task ProcessCommand(SocialCommand command)
+        public async Task ProcessCommandAsync(SocialCommand command)
         {
             log.LogDebug(
                 $"Processing {command.DeliveryMedium}:{command.DeliveryType} command." + "{0}",
@@ -173,11 +191,83 @@ namespace ConsensusChessShared.Social
 
         protected async Task ReportStateChangeAsync()
 		{
-			log.LogDebug($"ReportStateChange - new notification id: {state!.LastNotificationId}");
+			log.LogDebug($"Last notification: {state!.LastNotificationId}, last status: {state!.LastCommandStatusId}");
 			if (OnStateChange != null)
 				await OnStateChange.Invoke(state);
 		}
 
+
+        protected async Task<T> RetryWithDelayAndGetAsync<T>(Func<Task<T>> function, int? retries = null, TimeSpan? delay = null)
+        {
+            retries = retries ?? socialActionRetries;
+            delay = delay ?? socailActionRetryDelay;
+            int attempts = 0;
+            bool success = false;
+            T? result = default(T);
+            do
+            {
+                try
+                {
+                    attempts++;
+                    result = await function();
+                    success = true;
+                }
+                catch (Exception e)
+                {
+                    log.LogWarning($"{e.GetType().Name} caught during social action, attempt {attempts}: {e.Message}");
+                    if (attempts == retries)
+                        throw;
+                }
+                if (!success)
+                {
+                    await Task.Delay(delay.Value);
+                }
+            }
+            while (attempts < retries && !success);
+            if (!success)
+            {
+                // this is defensive - if it failed, it would be because of an exception thrown during execution
+                throw new Exception($"Failed to execute social action {retries} times.");
+            }
+            else
+            {
+                return result!;
+            }
+        }
+
+        protected async Task RetryWithDelayAsync(Func<Task> function, int? retries = null, TimeSpan? delay = null)
+        {
+            retries = retries ?? socialActionRetries;
+            delay = delay ?? socailActionRetryDelay;
+
+            int attempts = 0;
+            bool success = false;
+            do
+            {
+                try
+                {
+                    attempts++;
+                    await function();
+                    success = true;
+                }
+                catch (Exception e)
+                {
+                    log.LogWarning($"{e.GetType().Name} caught during social action, attempt {attempts}: {e.Message}");
+                    if (attempts == retries)
+                        throw;
+                }
+                if (!success)
+                {
+                    await Task.Delay(delay.Value);
+                }
+            }
+            while (attempts < retries && !success);
+            if (!success)
+            {
+                // this is defensive - if it failed, it would be because of an exception thrown during execution
+                throw new Exception($"Failed to execute social action {attempts} times.");
+            }
+        }
     }
 }
 

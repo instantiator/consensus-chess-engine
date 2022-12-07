@@ -111,6 +111,8 @@ namespace ConsensusChessShared.Service
 
             var commandWords = CommandHelper.ParseSocialCommand(command.RawText!, skips);
 
+            log.LogDebug($"Words: {string.Join(" ", commandWords)}");
+
             if (commandWords.Any(w => ignorables.Any(iw => iw.ToLower() == w.ToLower())))
             {
                 log.LogDebug("Command ignored.");

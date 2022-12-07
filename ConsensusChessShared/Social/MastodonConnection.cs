@@ -33,7 +33,7 @@ namespace ConsensusChessShared.Social
         protected override async Task InitImplementationAsync()
         {
             await RateLimitAsync();
-            user = await client.GetCurrentUser();
+            user = await RetryWithDelayAndGetAsync(async () => await client.GetCurrentUser());
 
             var expectedUser = SocialUsername.From(network.ExpectedAccountName, user.DisplayName!, network, shortcode);
             Username = SocialUsername.From(user.AccountName!, user.DisplayName!, network, shortcode);
@@ -84,7 +84,7 @@ namespace ConsensusChessShared.Social
                 {
                     log.LogDebug($"Uploading {media.Filename} to network...");
                     var stream = new MemoryStream(media.Data);
-                    var attachment = await client.UploadMedia(stream, media.Filename, media.Alt);
+                    var attachment = await RetryWithDelayAndGetAsync(async () => await client.UploadMedia(stream, media.Filename, media.Alt));
                     media.SocialId = attachment.Id;
                     media.PreviewUrl = attachment.PreviewUrl;
                 }
@@ -123,28 +123,28 @@ namespace ConsensusChessShared.Social
                         : null;
 
                     log.LogDebug($"Posting to network...");
-                    var status = await client.PublishStatus(
+                    var status = await RetryWithDelayAndGetAsync(async () => await client.PublishStatus(
                         status: post.Message!,
                         visibility: visibility,
                         mediaIds: mediaIds,
-                        replyStatusId: post.NetworkReplyToId?.ToString());
+                        replyStatusId: post.NetworkReplyToId?.ToString()));
 
-                    post.Succeed(state.Shortcode, network.AppName, network.NetworkServer, status.Id);
+                    post.Succeed(state!.Shortcode, network.AppName, network.NetworkServer, status.Id);
                 }
                 else
                 {
                     log.LogWarning($"Dry run of post to network.");
-                    post.Succeed(state.Shortcode, network.AppName, network.NetworkServer, null);
+                    post.Succeed(state!.Shortcode, network.AppName, network.NetworkServer, null);
                 }
             }
             catch (Exception e)
             {
-                post.Fail(state.Shortcode, network.AppName, network.NetworkServer, e: e);
+                post.Fail(state!.Shortcode, network.AppName, network.NetworkServer, e: e);
             }
             return post;
         }
 
-        protected override async Task StartListeningForNotificationsAsync()
+        protected override async Task StartStreamingNotificationsAsync()
         {
             // set up the stream
             await RateLimitAsync();
@@ -182,19 +182,13 @@ namespace ConsensusChessShared.Social
                     ? $"Retrieving any missed notifications since: {state.LastNotificationId}"
                     : $"Skipping missed commands - this is a first start.");
 
-            if (!firstStart)
-            {
-                var missedNotifications = await GetAllNotificationSinceAsync(state.LastNotificationId);
-                missedCommands = missedNotifications.Select(n => ConvertToSocialCommand(n, true)).OfType<SocialCommand>();
-            }
-            else
-            {
-                missedCommands = null;
-            }
+            missedCommands = !firstStart
+                ? await GetAllNotificationSinceAsync(true, state.LastNotificationId)
+                : null;
         }
 
         protected int recentIterations; // for exposure in tests
-        protected override async Task<IEnumerable<Notification>> GetAllNotificationSinceAsync(string? sinceId, DateTime? orSinceWhen = null)
+        public override async Task<IEnumerable<SocialCommand>> GetAllNotificationSinceAsync(bool isRetrospective, string? sinceId, DateTime? orSinceWhen = null)
         {
             var list = new List<Notification>();
             long? nextPageMaxId = null; // TODO: should this be a string?
@@ -209,24 +203,34 @@ namespace ConsensusChessShared.Social
                 };
 
                 await RateLimitAsync();
-                var page = await client.GetNotifications(options: opts);
+                var page = await RetryWithDelayAndGetAsync(async () => await client.GetNotifications(options: opts));
 
                 list.AddRange(page.Where(pn => !list.Select(n => n.Id).Contains(pn.Id)));
                 nextPageMaxId = page.NextPageMaxId;
                 recentIterations++;
             } while (nextPageMaxId != null && recentIterations < MAX_PAGES && (orSinceWhen == null || list.Any(n => n.CreatedAt < orSinceWhen)));
 
-            return orSinceWhen == null
+            var orderedList = orSinceWhen == null
                 ? list.OrderBy(n => n.CreatedAt)
                 : list.Where(n => n.CreatedAt > orSinceWhen).OrderBy(n => n.CreatedAt);
+
+            return orderedList.Select(n => ConvertToSocialCommand(n, isRetrospective)).OfType<SocialCommand>();
         }
 
         private async void Stream_OnNotification(object? sender, StreamNotificationEventArgs e)
         {
-            var cmd = ConvertToSocialCommand(e.Notification, false);
-            if (cmd != null)
+            if (!Paused)
             {
-                await ProcessCommand(cmd);
+                log.LogTrace("Notification received through stream.");
+                var cmd = ConvertToSocialCommand(e.Notification, false);
+                if (cmd != null)
+                {
+                    await ProcessCommandAsync(cmd);
+                }
+            }
+            else
+            {
+                log.LogTrace("Notification from stream ignored, streaming is paused.");
             }
         }
 
@@ -234,10 +238,10 @@ namespace ConsensusChessShared.Social
         {
             log.LogDebug($"Favouriting status: {id}");
             await RateLimitAsync();
-            await client.Favourite(id);
+            await RetryWithDelayAsync(async () => await client.Favourite(id));
         }
 
-        public override async Task StopListeningForCommandsAsync(Func<SocialCommand, Task> asyncCommandReceiver)
+        protected override async Task StopStreamingNotificationsAsync()
         {
             log.LogDebug("Removing command listeners");
             if (stream != null)
@@ -246,8 +250,6 @@ namespace ConsensusChessShared.Social
                 stream.Stop();
                 stream = null;
             }
-
-            asyncCommandReceivers -= asyncCommandReceiver;
         }
 
         /// <summary>
@@ -265,7 +267,7 @@ namespace ConsensusChessShared.Social
 
         public SocialCommand? ConvertToSocialCommand(Notification notification, bool isRetrospective)
         {
-            // return null if the notification is not really a status
+            // return null if the notification is not really a status with a mention
             if (notification.Type != "mention") { return null; }
 
             log.LogDebug($"Converting notification ({notification.Type}) to social command");
@@ -290,6 +292,7 @@ namespace ConsensusChessShared.Social
                 receivingNetwork: network,
                 username: username,
                 postId: notification.Status!.Id,
+                sourceCreated: notification.CreatedAt,
                 notificationId: notification.Id,
                 text: notification.Status!.Content,
                 isForThisNode: isForMe,

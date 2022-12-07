@@ -22,23 +22,24 @@ namespace ConsensusChessShared.Service
         protected NodeState state;
         protected ILogger log;
         protected bool running;
-        protected bool polling;
         protected ServiceIdentity identity;
         protected ServiceConfig config;
         protected PostBuilderFactory posts;
+        protected DbOperator dbo;
 
         protected CommandProcessor? cmd;
         protected GameManager gm;
 
+        public bool Polling { get; protected set; }
         protected abstract TimeSpan PollPeriod { get; }
-
-        protected abstract NodeType NodeType { get; }
-
-        protected DbOperator dbo;
-
         protected CancellationTokenSource? pollingCancellation;
 
         public ISocialConnection Social => social;
+        public bool Streaming => social?.Streaming ?? false;
+
+        protected abstract NodeType NodeType { get; }
+
+        protected DateTime startup;
 
         protected AbstractConsensusService(ILogger log, ServiceIdentity identity, DbOperator dbo, Network network, ISocialConnection social, ServiceConfig config)
         {
@@ -49,6 +50,7 @@ namespace ConsensusChessShared.Service
             this.social = social;
             this.config = config;
             this.posts = new PostBuilderFactory(config);
+            this.startup = DateTime.Now;
 
             using (var db = dbo.GetDb())
             {
@@ -89,6 +91,7 @@ namespace ConsensusChessShared.Service
             var skips = social.CalculateCommandSkips();
             var ignorables = config.Ignorables;
             log.LogDebug($"Command prefix skips: {string.Join(", ", skips)}");
+            log.LogDebug($"Ignorable keywords:   {string.Join(", ", ignorables)}");
             cmd = new CommandProcessor(log, network.AuthorisedAccountsList, social.Username, skips, ignorables);
             cmd.OnFailAsync += Cmd_OnFailAsync;
             RegisterForCommands(cmd);
@@ -157,8 +160,8 @@ namespace ConsensusChessShared.Service
 
                 // poll for events
                 pollingCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                polling = true;
-                while (!pollingCancellation.Token.IsCancellationRequested && polling && running)
+                Polling = true;
+                while (!pollingCancellation.Token.IsCancellationRequested && Polling && running)
                 {
                     log.LogTrace("Polling...");
                     await PollAsync(pollingCancellation.Token);
@@ -169,10 +172,10 @@ namespace ConsensusChessShared.Service
             }
             finally
             {
-                polling = false;
+                Polling = false;
                 running = false;
                 pollingCancellation?.Cancel();
-                await FinishAsync();
+                await FinishImplementationAsync();
                 log.LogInformation("ExecuteAsnyc complete at: {time}", DateTimeOffset.Now);
             }
         }
@@ -192,27 +195,56 @@ namespace ConsensusChessShared.Service
                 File.Delete(HEALTHCHECK_READY_PATH);
         }
 
-        protected abstract void RegisterForCommands(CommandProcessor processor);
 
-        protected abstract Task PollAsync(CancellationToken cancellationToken);
+        protected async Task PollAsync(CancellationToken cancellationToken)
+        {
+            // collect and parse commands
+            // TODO: you are here
+            await CheckAndParseCommands();
+            await PollImplementationAsync(cancellationToken);
+        }
+
+        protected async Task CheckAndParseCommands()
+        {
+            log.LogDebug($"Checking for new notifications...");
+            social.PauseStream();
+            var commands = await social.GetAllNotificationSinceAsync(false, state.LastNotificationId, startup);
+            social.ResumeStream();
+
+            if (commands.Count() > 0)
+            {
+                log.LogDebug($"Found {commands.Count()} new commands for processing...");
+                foreach (var command in commands)
+                {
+                    await social.ProcessCommandAsync(command);
+                }
+            }
+        }
+
+        protected abstract void RegisterForCommands(CommandProcessor processor);
+        protected abstract Task PollImplementationAsync(CancellationToken cancellationToken);
 
         public async Task StopAsync()
         {
             EraseHealthIndicators();
             log.LogInformation("StopAsync at: {time}", DateTimeOffset.Now);
+
             await social.StopListeningForCommandsAsync(cmd!.ParseAsync);
+
+            // post stopped
             var post = posts.SocialStatus(state, SocialStatus.Stopped).Build();
             var posted = await social.PostAsync(post);
             await RecordStatePostAsync(posted);
 
+            // stop polling
             if (running)
             {
                 running = false;
-                await FinishAsync();
+                await FinishImplementationAsync();
             }
         }
 
-        protected abstract Task FinishAsync();
+        protected abstract Task FinishImplementationAsync();
     }
 }
 

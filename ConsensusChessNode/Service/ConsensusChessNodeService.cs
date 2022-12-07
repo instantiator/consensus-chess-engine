@@ -30,7 +30,7 @@ namespace ConsensusChessNode.Service
             this.overridePollPeriod = overridePollPeriod;
         }
 
-        protected override async Task PollAsync(CancellationToken cancellationToken)
+        protected override async Task PollImplementationAsync(CancellationToken cancellationToken)
         {
             await CheckAndPostUnpostedBoardsAsync();
             await CheckAndPostUnpostedOverdueBoardRemindersAsync();
@@ -314,13 +314,12 @@ namespace ConsensusChessNode.Service
         private async Task ShutdownAsync(SocialCommand origin, IEnumerable<string> words)
         {
             log.LogInformation($"Shutting down.");
-            polling = false;
-            pollingCancellation?.Cancel();
+            await StopAsync();
         }
 
-        protected override async Task FinishAsync()
+        protected override async Task FinishImplementationAsync()
         {
-            log.LogDebug("FinishAsync");
+            log.LogDebug("ConsensusChessNodeService.FinishImplementationAsync");
         }
 
     }

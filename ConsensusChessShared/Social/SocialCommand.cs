@@ -8,6 +8,7 @@ namespace ConsensusChessShared.Social
         public SocialCommand(
 			Network receivingNetwork, SocialUsername username,
 			string postId, string? notificationId,
+			DateTime sourceCreated,
 			string text,
 			bool isForThisNode,
 			bool isAuthorised,
@@ -18,6 +19,7 @@ namespace ConsensusChessShared.Social
             string? inReplyTo = null)
 		{
 			ReceivingNetwork = receivingNetwork;
+			SourceCreated = sourceCreated;
 			SourceUsername = username;
 			SourcePostId = postId;
 			SourceNotificationId = notificationId;
@@ -31,6 +33,7 @@ namespace ConsensusChessShared.Social
 			InReplyToId = inReplyTo;
 		}
 
+		public DateTime SourceCreated { get; set; }
 		public Network ReceivingNetwork { get; set; }
 		public SocialUsername SourceUsername { get; set; }
 		public string SourcePostId { get; set; }

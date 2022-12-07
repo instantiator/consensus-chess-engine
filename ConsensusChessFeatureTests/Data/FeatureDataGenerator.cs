@@ -36,7 +36,8 @@ namespace ConsensusChessFeatureTests.Data
                 { "POST_GAME_TAG", "#ConsensusChessFeatureTests" },
                 { "POST_ADMIN_CONTACT", "@instantiator@mastodon.social" },
                 { "POST_PUBLIC_VISIBILITY", "Unlisted" },
-                { "COMMAND_IGNORE_KEYWORDS", "#hush,#ignore" }
+                { "COMMAND_IGNORE_KEYWORDS", "#hush,#ignore" },
+                { "STREAM_ENABLED", "true" }
             };
 
         public static Dictionary<string, string> EngineEnv =>
@@ -54,7 +55,8 @@ namespace ConsensusChessFeatureTests.Data
                 { "POST_GAME_TAG", "#ConsensusChessFeatureTests" },
                 { "POST_ADMIN_CONTACT", "@instantiator@mastodon.social" },
                 { "POST_PUBLIC_VISIBILITY", "Unlisted" },
-                { "COMMAND_IGNORE_KEYWORDS", "#hush,#ignore" }
+                { "COMMAND_IGNORE_KEYWORDS", "#hush,#ignore" },
+                { "STREAM_ENABLED", "true" }
             };
 
         public static Post SimulatePost(Post post, string shortcode, Network network)
@@ -91,6 +93,7 @@ namespace ConsensusChessFeatureTests.Data
             return new SocialCommand(
                 receivingNetwork: network,
                 username: SocialUsername.From(fromUser, $"Display name for {fromUser}", network),
+                sourceCreated: DateTime.Now,
                 postId: NextPostId,
                 notificationId: NextNotificationId,
                 text: message,
