@@ -50,9 +50,7 @@ namespace ConsensusChessShared.Content
 
         public PostBuilder Node_GameAnnouncement(Game game, Board board, BoardFormat format, BoardStyle style)
             => new PostBuilder(config, PostType.Node_GameAnnouncement)
-                .WithGame(game)
-                .WithBoard(board, format)
-                .AndBoardGraphic(style, format);
+                .WithGame(game);
 
         public PostBuilder Node_BoardUpdate(Game game, Board board, BoardFormat format, BoardStyle style)
             => new PostBuilder(config, PostType.Node_BoardUpdate)
