@@ -119,7 +119,7 @@ namespace ConsensusChessNode.Service
             using (var db = dbo.GetDb())
             {
                 // find uposted board updates from active games
-                var games = gm.FindUpostedActiveGames(
+                var games = gm.FindUpostedGames(
                     db.Games,
                     state.Shortcode,
                     PostType.Node_GameAnnouncement);

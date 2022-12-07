@@ -74,6 +74,10 @@ namespace ConsensusChessFeatureTests
                 shortcode: NodeId.Shortcode,
                 ofType: PostType.Node_GameAnnouncement);
 
+            WaitAndAssert_Post(
+                shortcode: NodeId.Shortcode,
+                ofType: PostType.Node_BoardUpdate);
+
             Game game;
             using (var db = Dbo.GetDb())
                 game = db.Games.Single();

@@ -32,10 +32,16 @@ namespace ConsensusChessFeatureTests
 		{
             var node = await StartNodeAsync();
             var game = await StartGameWithDbAsync();
+            WaitAndAssert_Post(shortcode: NodeId.Shortcode, ofType: PostType.Node_GameAnnouncement);
             WaitAndAssert_NodePostsBoard(game, NodeId.Shortcode);
+            WaitAndAssert_Post(shortcode: NodeId.Shortcode, ofType: PostType.Node_VotingInstructions);
+            WaitAndAssert_Post(shortcode: NodeId.Shortcode, ofType: PostType.Node_FollowInstructions);
 
             using (var db = Dbo.GetDb())
             {
+                Assert.AreEqual(1, db.Games.Single().GamePosts.Count()); // engine not running, remember
+                Assert.IsTrue(db.Games.Single().GamePosts.Count(bp => bp.Type == PostType.Node_GameAnnouncement) == 1);
+
                 Assert.AreEqual(3, db.Games.Single().CurrentBoard.BoardPosts.Count());
                 Assert.IsTrue(db.Games.Single().CurrentBoard.BoardPosts.All(bp => bp.Succeeded));
                 Assert.IsTrue(db.Games.Single().CurrentBoard.BoardPosts.Count(bp => bp.Type == PostType.Node_BoardUpdate) == 1);

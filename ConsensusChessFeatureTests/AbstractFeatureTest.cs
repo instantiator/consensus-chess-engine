@@ -328,7 +328,7 @@ public abstract class AbstractFeatureTest
                     && (command == null || post.NetworkReplyToId == command.SourcePostId)
                     && (shortcode == null || post.NodeShortcode == shortcode)
                     && (ofType == null || post.Type == ofType)) == count.Value;
-        }, $"{shortcode} did not post as expected");
+        }, $"{shortcode} did not post as expected.");
 
         return postsSent.Where(post
             => post.Succeeded
