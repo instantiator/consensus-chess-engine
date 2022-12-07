@@ -43,7 +43,7 @@ public abstract class AbstractFeatureTest
     protected ConcurrentBag<Post> postsSent;
 
     protected TimeSpan fastPollOverride = TimeSpan.FromMilliseconds(1);
-    protected TimeSpan spinWaitTimeout = TimeSpan.FromSeconds(3);
+    protected TimeSpan spinWaitTimeout = TimeSpan.FromSeconds(10);
 
     protected Task? nodeTask;
     protected Task? engineTask;
