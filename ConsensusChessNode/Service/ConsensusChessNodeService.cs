@@ -32,6 +32,7 @@ namespace ConsensusChessNode.Service
 
         protected override async Task PollImplementationAsync(CancellationToken cancellationToken)
         {
+            await CheckAndPostUnpostedGameAnnouncementsAsync();
             await CheckAndPostUnpostedBoardsAsync();
             await CheckAndPostUnpostedOverdueBoardRemindersAsync();
             await CheckAndPostUnpostedEndedGamesAsync();
@@ -110,6 +111,31 @@ namespace ConsensusChessNode.Service
                     log.LogDebug("Saving board and new board posts...");
                     await db.SaveChangesAsync();
                 } // each game/board update to post
+            } // db
+        }
+
+        private async Task CheckAndPostUnpostedGameAnnouncementsAsync()
+        {
+            using (var db = dbo.GetDb())
+            {
+                // find uposted board updates from active games
+                var games = gm.FindUpostedActiveGames(
+                    db.Games,
+                    state.Shortcode,
+                    PostType.Node_GameAnnouncement);
+
+                foreach (var game in games)
+                {
+                    var board = game.CurrentBoard;
+
+                    log.LogInformation($"Found a new game to announce: {game.Shortcode}");
+                    var post = posts.Node_GameAnnouncement(game, board, BoardFormat.Words_en, BoardStyle.PixelChess).Build();
+                    var posted = await social.PostAsync(post);
+                    game.GamePosts.Add(posted);
+
+                    log.LogDebug("Saving game announcement...");
+                    await db.SaveChangesAsync();
+                } // each new game
             } // db
         }
 

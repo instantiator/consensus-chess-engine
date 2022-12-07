@@ -144,6 +144,26 @@ namespace ConsensusChessShared.Content
             }
         }
 
+        public string DescribeStartTime(DateTime start)
+        {
+            if (start < DateTime.Now)
+                return "right now";
+
+            var delta = DateTime.Now.Subtract(start);
+
+            if (delta.TotalMinutes < 5)
+                return "very soon";
+
+            if (delta.TotalMinutes < 60)
+                return "within the hour";
+
+            var hours = Math.Round(delta.TotalHours);
+            if (hours == 1)
+                return $"in about an hour";
+            else
+                return $"in about {Math.Round(delta.TotalHours)} hours";
+        }
+
         public string Translate_to_DaysHours(TimeSpan? duration)
 			=> duration != null
 				? $"{((int)duration.Value.TotalDays)} days, {duration.Value.Hours} hours"

@@ -19,6 +19,7 @@ namespace ConsensusChessShared.Constants
 		Engine_GameAbandoned,
         Engine_GameEnded,
 
+		Node_GameAnnouncement,
         Node_BoardUpdate,
 		Node_BoardReminder,
 		Node_VotingInstructions,

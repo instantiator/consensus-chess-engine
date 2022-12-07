@@ -133,6 +133,18 @@ namespace ConsensusChessSharedTests
         }
 
         [TestMethod]
+        public void Node_GameAnnouncement_Test()
+        {
+            var config = ServiceConfig.FromEnv(SampleDataGenerator.SimpleConfig);
+            var builder = new PostBuilderFactory(config).Node_GameAnnouncement(
+                SampleDataGenerator.SimpleMoveLockGame(),
+                SampleDataGenerator.SimpleMoveLockGame().CurrentBoard,
+                BoardFormatter.BoardFormat.StandardFAN,
+                BoardGraphicsData.BoardStyle.PixelChess);
+            var post = builder.Build();
+        }
+
+        [TestMethod]
         public void Node_BoardUpdate_Test()
         {
             var config = ServiceConfig.FromEnv(SampleDataGenerator.SimpleConfig);
@@ -202,6 +214,7 @@ namespace ConsensusChessSharedTests
             var builder = new PostBuilderFactory(config).Unspecified("urgle burgle");
             var post = builder.Build();
         }
+
     }
 }
 

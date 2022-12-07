@@ -79,7 +79,8 @@ namespace ConsensusChessShared.Content
 			var shortcodes = new List<string>();
 			shortcodes.AddRange(game.WhitePostingNodeShortcodes.Select(ss => ss.Value!));
             shortcodes.AddRange(game.BlackPostingNodeShortcodes.Select(ss => ss.Value!));
-			WithMapping("FormattedGameMoveDuration", translator.Translate_to_DaysHours(game.MoveDuration));
+			WithMapping("StartTimeDescription", translator.DescribeStartTime(game.ScheduledStart));
+            WithMapping("FormattedGameMoveDuration", translator.Translate_to_DaysHours(game.MoveDuration));
 			WithMapping("SideRules", translator.Translate(game.SideRules));
             WithMapping("SideRulesExplanation", translator.Explain(game.SideRules));
             WithMapping("AllNodes", string.Join(", ", shortcodes.Distinct()));

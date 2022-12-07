@@ -42,6 +42,16 @@ namespace ConsensusChessShared.Service
                         || (post.NodeShortcode == postingNodeShortcode && types.Contains(post.Type))));
         }
 
+        public IEnumerable<Game> FindUpostedActiveGames(DbSet<Game> games, string postingNodeShortcode, params PostType[] types)
+        {
+            return games.ToList()
+                .Where(g
+                    => g.Active
+                    && !g.GamePosts.Any(post
+                        => postingNodeShortcode == null
+                        || (post.NodeShortcode == postingNodeShortcode && types.Contains(post.Type))));
+        }
+
         public Dictionary<Game,Board> FindUnpostedActiveGameBoards(DbSet<Game> games, string postingNodeShortcode, params PostType[] types)
         {
             return games.ToList()

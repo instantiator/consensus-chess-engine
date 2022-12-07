@@ -59,6 +59,7 @@ namespace ConsensusChessShared.Social
             { PostType.Engine_GameAbandoned, Visibility.Unlisted },
             { PostType.Engine_GameEnded, Visibility.Unlisted },
 
+            { PostType.Node_GameAnnouncement, Visibility.Public },
             { PostType.Node_BoardUpdate, Visibility.Public },
             { PostType.Node_BoardReminder, Visibility.Public },
             { PostType.Node_VotingInstructions, Visibility.Public },
@@ -175,7 +176,7 @@ namespace ConsensusChessShared.Social
         protected override async Task GetMissedCommands()
         {
             // fetch conversations up to now before starting to stream
-            var firstStart = state.LastNotificationId == null;
+            var firstStart = state!.LastNotificationId == null;
 
             log.LogDebug(
                 !firstStart
