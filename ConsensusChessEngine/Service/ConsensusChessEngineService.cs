@@ -180,8 +180,8 @@ namespace ConsensusChessEngine.Service
 
                     var post = posts.CommandResponse(status)
                         .WithGame(game)
-                        .WithBoard(game.CurrentBoard, BoardFormat.StandardFAN)
-                        .AndBoardGraphic(BoardStyle.PixelChess, BoardFormat.StandardFEN)
+                        .WithBoard(game.CurrentBoard, BoardFormat.StandardFAN, game.PenultimateMoveOrNull)
+                        .AndBoardGraphic(BoardStyle.PixelChess, BoardFormat.StandardFEN, game.PenultimateMoveOrNull)
                         .InReplyTo(origin)
                         .Build();
 

@@ -44,16 +44,16 @@ namespace ConsensusChessShared.Content
 
 		}
 
-		public PostBuilder WithBoard(Board board, BoardFormat textFormat)
+		public PostBuilder WithBoard(Board board, BoardFormat textFormat, Move? cause)
 		{
 			WithObject("Board", board);
 			WithObject("BoardFormat", textFormat);
 			WithMapping("BoardText", BoardFormatter.FenToPieces(board, textFormat));
-			WithMapping("BoardDescription", BoardFormatter.DescribeBoard(board, false, textFormat));
+			WithMapping("BoardDescription", BoardFormatter.DescribeBoard(board, false, textFormat, cause));
 			return this;
 		}
 
-		public PostBuilder AndBoardGraphic(BoardStyle  style, BoardFormat altFormat)
+		public PostBuilder AndBoardGraphic(BoardStyle  style, BoardFormat altFormat, Move? cause)
 		{
 			if (!Mappings.ContainsKey("Board")) throw new ArgumentNullException("Board");
             WithObject("BoardStyle", style);
@@ -63,7 +63,7 @@ namespace ConsensusChessShared.Content
 			WithMedia(new Media(
 				filename: "board.png",
 				data: bmp.ToPngBytes(),
-				alt: BoardFormatter.DescribeBoard(board, true, altFormat)));
+				alt: BoardFormatter.DescribeBoard(board, true, altFormat, cause)));
 			return this;
 		}
 

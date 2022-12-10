@@ -68,7 +68,7 @@ namespace ConsensusChessSharedTests
         public void DescribeBoard_mentions_Checkmate()
         {
             var board = Board.FromFEN(SampleDataGenerator.FEN_FoolsMate);
-            var output = BoardFormatter.DescribeBoard(board, true, BoardFormat.Words_en);
+            var output = BoardFormatter.DescribeBoard(board, true, BoardFormat.Words_en, null);
             Assert.IsTrue(output.Contains("The black king is checkmated."));
         }
     }

@@ -55,15 +55,15 @@ namespace ConsensusChessShared.Content
         public PostBuilder Node_BoardUpdate(Game game, Board board, BoardFormat format, BoardStyle style)
             => new PostBuilder(config, PostType.Node_BoardUpdate)
                 .WithGame(game)
-                .WithBoard(board, format)
-                .AndBoardGraphic(style, format);
+                .WithBoard(board, format, game.PenultimateMoveOrNull)
+                .AndBoardGraphic(style, format, game.PenultimateMoveOrNull);
 
         public PostBuilder Node_BoardReminder(Game game, Board board, Move move, BoardFormat format, BoardStyle style)
             => new PostBuilder(config, PostType.Node_BoardReminder)
                 .WithGame(game)
-                .WithBoard(board, format)
+                .WithBoard(board, format, game.PenultimateMoveOrNull)
                 .WithMove(move)
-                .AndBoardGraphic(style, format);
+                .AndBoardGraphic(style, format, game.PenultimateMoveOrNull);
 
         public PostBuilder Node_VotingInstructions()
             => new PostBuilder(config, PostType.Node_VotingInstructions);
@@ -74,14 +74,14 @@ namespace ConsensusChessShared.Content
         public PostBuilder Node_GameAbandonedUpdate(Game game, BoardFormat format, BoardStyle style)
             => new PostBuilder(config, PostType.Node_GameAbandonedUpdate)
                 .WithGame(game)
-                .WithBoard(game.CurrentBoard, format)
-                .AndBoardGraphic(style, format);
+                .WithBoard(game.CurrentBoard, format, game.PenultimateMoveOrNull)
+                .AndBoardGraphic(style, format, game.PenultimateMoveOrNull);
 
         public PostBuilder Node_GameEndedUpdate(Game game, BoardFormat format, BoardStyle style)
             => new PostBuilder(config, PostType.Node_GameEndedUpdate)
                 .WithGame(game)
-                .WithBoard(game.CurrentBoard, format)
-                .AndBoardGraphic(style, format);
+                .WithBoard(game.CurrentBoard, format, game.PenultimateMoveOrNull)
+                .AndBoardGraphic(style, format, game.PenultimateMoveOrNull);
 
         public PostBuilder Node_GameNotFound(GameNotFoundReason reason)
             => new PostBuilder(config, PostType.Node_GameNotFound)

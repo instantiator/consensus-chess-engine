@@ -73,6 +73,7 @@ public class Game : IDTO
         && State == GameState.InProgress;
 
     [NotMapped] public Move CurrentMove => Moves.OrderBy(m => m.Deadline).Last();
+    [NotMapped] public Move? PenultimateMoveOrNull => Moves.OrderBy(m => m.Deadline).Reverse().Skip(1).FirstOrDefault();
     [NotMapped] public Board CurrentBoard => CurrentMove.From;
     [NotMapped] public Side CurrentSide => CurrentBoard.ActiveSide;
 

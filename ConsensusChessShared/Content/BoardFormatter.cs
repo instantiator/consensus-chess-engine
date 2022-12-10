@@ -21,7 +21,7 @@ namespace ConsensusChessShared.Content
 
         private static BoardTemplates templates = new BoardTemplates();
 
-        public static string DescribeBoard(Board board, bool isAlt, BoardFormat format)
+        public static string DescribeBoard(Board board, bool isAlt, BoardFormat format, DTO.Move? cause)
         {
             var layout = FenToPieces(board, format);
             var data = new Dictionary<string, object>();
@@ -47,6 +47,13 @@ namespace ConsensusChessShared.Content
                         : check
                             ? DescriptionType.PostWithCheck
                             : DescriptionType.Post;
+
+            var oppositeSide = board.ActiveSide == Side.White ? Side.Black : Side.White;
+            var previousMove =
+                cause == null
+                    ? string.Empty
+                    : $"The previous move from {oppositeSide.ToString()} was: {cause.SelectedSAN ?? "(unknown)"}";
+            data.Add("PreviousMoveDescription", previousMove);
 
             return templates.For[description](data).RestoreUnicode();
         }
