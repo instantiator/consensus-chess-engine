@@ -192,8 +192,19 @@ namespace ConsensusChessShared.Service
         public Vote? GetCurrentValidVote(DTO.Move move, Participant participant)
         {
             return move.Votes.SingleOrDefault(v =>
-                v.Participant.Id == participant.Id &&
+                v.Participant.Equals(participant) &&
                 v.ValidationState == VoteValidationState.Valid);
+        }
+
+        public bool ParticipantHasEverVotedSuccessfully(IEnumerable<Game> games, Participant participant)
+        {
+            return games
+                .ToList()
+                .Any(game =>
+                    game.Moves.Any(move =>
+                        move.Votes.Any(vote =>
+                            vote.Participant.Equals(participant) &&
+                            vote.ValidationState == VoteValidationState.Valid)));
         }
 
         /// <summary>

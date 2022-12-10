@@ -357,5 +357,79 @@ namespace ConsensusChessSharedTests
             Assert.IsFalse(votes.ContainsKey("b3"));
             Assert.IsFalse(votes.ContainsKey("c3"));
         }
+
+        [TestMethod]
+        public void GetCurrentValidVote_finds_VoteForParticipant()
+        {
+            var game = SampleDataGenerator.SimpleMoveLockGame();
+            var participant = SampleDataGenerator.SampleParticipant($"participant");
+            var nonVotingParticipant = SampleDataGenerator.SampleParticipant($"nonVotingParticipant");
+
+            var vote = gm.GetCurrentValidVote(game.CurrentMove, participant);
+            Assert.IsNull(vote);
+
+            game.CurrentMove.Votes.Add(new Vote(
+                SampleDataGenerator.NextPostId,
+                "e2 - e4",
+                participant,
+                "e4",
+                VoteValidationState.Valid));
+
+            for (var i = 0; i < 5; i++)
+            {
+                game.CurrentMove.Votes.Add(new Vote(
+                    SampleDataGenerator.NextPostId,
+                    "e2 - e4",
+                    SampleDataGenerator.SampleParticipant($"otherParticipant-{i}"),
+                    "e4",
+                    VoteValidationState.Valid));
+            }
+
+            vote = gm.GetCurrentValidVote(game.CurrentMove, participant);
+            Assert.IsNotNull(vote);
+            Assert.AreEqual(participant, vote.Participant);
+
+            vote = gm.GetCurrentValidVote(game.CurrentMove, nonVotingParticipant);
+            Assert.IsNull(vote);
+        }
+
+        [TestMethod]
+        public void ParticipantHasEverVotedSuccessfully_identifies_ValidVote()
+        {
+            var game1 = SampleDataGenerator.SimpleMoveLockGame();
+            var game2 = SampleDataGenerator.SimpleMoveLockGame();
+            var participant = SampleDataGenerator.SampleParticipant($"participant");
+
+            var games = new List<Game>() { game1, game2 };
+
+            Assert.IsFalse(gm.ParticipantHasEverVotedSuccessfully(games, participant));
+
+            game1.CurrentMove.Votes.Add(new Vote(
+                SampleDataGenerator.NextPostId,
+                "e2 - e4",
+                participant,
+                "e4",
+                VoteValidationState.InvalidMoveText));
+
+            Assert.IsFalse(gm.ParticipantHasEverVotedSuccessfully(games, participant));
+
+            game2.CurrentMove.Votes.Add(new Vote(
+                SampleDataGenerator.NextPostId,
+                "e2 - e4",
+                participant,
+                "e4",
+                VoteValidationState.Superceded));
+
+            Assert.IsFalse(gm.ParticipantHasEverVotedSuccessfully(games, participant));
+
+            game2.CurrentMove.Votes.Add(new Vote(
+                SampleDataGenerator.NextPostId,
+                "e2 - e4",
+                participant,
+                "e4",
+                VoteValidationState.Valid));
+
+            Assert.IsTrue(gm.ParticipantHasEverVotedSuccessfully(games, participant));
+        }
     }
 }

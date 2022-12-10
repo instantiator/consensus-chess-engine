@@ -100,12 +100,6 @@ namespace ConsensusChessFeatureTests
                     count: boardCount * 2 - 1)
                         .Last();
 
-                WaitAndAssert_Posts(
-                    shortcode: NodeId.Shortcode,
-                    ofType: PostType.Node_FollowInstructions,
-                    count: boardCount * 3 - 2)
-                        .Last();
-
                 WriteLogLine($"✅ Board post #{boardCount} received.");
 
                 // make sure the database has caught up
@@ -168,10 +162,13 @@ namespace ConsensusChessFeatureTests
                     count: boardCount * 2)
                         .Last();
 
+                // = twice per board (original post and reminder)
+                // + each player gets a follow instruction post once only
+                var expectedFollowPosts = (boardCount * 2) + Math.Min(2, boardCount);
                 WaitAndAssert_Posts(
                     shortcode: NodeId.Shortcode,
                     ofType: PostType.Node_FollowInstructions,
-                    count: boardCount * 3)
+                    count: expectedFollowPosts)
                         .Last();
 
                 await ExpireCurrentMoveShortlyAsync(game);

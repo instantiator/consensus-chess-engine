@@ -315,20 +315,27 @@ public abstract class AbstractFeatureTest
 
     protected IEnumerable<Post> WaitAndAssert_Posts(SocialCommand? command = null, string? shortcode = null, PostType? ofType = null, int? count = null)
     {
+        int found = 0;
         WaitAndAssert(() =>
         {
-            return count == null
-                ? postsSent.Any(post
+            if (count == null)
+            {
+                return postsSent.Any(post
                     => post.Succeeded
                     && (command == null || post.NetworkReplyToId == command.SourcePostId)
                     && (shortcode == null || post.NodeShortcode == shortcode)
-                    && (ofType == null || post.Type == ofType))
-                : postsSent.Count(post
+                    && (ofType == null || post.Type == ofType));
+            }
+            else
+            {
+                found = postsSent.Count(post
                     => post.Succeeded
                     && (command == null || post.NetworkReplyToId == command.SourcePostId)
                     && (shortcode == null || post.NodeShortcode == shortcode)
-                    && (ofType == null || post.Type == ofType)) == count.Value;
-        }, $"{shortcode} did not post as expected.");
+                    && (ofType == null || post.Type == ofType));
+                return found == count.Value;
+            }
+        }, $"{shortcode} did not post as expected. Expected: {count?.ToString() ?? "(any)"}");
 
         return postsSent.Where(post
             => post.Succeeded

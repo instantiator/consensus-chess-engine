@@ -285,6 +285,10 @@ namespace ConsensusChessNode.Service
                     commitment.GameSide = game.CurrentSide;
                     log.LogDebug(JsonConvert.SerializeObject(commitment));
 
+                    // check for any previous votes before saving the new one
+                    var hasEverVotedSuccesfullyBefore =
+                        gm.ParticipantHasEverVotedSuccessfully(db.Games, participant);
+
                     // record new vote on game
                     game.CurrentMove.Votes.Add(vote);
                     await db.SaveChangesAsync();
@@ -299,11 +303,14 @@ namespace ConsensusChessNode.Service
                     await db.SaveChangesAsync();
 
                     // additional information for players
-                    var informationReply = posts.Node_FollowInstructions()
-                        .InReplyTo(reply.NetworkPostId!, origin.SourceUsername)
-                        .WithOverrideVisibility(Visibility.Direct)
-                        .Build();
-                    await social.PostAsync(informationReply);
+                    if (!hasEverVotedSuccesfullyBefore)
+                    {
+                        var informationReply = posts.Node_FollowInstructions()
+                            .InReplyTo(reply.NetworkPostId!, origin.SourceUsername)
+                            .WithOverrideVisibility(Visibility.Direct)
+                            .Build();
+                        await social.PostAsync(informationReply);
+                    }
                 }
                 catch (GameNotFoundException e)
                 {

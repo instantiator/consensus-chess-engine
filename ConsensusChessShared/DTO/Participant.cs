@@ -29,5 +29,14 @@ namespace ConsensusChessShared.DTO
         {
             return new Participant(command.SourceUsername);
         }
-	}
+
+        public override bool Equals(object? obj)
+        {
+            if (obj == null) { return false; }
+            if (this == obj) { return true; }
+            if (!(obj is Participant)) { return false; }
+            var participant = obj as Participant;
+            return Username.Equals(participant!.Username);
+        }
+    }
 }
