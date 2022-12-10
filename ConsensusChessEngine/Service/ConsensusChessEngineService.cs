@@ -166,6 +166,7 @@ namespace ConsensusChessEngine.Service
                     var header = $"{game.Shortcode}: \"{game.Title}\", {game.State}";
                     var moves = $"{game.Moves.Count()} Moves: {game.CurrentSide} active";
                     var votes = $"Votes: {string.Join(", ", game.Moves.Select(m => m.Votes.Count()))}";
+                    var next = $"Next: {translator.Translate_to_HoursAndMins(game.CurrentMove.TimeRemaining)}";
                     //var serverList = new List<string>();
                     //serverList.AddRange(game.WhiteParticipantNetworkServers.Select(s => s.Value!));
                     //serverList.AddRange(game.BlackParticipantNetworkServers.Select(s => s.Value!));
@@ -175,7 +176,7 @@ namespace ConsensusChessEngine.Service
                     shortcodeList.AddRange(game.WhitePostingNodeShortcodes.Select(s => s.Value!));
                     var nodes = $"Nodes: {string.Join(", ",shortcodeList)}";
 
-                    var status = string.Format($"{header}\n{nodes}\n{moves}\n{votes}");
+                    var status = $"{header}\n{nodes}\n{moves}\n{votes}\n{next}";
                     log.LogInformation($"Game status information requested.\n{status}");
 
                     var post = posts.CommandResponse(status)
@@ -208,7 +209,10 @@ namespace ConsensusChessEngine.Service
                 var activeGames = gamesList
                     .Where(g => g.Active)
                     .OrderByDescending(g => g.Created)
-                    .Select(g => $"- {g.Shortcode}: {g.State}");
+                    .Select(g => $"- {g.Shortcode}: {g.State}, {g.Moves.Count()} moves, next: {translator.Translate_to_HoursAndMins(g.CurrentMove.TimeRemaining)}");
+
+                var inactiveGameStates = gamesList.Where(g => !g.Active).Select(g => g.State).Distinct();
+                var inactiveGameSummaries = inactiveGameStates.Select(s => $"{s.ToString()}: {gamesList.Where(g => g.State == s).Count()}");
 
                 var inactiveGames = gamesList
                     .Where(g => !g.Active)
@@ -218,13 +222,13 @@ namespace ConsensusChessEngine.Service
                 var nodes = nodesList.Select(ns => $"- {ns.Shortcode}: \"{ns.Name}\"");
 
                 var status = string.Format(
-                    "{0} nodes:\n{1}\n\n{2} active games:\n{3}\n\n{4} inactive games:\n{5}",
+                    "{0} nodes:\n{1}\n\n{2} active games:\n{3}\n\n{5}",
                     nodes.Count(),
                     string.Join("\n", nodes),
                     activeGames.Count(),
                     string.Join("\n", activeGames),
                     inactiveGames.Count(),
-                    string.Join("\n", inactiveGames));
+                    string.Join("\n", inactiveGameSummaries));
 
                 log.LogInformation($"Status information requested.\n{status}");
 

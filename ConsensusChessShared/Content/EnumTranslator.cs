@@ -174,6 +174,11 @@ namespace ConsensusChessShared.Content
 				? $"{(Math.Round(duration.Value.TotalHours))} hours"
 			: "no time";
 
-	}
+        public string Translate_to_HoursAndMins(TimeSpan? duration)
+            => duration != null
+                ? $"{(Math.Floor(duration.Value.TotalHours))}h, {duration.Value.Minutes}m"
+            : "no time";
+
+    }
 }
 

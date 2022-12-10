@@ -26,6 +26,7 @@ namespace ConsensusChessShared.Service
         protected ServiceConfig config;
         protected PostBuilderFactory posts;
         protected DbOperator dbo;
+        protected EnumTranslator translator;
 
         protected CommandProcessor? cmd;
         protected GameManager gm;
@@ -51,6 +52,7 @@ namespace ConsensusChessShared.Service
             this.config = config;
             this.posts = new PostBuilderFactory(config);
             this.startup = DateTime.Now;
+            this.translator = new EnumTranslator();
 
             using (var db = dbo.GetDb())
             {
