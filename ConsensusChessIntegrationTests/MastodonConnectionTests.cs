@@ -32,7 +32,7 @@ namespace ConsensusChessIntegrationTests
             var mockLogger = new Mock<ILogger>();
             var network = GetNetwork();
             var ignorables = new string[] { "#hush" };
-            var config = new ServiceConfig("#ConsensusChessIntegrationTests", "instantiator@mastodon.social", Mastonet.Visibility.Unlisted, ignorables, true);
+            var config = new ServiceConfig("#ConsensusChessIntegrationTests", "instantiator@mastodon.social", Mastonet.Visibility.Unlisted, ignorables, true, "#IntegrationTests #PleaseIgnore");
             var connection = new MoreExposedMastodonConnection(mockLogger.Object, network, "personal-test", config);
             var state = new NodeState("personal test connection", "personal-test", network);
             await connection.InitAsync(state);
@@ -64,7 +64,7 @@ namespace ConsensusChessIntegrationTests
             var mockLogger = new Mock<ILogger>();
             var network = GetNetwork();
             var ignorables = new string[] { "#hush" };
-            var config = new ServiceConfig("#ConsensusChessIntegrationTests", "instantiator@mastodon.social", Mastonet.Visibility.Unlisted, ignorables, true);
+            var config = new ServiceConfig("#ConsensusChessIntegrationTests", "instantiator@mastodon.social", Mastonet.Visibility.Unlisted, ignorables, true, "#IntegrationTests #PleaseIgnore");
 			var connection = new MoreExposedMastodonConnection(mockLogger.Object, network, "personal-test", config);
 			var state = new NodeState("personal test connection", "personal-test", network);
 			await connection.InitAsync(state);

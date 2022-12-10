@@ -34,13 +34,13 @@ namespace ConsensusChessShared.Content
             { PostType.Engine_GameEnded, "⚙️ ⏹ Game {{ Game.Shortcode }}: {{ Game.State }}" },
             { PostType.Engine_GameAdvance, "⚙️ ⏭ Game advanced: {{ Game.Shortcode }}" },
 
-            { PostType.Node_GameAnnouncement, "📢 🆕 A new game is starting {{ StartTimeDescription }}... \n\n{{ Game.Title }}\n\n{{ Game.Description }}\n\n🔔 Enable notifications from this account, or follow {{ Config.GameTag }}, to join in!" },
-            { PostType.Node_BoardUpdate, "🎉 ▶️ There's a new board for the {{ Game.Title }} game. {{ BoardDescription }}\n\nReply to this message to vote for {{ Game.CurrentSide }}'s next move. The votes will be tallied after {{ FormattedGameMoveDuration }}.\n\n{{ Config.GameTag }}" },
+            { PostType.Node_GameAnnouncement, "📢 🆕 A new game is starting {{ StartTimeDescription }}... \n\n{{ Game.Title }}\n\n{{ Game.Description }}\n\n{{ Config.GameTag }} {{ Config.AdditionalTags }}" },
+            { PostType.Node_BoardUpdate, "🎉 ▶️ There's a new board for the {{ Game.Title }} game. {{ BoardDescription }}\n\nReply to this message to vote for {{ Game.CurrentSide }}'s next move. The votes will be tallied after {{ FormattedGameMoveDuration }}.\n\n{{ Config.GameTag }} {{ Config.AdditionalTags }}" },
             { PostType.Node_BoardReminder, "🎗 A reminder - it's almost time to count the votes for the {{ Game.Title}} game. {{ BoardDescription }}\n\nIf you're planning to vote for {{ Game.CurrentSide }}, you have {{ FormattedMoveTimeRemaining }} to make your move!\n\n🧵 Instructions in thread... {{ Config.GameTag }}" },
             { PostType.Node_VotingInstructions, "ℹ️ How to play:\nPick a side. On your turn, vote for the move your side should make with a reply. Provide coordinates for the square you want to move from, and the square you want to move to - separated by a hyphen. eg.\n\nc2 - c4\n\n{{ Config.GameTag }}" },
             { PostType.Node_FollowInstructions, "🔔 Enable notifications from this account, or follow {{ Config.GameTag }} to hear about each move as it happens!" },
-            { PostType.Node_GameAbandonedUpdate, "😶 The {{ Game.Title }} game was abandoned. This can happen if there are no votes for one side, or if it is actively cancelled by an administrator." },
-            { PostType.Node_GameEndedUpdate, "🧐 The {{ Game.Title }} game has ended in state: {{ GameState }}\n\n{{ Config.GameTag }}" },
+            { PostType.Node_GameAbandonedUpdate, "😶 The {{ Game.Title }} game was abandoned. This can happen if there are no votes for one side, or if it is actively cancelled by an administrator. {{ Config.GameTag }}" },
+            { PostType.Node_GameEndedUpdate, "🧐 The {{ Game.Title }} game has ended in state: {{ GameState }}\n\n{{ Config.GameTag }} {{ Config.AdditionalTags }}" },
 
             { PostType.Node_GameNotFound,   "😔 This vote can't be processed: {{ GameNotFoundReason }}" },
             { PostType.CommandRejection,    "😔 {{ CommandRejectionDescription }}\n\n{{ ItemsSummary }}" },

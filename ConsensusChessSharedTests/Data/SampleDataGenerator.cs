@@ -111,6 +111,7 @@ namespace ConsensusChessSharedTests.Data
         {
             { "POST_ADMIN_CONTACT", "@instantiator@mastodon.social" },
             { "POST_GAME_TAG", "#ConsensusChessUnitTests" },
+            { "POST_ADDITIONAL_TAGS", "#UnitTest #PleaseIgnore" },
             { "POST_PUBLIC_VISIBILITY", "Unlisted" },
             { "COMMAND_IGNORE_KEYWORDS", "#hush,#ignore" },
             { "STREAM_ENABLED", "true" }
