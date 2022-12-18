@@ -11,8 +11,8 @@ namespace ConsensusChessShared.Helpers
             skip ??= new string[0];
             skip = skip.Select(x => x.ToLower());
             return RemoveUnwantedTags(data)
-                .SplitOutsideQuotes(new[] { ' ', ',' }, true, true, true)
-                .Select(part => part.Trim(' ', '"')) // trim quotes away
+                .SplitOutsideQuotes(new[] { ' ', ',', '\n' }, true, true, true)
+                .Select(part => part.Trim(' ', '"', '\n')) // trim quotes and whitespace away
                 .Where(x => !string.IsNullOrWhiteSpace(x) && !skip.Contains(x.ToLower()));
         }
 
