@@ -5,6 +5,7 @@ using System.Security.Principal;
 using ConsensusChessShared.Constants;
 using ConsensusChessShared.DTO;
 using ConsensusChessShared.Exceptions;
+using ConsensusChessShared.Graphics;
 using ConsensusChessShared.Helpers;
 using ConsensusChessShared.Service;
 using ConsensusChessShared.Social;
@@ -14,7 +15,7 @@ using Mastonet.Entities;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Newtonsoft.Json.Linq;
 using static ConsensusChessShared.Content.BoardFormatter;
-using static ConsensusChessShared.Content.BoardGraphicsData;
+using static ConsensusChessShared.Graphics.BoardGraphicsData;
 
 namespace ConsensusChessShared.Content
 {
@@ -59,7 +60,7 @@ namespace ConsensusChessShared.Content
             WithObject("BoardStyle", style);
 			var board = (Board)Mappings["Board"];
 			var renderer = new BoardRenderer(board);
-			var bmp = renderer.RenderBoard(style);
+			var bmp = renderer.Render(style);
 			WithMedia(new Media(
 				filename: "board.png",
 				data: bmp.ToPngBytes(),

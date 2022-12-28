@@ -10,8 +10,7 @@ using ConsensusChessShared.Social;
 using Mastonet.Entities;
 using Newtonsoft.Json;
 using static ConsensusChessShared.Content.BoardFormatter;
-using static ConsensusChessShared.Content.BoardGraphicsData;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+using static ConsensusChessShared.Graphics.BoardGraphicsData;
 
 namespace ConsensusChessEngine.Service
 {

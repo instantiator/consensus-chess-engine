@@ -43,7 +43,6 @@
     <None Remove="Images\PixelChess\W_Rook.png" />
     <None Remove="SkiaSharp" />
     <None Remove="SkiaSharp.NativeAssets.Linux.NoDependencies" />
-    <None Remove="Images\JohnPablockCburnett\" />
     <None Remove="Images\JohnPablockCburnett\b_bishop_2x.png" />
     <None Remove="Images\JohnPablockCburnett\b_king_2x.png" />
     <None Remove="Images\JohnPablockCburnett\b_knight_2x.png" />
@@ -60,6 +59,7 @@
     <None Remove="Images\JohnPablockCburnett\w_pawn_2x.png" />
     <None Remove="Images\JohnPablockCburnett\w_queen_2x.png" />
     <None Remove="Images\JohnPablockCburnett\w_rook_2x.png" />
+    <None Remove="Graphics\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DTO\" />
@@ -73,7 +73,7 @@
     <Folder Include="Constants\" />
     <Folder Include="Images\" />
     <Folder Include="Images\PixelChess\" />
-    <Folder Include="Images\JohnPablockCburnett\" />
+    <Folder Include="Graphics\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.0" />
@@ -105,21 +105,21 @@
     <EmbeddedResource Include="Images\PixelChess\W_Pawn.png" />
     <EmbeddedResource Include="Images\PixelChess\W_Queen.png" />
     <EmbeddedResource Include="Images\PixelChess\W_Rook.png" />
-    <EmbeddedResource Include="Images\JohnPablockCburnett\b_bishop_2x.png" />
-    <EmbeddedResource Include="Images\JohnPablockCburnett\b_king_2x.png" />
-    <EmbeddedResource Include="Images\JohnPablockCburnett\b_knight_2x.png" />
-    <EmbeddedResource Include="Images\JohnPablockCburnett\b_pawn_2x.png" />
-    <EmbeddedResource Include="Images\JohnPablockCburnett\b_queen_2x.png" />
-    <EmbeddedResource Include="Images\JohnPablockCburnett\b_rook_2x.png" />
-    <EmbeddedResource Include="Images\JohnPablockCburnett\square_brown_dark_2x.png" />
-    <EmbeddedResource Include="Images\JohnPablockCburnett\square_brown_light_2x.png" />
-    <EmbeddedResource Include="Images\JohnPablockCburnett\square_gray_dark_2x.png" />
-    <EmbeddedResource Include="Images\JohnPablockCburnett\square_gray_light_2x.png" />
-    <EmbeddedResource Include="Images\JohnPablockCburnett\w_bishop_2x.png" />
-    <EmbeddedResource Include="Images\JohnPablockCburnett\w_king_2x.png" />
-    <EmbeddedResource Include="Images\JohnPablockCburnett\w_knight_2x.png" />
-    <EmbeddedResource Include="Images\JohnPablockCburnett\w_pawn_2x.png" />
-    <EmbeddedResource Include="Images\JohnPablockCburnett\w_queen_2x.png" />
-    <EmbeddedResource Include="Images\JohnPablockCburnett\w_rook_2x.png" />
+    <EmbeddedResource Include="Images\JPCB\b_bishop_2x.png" />
+    <EmbeddedResource Include="Images\JPCB\b_king_2x.png" />
+    <EmbeddedResource Include="Images\JPCB\b_knight_2x.png" />
+    <EmbeddedResource Include="Images\JPCB\b_pawn_2x.png" />
+    <EmbeddedResource Include="Images\JPCB\b_queen_2x.png" />
+    <EmbeddedResource Include="Images\JPCB\b_rook_2x.png" />
+    <EmbeddedResource Include="Images\JPCB\square_brown_dark_2x.png" />
+    <EmbeddedResource Include="Images\JPCB\square_brown_light_2x.png" />
+    <EmbeddedResource Include="Images\JPCB\square_gray_dark_2x.png" />
+    <EmbeddedResource Include="Images\JPCB\square_gray_light_2x.png" />
+    <EmbeddedResource Include="Images\JPCB\w_bishop_2x.png" />
+    <EmbeddedResource Include="Images\JPCB\w_king_2x.png" />
+    <EmbeddedResource Include="Images\JPCB\w_knight_2x.png" />
+    <EmbeddedResource Include="Images\JPCB\w_pawn_2x.png" />
+    <EmbeddedResource Include="Images\JPCB\w_queen_2x.png" />
+    <EmbeddedResource Include="Images\JPCB\w_rook_2x.png" />
   </ItemGroup>
 </Project>

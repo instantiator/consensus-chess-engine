@@ -7,7 +7,7 @@ using ConsensusChessShared.Service;
 using ConsensusChessShared.Social;
 using Mastonet.Entities;
 using static ConsensusChessShared.Content.BoardFormatter;
-using static ConsensusChessShared.Content.BoardGraphicsData;
+using static ConsensusChessShared.Graphics.BoardGraphicsData;
 
 namespace ConsensusChessShared.Content
 {

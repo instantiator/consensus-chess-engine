@@ -6,7 +6,7 @@ using ConsensusChessShared.Helpers;
 using ConsensusChessShared.Social;
 using ConsensusChessSharedTests.Data;
 using HandlebarsDotNet.Compiler;
-using static ConsensusChessShared.Content.BoardGraphicsData;
+using static ConsensusChessShared.Graphics.BoardGraphicsData;
 
 namespace ConsensusChessSharedTests
 {

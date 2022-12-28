@@ -12,7 +12,7 @@ using Mastonet.Entities;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using static ConsensusChessShared.Content.BoardFormatter;
-using static ConsensusChessShared.Content.BoardGraphicsData;
+using static ConsensusChessShared.Graphics.BoardGraphicsData;
 
 namespace ConsensusChessNode.Service
 {

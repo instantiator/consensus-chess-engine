@@ -1,8 +1,8 @@
 ﻿using System;
 using Chess;
-using static ConsensusChessShared.Content.BoardRenderer;
+using SkiaSharp;
 
-namespace ConsensusChessShared.Content
+namespace ConsensusChessShared.Graphics
 {
 	public class BoardGraphicsData
 	{
@@ -27,14 +27,23 @@ namespace ConsensusChessShared.Content
             public int? Height; // if null, calculate from the grid cell height (*8)
             public int? GridCellWidth; // if null, calculate from the black cell resource
             public int? GridCellHeight; // if null, calculate from the white cell resource
-            public int GridStartX;
-            public int GridStartY;
+            public int GridMarginLeft;
+            public int GridMarginRight;
+            public int GridMarginTop;
+            public int GridMarginBottom;
             public string? BackgroundResource;
             public string? BlackCellResource;
             public string? WhiteCellResource;
             public int ScaleX;
             public int ScaleY;
             public Dictionary<char, PieceData> Pieces;
+            public SKColor? CheckColour;
+            public int? MarkerSizeLeft;
+            public int? MarkerSizeRight;
+            public int? MarkerSizeTop;
+            public int? MarkerSizeBottom;
+            public SKColor? MarkerColour;
+            public SKColor? MarkerBackground;
         }
 
         public static Dictionary<BoardStyle, Dictionary<char, PieceData>> Pieces =
@@ -91,13 +100,18 @@ namespace ConsensusChessShared.Content
                         BlackCellResource = null,
                         WhiteCellResource = null,
                         Width = 142, Height = 142,
-                        GridStartX = 7,
+                        GridMarginLeft = 7,
                         GridCellWidth = 16,
-                        GridStartY = 36,
+                        GridMarginTop = 36,
                         GridCellHeight = 11,
                         ScaleX = 4,
                         ScaleY = 4,
-                        Pieces = Pieces![BoardStyle.PixelChess]
+                        Pieces = Pieces![BoardStyle.PixelChess],
+                        CheckColour = SKColors.Red,
+                        MarkerSizeLeft = 20, MarkerSizeRight = 20,
+                        MarkerSizeTop = 20, MarkerSizeBottom = 20,
+                        MarkerColour = SKColors.White,
+                        MarkerBackground = SKColors.DarkGray
                     }
                 },
                 // Graphics published on OpenGameArt by JohnPablok
@@ -113,11 +127,16 @@ namespace ConsensusChessShared.Content
                         Width = null, Height = null, // calculated
                         GridCellWidth = null, // calculated
                         GridCellHeight = null, // calculated
-                        GridStartX = 0,
-                        GridStartY = 0,
+                        GridMarginLeft = 0, GridMarginRight = 0,
+                        GridMarginTop = 0, GridMarginBottom = 0,
                         ScaleX = 1,
                         ScaleY = 1,
-                        Pieces = Pieces![BoardStyle.JPCB]
+                        Pieces = Pieces![BoardStyle.JPCB],
+                        CheckColour = SKColors.Red,
+                        MarkerSizeLeft = 20, MarkerSizeRight = 20,
+                        MarkerSizeTop = 20, MarkerSizeBottom = 20,
+                        MarkerColour = SKColors.White,
+                        MarkerBackground = SKColors.DarkGray
                     }
                 }
             };
