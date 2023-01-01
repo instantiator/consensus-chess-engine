@@ -144,7 +144,8 @@ namespace ConsensusChessIntegrationTests
                     "test-game", "Integration", "A game for integration testing",
                     servers, servers,
                     nodes, nodes,
-                    SideRules.MoveLock);
+                    SideRules.MoveLock,
+                    null, null);
 
                 db.Games.Add(game);
                 await db.SaveChangesAsync();

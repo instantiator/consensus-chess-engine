@@ -59,8 +59,8 @@ namespace ConsensusChessShared.Content
 			if (!Mappings.ContainsKey("Board")) throw new ArgumentNullException("Board");
             WithObject("BoardStyle", style);
 			var board = (Board)Mappings["Board"];
-			var renderer = new BoardRenderer(board);
-			var bmp = renderer.Render(style);
+			var renderer = new BoardRenderer(style);
+			var bmp = renderer.Render(board);
 			WithMedia(new Media(
 				filename: "board.png",
 				data: bmp.ToPngBytes(),

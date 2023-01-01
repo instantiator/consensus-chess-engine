@@ -23,14 +23,15 @@ public class Game : IDTO
         string shortcode, string title, string description,
         IEnumerable<string>? whiteSideNetworkServers, IEnumerable<string>? blackSideNetworkServers,
         IEnumerable<string> whitePostingNodeShortcodes, IEnumerable<string> blackPostingNodeShortcodes,
-        SideRules sideRules)
+        SideRules sideRules,
+        DateTime? start, TimeSpan? moveDuration)
         : this()
     {
         Shortcode = shortcode;
         Title = title;
         Description = description;
-        ScheduledStart = DateTime.Now.ToUniversalTime();
-        MoveDuration = DEFAULT_MOVE_DURATION;
+        ScheduledStart = start ?? DateTime.Now.ToUniversalTime();
+        MoveDuration = moveDuration ?? DEFAULT_MOVE_DURATION;
         MoveReminder = DEFAULT_MOVE_REMINDER;
         State = GameState.InProgress;
         GamePosts = new List<Post>();

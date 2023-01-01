@@ -230,7 +230,8 @@ public abstract class AbstractFeatureTest
                 new[] { NodeNetwork.NetworkServer },
                 new[] { NodeId.Shortcode },
                 new[] { NodeId.Shortcode },
-                SideRules.MoveLock);
+                SideRules.MoveLock,
+                null, null);
 
         game.CurrentBoard.FEN = fen ?? game.CurrentBoard.FEN;
 

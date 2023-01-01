@@ -23,13 +23,16 @@ namespace ConsensusChessShared.Service
         public Game CreateSimpleMoveLockGame(
             string shortcode, string title, string description,
             IEnumerable<string>? participantNetworkServers,
-            IEnumerable<string> postingNodeShortcodes)
+            IEnumerable<string> postingNodeShortcodes,
+            DateTime? start = null,
+            TimeSpan? moveDuration = null)
         {
             return new Game(
                 shortcode, title, description,
                 participantNetworkServers, participantNetworkServers,
                 postingNodeShortcodes, postingNodeShortcodes,
-                SideRules.MoveLock);
+                SideRules.MoveLock,
+                start, moveDuration);
         }
 
         public IEnumerable<Game> FindUnpostedEndedGames(DbSet<Game> games, string postingNodeShortcode, params PostType[] types)

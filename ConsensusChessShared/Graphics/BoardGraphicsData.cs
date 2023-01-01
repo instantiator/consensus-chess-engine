@@ -14,8 +14,6 @@ namespace ConsensusChessShared.Graphics
 
         public struct PieceData
         {
-            public int? Width; // if null, calculate from the resource
-            public int? Height; // if null, calculate from the resource
             public int? OffsetX; // if null, centre the piece in the cell
             public int? OffsetY; // if null, centre the piece in the cell
             public string Resource;
@@ -23,27 +21,37 @@ namespace ConsensusChessShared.Graphics
 
         public struct CompositionData
         {
-            public int? Width; // if null, calculate from the grid cell width (*8)
-            public int? Height; // if null, calculate from the grid cell height (*8)
-            public int? GridCellWidth; // if null, calculate from the black cell resource
-            public int? GridCellHeight; // if null, calculate from the white cell resource
-            public int GridMarginLeft;
-            public int GridMarginRight;
-            public int GridMarginTop;
-            public int GridMarginBottom;
+            public int GridCellWidth;
+            public int GridCellHeight;
+
+            public int? GridOffsetX; // if null, centre the board on the background
+            public int? GridOffsetY; // if null, centre the board on the background
+
+            public int GridPaddingLeft;
+            public int GridPaddingRight;
+            public int GridPaddingTop;
+            public int GridPaddingBottom;
+
             public string? BackgroundResource;
+
             public string? BlackCellResource;
             public string? WhiteCellResource;
+
+            public int MarkerBorderLeft;
+            public int MarkerBorderRight;
+            public int MarkerBorderTop;
+            public int MarkerBorderBottom;
+
             public int ScaleX;
             public int ScaleY;
-            public Dictionary<char, PieceData> Pieces;
+
             public SKColor? CheckColour;
-            public int? MarkerSizeLeft;
-            public int? MarkerSizeRight;
-            public int? MarkerSizeTop;
-            public int? MarkerSizeBottom;
             public SKColor? MarkerColour;
             public SKColor? MarkerBackground;
+            public SKColor? MarkerShadow;
+            public float ShadowScale;
+
+            public Dictionary<char, PieceData> Pieces;
         }
 
         public static Dictionary<BoardStyle, Dictionary<char, PieceData>> Pieces =
@@ -53,18 +61,18 @@ namespace ConsensusChessShared.Graphics
                     BoardStyle.PixelChess,
                     new Dictionary<char, PieceData>()
                     {
-                        { 'R', new PieceData() { Resource = "ConsensusChessShared.Images.PixelChess.W_Rook.png", Width = 16, Height = 32, OffsetY = -33 } },
-                        { 'K', new PieceData() { Resource = "ConsensusChessShared.Images.PixelChess.W_King.png", Width = 16, Height = 32, OffsetY = -33 } },
-                        { 'N', new PieceData() { Resource = "ConsensusChessShared.Images.PixelChess.W_Knight.png", Width = 16, Height = 32, OffsetY = -33 } },
-                        { 'P', new PieceData() { Resource = "ConsensusChessShared.Images.PixelChess.W_Pawn.png", Width = 16, Height = 32, OffsetY = -33 } },
-                        { 'Q', new PieceData() { Resource = "ConsensusChessShared.Images.PixelChess.W_Queen.png", Width = 16, Height = 32, OffsetY = -33 } },
-                        { 'B', new PieceData() { Resource = "ConsensusChessShared.Images.PixelChess.W_Bishop.png", Width = 16, Height = 32, OffsetY = -33 } },
-                        { 'r', new PieceData() { Resource = "ConsensusChessShared.Images.PixelChess.B_Rook.png", Width = 16, Height = 32, OffsetY = -33 } },
-                        { 'k', new PieceData() { Resource = "ConsensusChessShared.Images.PixelChess.B_King.png", Width = 16, Height = 32, OffsetY = -33 } },
-                        { 'n', new PieceData() { Resource = "ConsensusChessShared.Images.PixelChess.B_Knight.png", Width = 16, Height = 32, OffsetY = -33 } },
-                        { 'p', new PieceData() { Resource = "ConsensusChessShared.Images.PixelChess.B_Pawn.png", Width = 16, Height = 32, OffsetY = -33 } },
-                        { 'q', new PieceData() { Resource = "ConsensusChessShared.Images.PixelChess.B_Queen.png", Width = 16, Height = 32, OffsetY = -33 } },
-                        { 'b', new PieceData() { Resource = "ConsensusChessShared.Images.PixelChess.B_Bishop.png", Width = 16, Height = 32, OffsetY = -33 } },
+                        { 'R', new PieceData() { Resource = "ConsensusChessShared.Images.PixelChess.W_Rook.png", OffsetY = -22 } },
+                        { 'K', new PieceData() { Resource = "ConsensusChessShared.Images.PixelChess.W_King.png", OffsetY = -22 } },
+                        { 'N', new PieceData() { Resource = "ConsensusChessShared.Images.PixelChess.W_Knight.png", OffsetY = -22 } },
+                        { 'P', new PieceData() { Resource = "ConsensusChessShared.Images.PixelChess.W_Pawn.png", OffsetY = -22 } },
+                        { 'Q', new PieceData() { Resource = "ConsensusChessShared.Images.PixelChess.W_Queen.png", OffsetY = -22 } },
+                        { 'B', new PieceData() { Resource = "ConsensusChessShared.Images.PixelChess.W_Bishop.png", OffsetY = -22 } },
+                        { 'r', new PieceData() { Resource = "ConsensusChessShared.Images.PixelChess.B_Rook.png", OffsetY = -22 } },
+                        { 'k', new PieceData() { Resource = "ConsensusChessShared.Images.PixelChess.B_King.png", OffsetY = -22 } },
+                        { 'n', new PieceData() { Resource = "ConsensusChessShared.Images.PixelChess.B_Knight.png", OffsetY = -22 } },
+                        { 'p', new PieceData() { Resource = "ConsensusChessShared.Images.PixelChess.B_Pawn.png", OffsetY = -22 } },
+                        { 'q', new PieceData() { Resource = "ConsensusChessShared.Images.PixelChess.B_Queen.png", OffsetY = -22 } },
+                        { 'b', new PieceData() { Resource = "ConsensusChessShared.Images.PixelChess.B_Bishop.png", OffsetY = -22 } },
                     }
                 },
                 {
@@ -96,22 +104,23 @@ namespace ConsensusChessShared.Graphics
                     BoardStyle.PixelChess,
                     new CompositionData()
                     {
-                        BackgroundResource = "ConsensusChessShared.Images.PixelChess.Board.png",
+                        BackgroundResource = "ConsensusChessShared.Images.PixelChess.Board_top_border.png",
                         BlackCellResource = null,
                         WhiteCellResource = null,
-                        Width = 142, Height = 142,
-                        GridMarginLeft = 7,
-                        GridCellWidth = 16,
-                        GridMarginTop = 36,
-                        GridCellHeight = 11,
+                        GridCellWidth = 16, GridCellHeight = 11,
+                        GridOffsetX = 0, GridOffsetY = -15,
+                        GridPaddingLeft = 7, GridPaddingRight = 7,
+                        GridPaddingTop = 32, GridPaddingBottom = 0,
                         ScaleX = 4,
                         ScaleY = 4,
                         Pieces = Pieces![BoardStyle.PixelChess],
-                        CheckColour = SKColors.Red,
-                        MarkerSizeLeft = 20, MarkerSizeRight = 20,
-                        MarkerSizeTop = 20, MarkerSizeBottom = 20,
+                        CheckColour = SKColors.DarkRed,
+                        MarkerBorderLeft = 11, MarkerBorderRight = 0,
+                        MarkerBorderTop = 0, MarkerBorderBottom = 11,
                         MarkerColour = SKColors.White,
-                        MarkerBackground = SKColors.DarkGray
+                        MarkerBackground = SKColors.DimGray,
+                        MarkerShadow = SKColors.Transparent,
+                        ShadowScale = 0.5f
                     }
                 },
                 // Graphics published on OpenGameArt by JohnPablok
@@ -124,19 +133,20 @@ namespace ConsensusChessShared.Graphics
                         BackgroundResource = null,
                         BlackCellResource = "ConsensusChessShared.Images.JPCB.square_brown_dark_2x.png",
                         WhiteCellResource = "ConsensusChessShared.Images.JPCB.square_brown_light_2x.png",
-                        Width = null, Height = null, // calculated
-                        GridCellWidth = null, // calculated
-                        GridCellHeight = null, // calculated
-                        GridMarginLeft = 0, GridMarginRight = 0,
-                        GridMarginTop = 0, GridMarginBottom = 0,
+                        GridCellWidth = 901, GridCellHeight = 901,
+                        GridOffsetX = null, GridOffsetY = null,
+                        GridPaddingLeft = 0, GridPaddingRight = 0,
+                        GridPaddingTop = 0, GridPaddingBottom = 0,
                         ScaleX = 1,
                         ScaleY = 1,
                         Pieces = Pieces![BoardStyle.JPCB],
-                        CheckColour = SKColors.Red,
-                        MarkerSizeLeft = 20, MarkerSizeRight = 20,
-                        MarkerSizeTop = 20, MarkerSizeBottom = 20,
+                        CheckColour = SKColors.DarkRed,
+                        MarkerBorderLeft = 400, MarkerBorderRight = 400,
+                        MarkerBorderTop = 400, MarkerBorderBottom = 400,
                         MarkerColour = SKColors.White,
-                        MarkerBackground = SKColors.DarkGray
+                        MarkerBackground = SKColors.SaddleBrown,
+                        MarkerShadow = SKColors.Transparent,
+                        ShadowScale = 25f
                     }
                 }
             };

@@ -60,6 +60,8 @@
     <None Remove="Images\JohnPablockCburnett\w_queen_2x.png" />
     <None Remove="Images\JohnPablockCburnett\w_rook_2x.png" />
     <None Remove="Graphics\" />
+    <None Remove="Images\PixelChess\Board_no_borders.png" />
+    <None Remove="Images\PixelChess\Board_top_border.png" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DTO\" />
@@ -92,6 +94,7 @@
     <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="2.88.3" />
   </ItemGroup>
   <ItemGroup>
+    <!--
     <EmbeddedResource Include="Images\PixelChess\B_Bishop.png" />
     <EmbeddedResource Include="Images\PixelChess\B_King.png" />
     <EmbeddedResource Include="Images\PixelChess\B_Knight.png" />
@@ -99,6 +102,7 @@
     <EmbeddedResource Include="Images\PixelChess\B_Queen.png" />
     <EmbeddedResource Include="Images\PixelChess\B_Rook.png" />
     <EmbeddedResource Include="Images\PixelChess\Board.png" />
+    <EmbeddedResource Include="Images\PixelChess\Board_no_borders.png" />
     <EmbeddedResource Include="Images\PixelChess\W_Bishop.png" />
     <EmbeddedResource Include="Images\PixelChess\W_King.png" />
     <EmbeddedResource Include="Images\PixelChess\W_Knight.png" />
@@ -121,5 +125,7 @@
     <EmbeddedResource Include="Images\JPCB\w_pawn_2x.png" />
     <EmbeddedResource Include="Images\JPCB\w_queen_2x.png" />
     <EmbeddedResource Include="Images\JPCB\w_rook_2x.png" />
+    -->
+    <EmbeddedResource Include="**/*" />
   </ItemGroup>
 </Project>

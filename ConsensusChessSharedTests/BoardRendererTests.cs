@@ -13,19 +13,21 @@ namespace ConsensusChessSharedTests
 	[TestClass]
 	public class BoardRendererTests
 	{
-        [TestMethod]
-        public void ImagesAvailable()
+        [DataRow(BoardStyle.PixelChess)]
+        [DataRow(BoardStyle.JPCB)]
+        [DataTestMethod]
+        public void ImagesAvailable(BoardStyle style)
         {
 
             Assembly assembly = Assembly.GetAssembly(typeof(BoardRenderer))!;
-            foreach (var resource in BoardGraphicsData.Pieces[BoardStyle.PixelChess])
+            foreach (var resource in BoardGraphicsData.Pieces[style])
             {
                 Stream stream = assembly.GetManifestResourceStream(resource.Value.Resource)!;
                 var img = SKBitmap.Decode(stream);
 
                 Assert.IsNotNull(img);
-                Assert.AreEqual(16, img.Width);
-                Assert.AreEqual(32, img.Height);
+                Assert.IsTrue(img.Width > 2);
+                Assert.IsTrue(img.Height > 2);
             }
         }
 
@@ -34,37 +36,32 @@ namespace ConsensusChessSharedTests
         [DataTestMethod]
         public void CanRenderBoard(BoardStyle style)
         {
-            var renderer = new BoardRenderer(new Board());
-            using (var bmp = renderer.Render(style))
+            var renderer = new BoardRenderer(style);
+            using (var bmp = renderer.Render(new Board()))
             {
                 Assert.IsNotNull(bmp);
 
-                // widths no longer so easily predictable
-                //var backgroundData = BoardGraphicsData.Compositions[style];
-                //Assert.AreEqual(backgroundData.Width * backgroundData.ScaleX, bmp.Width);
-                //Assert.AreEqual(backgroundData.Height * backgroundData.ScaleY, bmp.Height);
-
                 SKData data = SKImage.FromBitmap(bmp).Encode(SKEncodedImageFormat.Png, 100);
-                using (var stream = File.OpenWrite("/tmp/image.png"))
+                using (var stream = File.OpenWrite($"/tmp/CanRenderBoard-{style}.png"))
                     data.SaveTo(stream);
             }
         }
 
-        [TestMethod]
-        public void CanRenderBoardWithCheck()
+        [DataRow(BoardStyle.PixelChess)]
+        [DataRow(BoardStyle.JPCB)]
+        [DataTestMethod]
+        public void CanRenderCheck(BoardStyle style)
         {
             var board = Board.FromFEN(SampleDataGenerator.FEN_FoolsMate);
-            var renderer = new BoardRenderer(board);
-            using (var bmp = renderer.Render(BoardStyle.PixelChess))
+            var renderer = new BoardRenderer(style);
+            using (var bmp = renderer.Render(board))
             {
                 Assert.IsNotNull(bmp);
 
                 var backgroundData = BoardGraphicsData.Compositions[BoardStyle.PixelChess];
-                Assert.AreEqual(backgroundData.Width * backgroundData.ScaleX, bmp.Width);
-                Assert.AreEqual(backgroundData.Height * backgroundData.ScaleY, bmp.Height);
 
                 SKData data = SKImage.FromBitmap(bmp).Encode(SKEncodedImageFormat.Png, 100);
-                using (var stream = File.OpenWrite("/tmp/image.png"))
+                using (var stream = File.OpenWrite($"/tmp/CanRenderCheck-{style}.png"))
                     data.SaveTo(stream);
             }
         }

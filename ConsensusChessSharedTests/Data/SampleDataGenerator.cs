@@ -77,7 +77,8 @@ namespace ConsensusChessSharedTests.Data
                 blackSideNetworkServers: new[] { NodeState.Network.NetworkServer },
                 whitePostingNodeShortcodes: new[] { NodeState.Shortcode },
                 blackPostingNodeShortcodes: new[] { NodeState.Shortcode },
-                SideRules.MoveLock);
+                SideRules.MoveLock,
+                null, null);
 
         public static Vote SampleVote()
             => new Vote(
